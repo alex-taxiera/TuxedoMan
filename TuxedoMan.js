@@ -7,7 +7,7 @@ const request = require("request");
 const yt_api_key = "AIzaSyDfos2RYQBFyr_KZlIdXkmJJ2jN8327XV0";
 const token = fs.readFileSync("data\\token.txt", "utf-8");
 const serverdata = "data\\servers.json";
-var files = fs.readdirSync("data\\playlist");
+var files = fs.readdirSync("playlist");
 const rng = seedrandom();
 var s = []; //s = servers (list of servers with all info)
 var inform_np = true;
@@ -232,7 +232,7 @@ function auto_queue(client, msg)
 {
     // get a random video
     var randomList = Math.floor((rng() * files.length));
-    var autoplaylist = JSON.parse(fs.readFileSync(`data\\playlist\\${files[randomList]}`, "utf-8"));
+    var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[randomList]}`, "utf-8"));
     var randomLineIndex = Math.floor(rng() * autoplaylist.length);
     var video = autoplaylist[randomLineIndex].link;
 
