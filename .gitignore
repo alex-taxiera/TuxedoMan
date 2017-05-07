@@ -1,6 +1,5 @@
-*/playlist
-*/data
+/playlist/*
+/data/*
 *.mp3
 */node_modules
-*/data
 */AutoPlay
