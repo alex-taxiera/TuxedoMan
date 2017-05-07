@@ -1,0 +1,180 @@
+[
+  {
+    "server": {
+      "id": "279427264804945930",
+      "name": "Botzone",
+      "owner_id": "260941210498236417",
+      "icon": "c9bbad3e714bdf084f79a0bd22eb7373",
+      "splash": null,
+      "features": [],
+      "emojis": [
+        {
+          "roles": [],
+          "require_colons": true,
+          "name": "golduck",
+          "managed": false,
+          "id": "306590410107650049"
+        }
+      ],
+      "default_message_notifications": 0,
+      "roles": [
+        {
+          "id": "279427264804945930",
+          "name": "@everyone",
+          "permissions": 104332353,
+          "mentionable": false,
+          "position": 0,
+          "hoist": false,
+          "color": 0,
+          "managed": false
+        },
+        {
+          "id": "279491219627966464",
+          "name": "Master",
+          "permissions": 2146958463,
+          "mentionable": true,
+          "position": 1,
+          "hoist": true,
+          "color": 10181046,
+          "managed": false
+        },
+        {
+          "id": "279491928372805632",
+          "name": "Machine",
+          "permissions": 104324161,
+          "mentionable": false,
+          "position": 1,
+          "hoist": true,
+          "color": 15158332,
+          "managed": false
+        }
+      ],
+      "afk_channel_id": null,
+      "afk_timeout": 300,
+      "verification_level": 0,
+      "region": "us-east",
+      "member_count": 4,
+      "large": false,
+      "mfa_level": 0,
+      "joined_at": "2017-04-26T22:21:03.693000+00:00"
+    },
+    "tc": {
+      "id": "279427264804945930",
+      "name": "general",
+      "topic": "",
+      "position": 0,
+      "type": 0,
+      "guild_id": "279427264804945930",
+      "recipients": [],
+      "permission_overwrites": [
+        {
+          "id": "279427264804945930",
+          "type": "role",
+          "allow": 0,
+          "deny": 0
+        }
+      ],
+      "bitrate": 64000,
+      "user_limit": 0,
+      "owner_id": null,
+      "icon": null
+    },
+    "vc": {
+      "id": "279427264804945931",
+      "name": "General",
+      "topic": "",
+      "position": 0,
+      "type": 2,
+      "guild_id": "279427264804945930",
+      "recipients": [],
+      "permission_overwrites": [
+        {
+          "id": "279427264804945930",
+          "type": "role",
+          "allow": 0,
+          "deny": 0
+        }
+      ],
+      "bitrate": 64000,
+      "user_limit": 0,
+      "owner_id": null,
+      "icon": null
+    },
+    "autoplay": true
+  },
+  {
+    "server": {
+      "id": "306218189619200014",
+      "name": "PIANO DEATH",
+      "owner_id": "162674484828962816",
+      "icon": null,
+      "splash": null,
+      "features": [],
+      "emojis": [],
+      "default_message_notifications": 0,
+      "roles": [
+        {
+          "id": "306218189619200014",
+          "name": "@everyone",
+          "permissions": 104324169,
+          "mentionable": false,
+          "position": 0,
+          "hoist": false,
+          "color": 0,
+          "managed": false
+        }
+      ],
+      "afk_channel_id": null,
+      "afk_timeout": 300,
+      "verification_level": 0,
+      "region": "us-east",
+      "member_count": 3,
+      "large": false,
+      "mfa_level": 0,
+      "joined_at": "2017-04-26T15:19:00.151000+00:00"
+    },
+    "tc": {
+      "id": "306218189619200014",
+      "name": "general",
+      "topic": "",
+      "position": 0,
+      "type": 0,
+      "guild_id": "306218189619200014",
+      "recipients": [],
+      "permission_overwrites": [
+        {
+          "id": "306218189619200014",
+          "type": "role",
+          "allow": 0,
+          "deny": 0
+        }
+      ],
+      "bitrate": 64000,
+      "user_limit": 0,
+      "owner_id": null,
+      "icon": null
+    },
+    "vc": {
+      "id": "306218189619200015",
+      "name": "General",
+      "topic": "",
+      "position": 0,
+      "type": 2,
+      "guild_id": "306218189619200014",
+      "recipients": [],
+      "permission_overwrites": [
+        {
+          "id": "306218189619200014",
+          "type": "role",
+          "allow": 0,
+          "deny": 0
+        }
+      ],
+      "bitrate": 96000,
+      "user_limit": 0,
+      "owner_id": null,
+      "icon": null
+    },
+    "autoplay": true
+  }
+]
