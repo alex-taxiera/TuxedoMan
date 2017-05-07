@@ -311,7 +311,7 @@ function play_next_song(client, msg)
     client.now_playing = {title: title, user: user};
 
     var video = ytdl(video_url,["--format=bestaudio/worstaudio", "--no-playlist"], {maxBuffer: Infinity});
-    video.pipe(fs.createWriteStream(`data\\music\\${client.server.id}.mp3`));
+    video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
         if (inform_np)
@@ -325,7 +325,7 @@ function play_next_song(client, msg)
         var info = bot.VoiceConnections.getForGuild(client.server.id);
         client.encoder = info.voiceConnection.createExternalEncoder({
             type: "ffmpeg",
-            source: `data\\music\\${client.server.id}.mp3`,
+            source: `data\\${client.server.id}.mp3`,
             format: "pcm"
         });
 
