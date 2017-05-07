@@ -7,6 +7,7 @@ const request = require("request");
 const yt_api_key = "AIzaSyDfos2RYQBFyr_KZlIdXkmJJ2jN8327XV0";
 const token = fs.readFileSync("data\\token.txt", "utf-8");
 const serverdata = "data\\servers.json";
+var files = fs.readdirSync("playlist");
 const rng = seedrandom();
 var s = []; //s = servers (list of servers with all info)
 var inform_np = true;
@@ -65,7 +66,6 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                 {
                     if (servers[i].id === old_servers[z].server.id)
                     {
-                        //console.log(`${servers[i].name}`);
                         var vc = servers[i].voiceChannels;
                         for (var j = 0; j < vc.length; j++)
                         {
@@ -89,6 +89,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                                                 autoplay: old_servers[z].autoplay,
                                                 encoder: {},
                                                 volume: 25,
+                                                meme: old_servers[z].meme,
                                                 swamp: true,
                                                 lmao_count: 0
                                             });
@@ -121,7 +122,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
             handle_command(msg, text.substring(1), false);
             delete_invoke(msg);
         }
-        else
+        else if (get_client(msg).meme)
         {
             handle_command(msg, text, true);
         }
@@ -163,6 +164,7 @@ function sweep_clients_and_init(servers)
                             autoplay: true,
                             encoder: {},
                             volume: 15,
+                            meme: true,
                             swamp: true,
                             lmao_count: 0
                         });
@@ -229,8 +231,8 @@ function get_client(e)
 function auto_queue(client, msg)
 {
     // get a random video
-    var randomList = Math.floor((rng() * 5) + 1);
-    var autoplaylist = JSON.parse(fs.readFileSync(`data\\${randomList}.json`, "utf-8"));
+    var randomList = Math.floor((rng() * files.length));
+    var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[randomList]}`, "utf-8"));
     var randomLineIndex = Math.floor(rng() * autoplaylist.length);
     var video = autoplaylist[randomLineIndex].link;
 
@@ -309,7 +311,7 @@ function play_next_song(client, msg)
     client.now_playing = {title: title, user: user};
 
     var video = ytdl(video_url,["--format=bestaudio/worstaudio", "--no-playlist"], {maxBuffer: Infinity});
-    video.pipe(fs.createWriteStream(`music\\${client.server.id}.mp3`));
+    video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
         if (inform_np)
@@ -323,7 +325,7 @@ function play_next_song(client, msg)
         var info = bot.VoiceConnections.getForGuild(client.server.id);
         client.encoder = info.voiceConnection.createExternalEncoder({
             type: "ffmpeg",
-            source: `music\\${client.server.id}.mp3`,
+            source: `data\\${client.server.id}.mp3`,
             format: "pcm"
         });
 
