@@ -163,7 +163,7 @@ function sweep_clients_and_init(servers)
                             paused: false,
                             autoplay: true,
                             encoder: {},
-                            volume: 15,
+                            volume: 25,
                             meme: true,
                             swamp: true,
                             lmao_count: 0
