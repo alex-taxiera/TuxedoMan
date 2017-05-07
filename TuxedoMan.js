@@ -198,7 +198,8 @@ function write_changes()
             server: s[i].server,
             tc: s[i].tc,
             vc: s[i].vc,
-            autoplay: s[i].autoplay
+            autoplay: s[i].autoplay,
+            meme: s[i].meme
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
