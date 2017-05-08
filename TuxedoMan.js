@@ -82,6 +82,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                                                 server: servers[i],
                                                 tc: tc[k],
                                                 vc: vc[j],
+                                                vip: old_servers[z].vip,
                                                 queue: [],
                                                 now_playing: {},
                                                 is_playing: false,
@@ -157,6 +158,7 @@ function sweep_clients_and_init(servers)
                             server: servers[i],
                             tc: servers[i].textChannels[0],
                             vc: vc[k],
+                            vip: null,
                             queue: [],
                             now_playing: {},
                             is_playing: false,
@@ -198,6 +200,7 @@ function write_changes()
             server: s[i].server,
             tc: s[i].tc,
             vc: s[i].vc,
+            vip: s[i].vip,
             autoplay: s[i].autoplay,
             meme: s[i].meme
         });
@@ -396,7 +399,7 @@ function handle_command(msg, text, meme)
     }
     else
     {
-        var command = search_command("meme");
+        var command = search_command("memes");
         command.execute(msg, text);
     }
 }
@@ -513,35 +516,46 @@ var commands =
         {
             var client = get_client(msg);
             var vc = bot.Channels.voiceForGuild(msg.guild);
-            for (var i = 0; i < vc.length; i++)
+            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
             {
-                if (params[1] === vc[i].name)
+                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
                 {
-                    if (client.vc !== vc[i])
+                    for (var j = 0; j < vc.length; j++)
                     {
-                        // need to check perms
-                        client.vc = vc[i];
-                        msg.reply("Default set!").then((m) =>
+                        if (params[1] === vc[j].name)
                         {
-                            setTimeout(function(){m.delete();}, 5000);
-                        });
-                        write_changes();
-                        return vc[i].join();
+                            if (client.vc !== vc[j])
+                            {
+                                // need to check perms
+                                client.vc = vc[j];
+                                msg.reply("Default set!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                write_changes();
+                                return vc[j].join();
+                            }
+                            else
+                            {
+                                msg.reply("Already default channel!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                return;
+                            }
+                        }
                     }
-                    else
+                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
                     {
-                        msg.reply("Already default channel!").then((m) =>
-                        {
-                            setTimeout(function(){m.delete();}, 5000);
-                        });
-                    }
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                    return;
                 }
             }
-            msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+            msg.reply("Must be server VIP!").then((m) =>
             {
                 setTimeout(function(){m.delete();}, 5000);
             });
-
         }
     },
     // settext
@@ -553,35 +567,46 @@ var commands =
         {
             var client = get_client(msg);
             var tc = bot.Channels.textForGuild(msg.guild);
-            for (var i = 0; i < tc.length; i++)
-            {
-                if (params[1] === tc[i].name)
-                {
-                    if (client.tc !== tc[i])
-                    {
-                        // need to check perms
-                        client.tc = tc[i];
-                        msg.reply("Default set!").then((m) =>
-                        {
-                            setTimeout(function(){m.delete();}, 5000);
-                        });
 
-                        return write_changes();
-                    }
-                    else
+            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+            {
+                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                {
+                    for (var j = 0; j < tc.length; j++)
                     {
-                        msg.reply("Already default channel!").then((m) =>
+                        if (params[1] === tc[j].name)
                         {
-                            setTimeout(function(){m.delete();}, 5000);
-                        });
+                            if (client.tc !== tc[j])
+                            {
+                                // need to check perms
+                                client.tc = tc[j];
+                                msg.reply("Default set!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                return write_changes();
+                            }
+                            else
+                            {
+                                msg.reply("Already default channel!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                return;
+                            }
+                        }
                     }
+                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                    return;
                 }
             }
-            msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+            msg.reply("Must be VIP!").then((m) =>
             {
                 setTimeout(function(){m.delete();}, 5000);
             });
-
         }
     },
     // pause
@@ -798,8 +823,19 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            client.queue = [];
-            msg.reply("Queue has been cleared!").then((m) =>
+            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+            {
+                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                {
+                    client.queue = [];
+                    msg.reply("Queue has been cleared!").then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                    return;
+                }
+            }
+            msg.reply("Must be VIP!").then((m) =>
             {
                 setTimeout(function(){m.delete();}, 5000);
             });
@@ -849,7 +885,7 @@ var commands =
     // meme hell
     {
         //meme hell
-        command: "meme",
+        command: "memes",
         description: "Memes",
         parameters: [],
         execute: function(msg, text) {
