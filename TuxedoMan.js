@@ -483,6 +483,53 @@ function delete_invoke(msg)
 
 var commands =
 [
+    //  vip
+    {
+        command: "vip",
+        description: "Set VIP role",
+        parameters: ["role name"],
+        execute: function(msg, params)
+        {
+            var client = get_client(msg);
+            if (client.server.isOwner(msg.author))
+            {
+                for (var i = 0; i < msg.guild.roles.length; i++)
+                {
+                    if (params[1] === msg.guild.roles[i].name)
+                    {
+                        if (msg.guild.roles[i].id !== client.vip)
+                        {
+                            client.vip = msg.guild.roles[i].id;
+                            msg.reply("VIP set!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            return write_changes();
+                        }
+                        else
+                        {
+                            msg.reply("VIP is already set to that role!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            return;
+                        }
+                    }
+                }
+                msg.reply(`Could not find role "${params[1]}"`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Must be server owner!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
     // volume
     {
         command: "volume",
@@ -516,9 +563,9 @@ var commands =
         {
             var client = get_client(msg);
             var vc = bot.Channels.voiceForGuild(msg.guild);
-            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
             {
-                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
                 {
                     for (var j = 0; j < vc.length; j++)
                     {
@@ -568,9 +615,9 @@ var commands =
             var client = get_client(msg);
             var tc = bot.Channels.textForGuild(msg.guild);
 
-            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
             {
-                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
                 {
                     for (var j = 0; j < tc.length; j++)
                     {
