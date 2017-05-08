@@ -490,16 +490,27 @@ var commands =
         parameters: ["role name"],
         execute: function(msg, params)
         {
+            console.log(params);
+            var full_param = "";
+            for (var i = 1; i < params.length; i++)
+            {
+                if (i !== 1)
+                {
+                    full_param += " ";
+                }
+                full_param += params[i];
+            }
+            console.log(full_param);
             var client = get_client(msg);
             if (client.server.isOwner(msg.author))
             {
-                for (var i = 0; i < msg.guild.roles.length; i++)
+                for (var j = 0; j < msg.guild.roles.length; j++)
                 {
-                    if (params[1] === msg.guild.roles[i].name)
+                    if (full_param === msg.guild.roles[j].name)
                     {
-                        if (msg.guild.roles[i].id !== client.vip)
+                        if (msg.guild.roles[j].id !== client.vip)
                         {
-                            client.vip = msg.guild.roles[i].id;
+                            client.vip = msg.guild.roles[j].id;
                             msg.reply("VIP set!").then((m) =>
                             {
                                 setTimeout(function(){m.delete();}, 5000);
@@ -516,7 +527,7 @@ var commands =
                         }
                     }
                 }
-                msg.reply(`Could not find role "${params[1]}"`).then((m) =>
+                msg.reply(`Could not find role "${full_param}"`).then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
