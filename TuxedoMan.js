@@ -10,7 +10,6 @@ const serverdata = "data\\servers.json";
 var files = fs.readdirSync("playlist");
 const rng = seedrandom();
 var s = []; //s = servers (list of servers with all info)
-var inform_np = true;
 
 var bot = new Discordie({autoreconnect: true});
 function start()
@@ -89,6 +88,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                                                 is_playing: false,
                                                 paused: false,
                                                 autoplay: old_servers[z].autoplay,
+                                                inform_np: old_servers[z].inform_np,
                                                 announce_auto: old_servers[z].announce_auto,
                                                 encoder: {},
                                                 volume: 25,
@@ -166,6 +166,7 @@ function sweep_clients_and_init(servers)
                             is_playing: false,
                             paused: false,
                             autoplay: true,
+                            inform_np: true,
                             announce_auto: true,
                             encoder: {},
                             volume: 25,
@@ -205,6 +206,7 @@ function write_changes()
             vc: s[i].vc,
             vip: s[i].vip,
             autoplay: s[i].autoplay,
+            inform_np: s[i].inform_np,
             announce_auto: s[i].announce_auto,
             meme: s[i].meme
         });
@@ -322,7 +324,7 @@ function play_next_song(client, msg)
     video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
-        if (inform_np && client.announce_auto || inform_np && user.id !== bot.User.id)
+        if (client.inform_np && client.announce_auto || client.inform_np && user.id !== bot.User.id)
         {
             client.tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
             {
