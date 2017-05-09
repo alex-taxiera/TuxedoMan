@@ -88,6 +88,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                                                 is_playing: false,
                                                 paused: false,
                                                 autoplay: old_servers[z].autoplay,
+                                                announce_auto: old_servers[z].announce_auto,
                                                 encoder: {},
                                                 volume: 25,
                                                 meme: old_servers[z].meme,
@@ -164,6 +165,7 @@ function sweep_clients_and_init(servers)
                             is_playing: false,
                             paused: false,
                             autoplay: true,
+                            announce_auto: true,
                             encoder: {},
                             volume: 25,
                             meme: true,
@@ -202,6 +204,7 @@ function write_changes()
             vc: s[i].vc,
             vip: s[i].vip,
             autoplay: s[i].autoplay,
+            announce_auto: s[i].announce_auto,
             meme: s[i].meme
         });
     }
@@ -318,7 +321,7 @@ function play_next_song(client, msg)
     video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
-        if (inform_np)
+        if (inform_np && client.announce_auto || inform_np && user !== "PIANO_MKII")
         {
             client.tc.sendMessage(`Now playing: "${title}" (requested by ${user})`).then((m) =>
             {
