@@ -497,26 +497,26 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                client.autoplay = !client.autoplay;
+                msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
                 {
-                    client.autoplay = !client.autoplay;
-                    msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    if (client.autoplay)
-                    {
-                        play_next_song(client);
-                    }
-                    return write_changes();
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                if (client.autoplay)
+                {
+                    play_next_song(client);
                 }
+                return write_changes();
             }
-            msg.reply("Must be server VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // toggle meme
@@ -527,25 +527,25 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                client.meme = !client.meme;
+                msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
                 {
-                    client.meme = !client.meme;
-                    msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return write_changes();
-                }
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                write_changes();
             }
-            msg.reply("Must be server VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
-    //  vip
+    // vip
     {
         command: "vip",
         description: "Set VIP role",
@@ -577,7 +577,7 @@ var commands =
                             {
                                 setTimeout(function(){m.delete();}, 5000);
                             });
-                            return write_changes();
+                            write_changes();
                         }
                         else
                         {
@@ -585,7 +585,6 @@ var commands =
                             {
                                 setTimeout(function(){m.delete();}, 5000);
                             });
-                            return;
                         }
                     }
                 }
@@ -636,46 +635,44 @@ var commands =
         {
             var client = get_client(msg);
             var vc = bot.Channels.voiceForGuild(msg.guild);
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                for (var j = 0; j < vc.length; j++)
                 {
-                    for (var j = 0; j < vc.length; j++)
+                    if (params[1] === vc[j].name)
                     {
-                        if (params[1] === vc[j].name)
+                        if (client.vc !== vc[j])
                         {
-                            if (client.vc !== vc[j])
+                            // need to check perms
+                            client.vc = vc[j];
+                            msg.reply("Default set!").then((m) =>
                             {
-                                // need to check perms
-                                client.vc = vc[j];
-                                msg.reply("Default set!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                write_changes();
-                                return vc[j].join();
-                            }
-                            else
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            write_changes();
+                            return vc[j].join();
+                        }
+                        else
+                        {
+                            return msg.reply("Already default channel!").then((m) =>
                             {
-                                msg.reply("Already default channel!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return;
-                            }
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
                         }
                     }
-                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
                 }
+                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
             }
-            msg.reply("Must be server VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // settext
@@ -688,45 +685,43 @@ var commands =
             var client = get_client(msg);
             var tc = bot.Channels.textForGuild(msg.guild);
 
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                for (var j = 0; j < tc.length; j++)
                 {
-                    for (var j = 0; j < tc.length; j++)
+                    if (params[1] === tc[j].name)
                     {
-                        if (params[1] === tc[j].name)
+                        if (client.tc !== tc[j])
                         {
-                            if (client.tc !== tc[j])
+                            // need to check perms
+                            client.tc = tc[j];
+                            msg.reply("Default set!").then((m) =>
                             {
-                                // need to check perms
-                                client.tc = tc[j];
-                                msg.reply("Default set!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return write_changes();
-                            }
-                            else
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            return write_changes();
+                        }
+                        else
+                        {
+                            return msg.reply("Already default channel!").then((m) =>
                             {
-                                msg.reply("Already default channel!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return;
-                            }
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
                         }
                     }
-                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
                 }
+                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
             }
-            msg.reply("Must be VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // pause
@@ -943,22 +938,22 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+
+            if (msg.author.isOwner || msg.member.hasRole(client.vip))
             {
-                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                client.queue = [];
+                msg.reply("Queue has been cleared!").then((m) =>
                 {
-                    client.queue = [];
-                    msg.reply("Queue has been cleared!").then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
-                }
+                    setTimeout(function(){m.delete();}, 5000);
+                });
             }
-            msg.reply("Must be VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // remove
