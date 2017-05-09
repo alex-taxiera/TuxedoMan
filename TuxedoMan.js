@@ -483,6 +483,36 @@ function delete_invoke(msg)
 
 var commands =
 [
+    // toggle autoplay
+    {
+        command: "autotoggle",
+        description: "Toggle music autoplay",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            {
+                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                {
+                    client.autoplay = !client.autoplay;
+                    msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                    if (client.autoplay)
+                    {
+                        play_next_song(client);
+                    }
+                    return write_changes();
+                }
+            }
+            msg.reply("Must be server VIP!").then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 5000);
+            });
+        }
+    },
     // toggle meme
     {
         command: "memetoggle",
