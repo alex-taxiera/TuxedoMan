@@ -16,6 +16,7 @@ var bot = new Discordie({autoreconnect: true});
 function start()
 {
     bot.connect({token: token});
+
 }
 
 start();
@@ -252,7 +253,7 @@ function auto_queue(client, msg)
         }
         else
         {
-            client.queue.push({title: info.title, url: video, user: "PIANO_MKII"});
+            client.queue.push({title: info.title, url: video, user: bot.User});
             play_next_song(client, msg);
         }
     });
@@ -270,7 +271,7 @@ function add_to_queue(video, msg, mute = false)
         }
         else
         {
-            client.queue.push({title: info.title, url: video, user: msg.author.username});
+            client.queue.push({title: info.title, url: video, user: msg.author});
 
             if (!mute)
             {
@@ -321,9 +322,9 @@ function play_next_song(client, msg)
     video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
-        if (inform_np && client.announce_auto || inform_np && user !== "PIANO_MKII")
+        if (inform_np && client.announce_auto || inform_np && user.id !== bot.User.id)
         {
-            client.tc.sendMessage(`Now playing: "${title}" (requested by ${user})`).then((m) =>
+            client.tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
             {
                 setTimeout(function(){m.delete();}, 25000);
             });
