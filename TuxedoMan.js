@@ -483,6 +483,32 @@ function delete_invoke(msg)
 
 var commands =
 [
+    // toggle meme
+    {
+        command: "memetoggle",
+        description: "Toggle meme posting",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
+            {
+                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
+                {
+                    client.meme = !client.meme;
+                    msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                    return write_changes();
+                }
+            }
+            msg.reply("Must be server VIP!").then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 5000);
+            });
+        }
+    },
     //  vip
     {
         command: "vip",
