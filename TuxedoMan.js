@@ -27,7 +27,11 @@ bot.Dispatcher.on("DISCONNECTED", e =>
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 {
      var client = get_client(e);
-     if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+     if (e.user.id === bot.User.id)
+     {
+         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
+     }
+     else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
      {
              client.paused = true;
              client.encoder.voiceConnection.getEncoderStream().cork();
