@@ -757,36 +757,46 @@ var commands =
         {
             var index = params[1];
             var client = get_client(msg);
-            if (client.queue.length === 0)
+            if (msg.author.isOwner || msg.member.hasRole(client.vip))
             {
-                msg.reply("The queue is empty").then((m) =>
+                if (client.queue.length === 0)
                 {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                    msg.reply("The queue is empty").then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
 
-            } else if(isNaN(index) && index !== "last")
-            {
-                msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
+                } else if(isNaN(index) && index !== "last")
+                {
+                    msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                }
+
+                if (index === "last") {index = client.queue.length;}
+                index = parseInt(index);
+                if (index < 1 || index > client.queue.length)
+                {
+                    msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                }
+
+                var deleted = client.queue.splice(index - 1, 1);
+                msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
-
-            if (index === "last") {index = client.queue.length;}
-            index = parseInt(index);
-            if (index < 1 || index > client.queue.length)
+            else
             {
-                msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
+                msg.reply("Must be VIP!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
-
-            var deleted = client.queue.splice(index - 1, 1);
-            msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
         }
     },
     // toggle np
