@@ -203,9 +203,9 @@ function write_changes()
     for (var i = 0; i < s.length; i++)
     {
         tmp.push({
-            server: s[i].server,
-            tc: s[i].tc,
-            vc: s[i].vc,
+            server: {id: s[i].server.id, name: s[i].server.name},
+            tc: {id: s[i].tc.id, name: s[i].tc.name},
+            vc: {id: s[i].vc.id, name: s[i].vc.name},
             vip: s[i].vip,
             autoplay: s[i].autoplay,
             inform_np: s[i].inform_np,
