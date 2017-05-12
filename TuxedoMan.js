@@ -15,15 +15,13 @@ var bot = new Discordie({autoreconnect: true});
 function start()
 {
     bot.connect({token: token});
-
 }
 
 start();
 
 bot.Dispatcher.on("DISCONNECTED", e =>
 {
-    console.log("Disconnected: " + e.error);
-    start();
+    console.log(e.error);
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
