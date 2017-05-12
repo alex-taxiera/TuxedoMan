@@ -491,6 +491,304 @@ function delete_invoke(msg)
 
 var commands =
 [
+    // volume
+    {
+        command: "volume",
+        description: "Set music volume.",
+        parameters: ["number (1-100)"],
+        execute: function(msg, params)
+        {
+            if (params[1] > 0 && params[1] < 101)
+            {
+                volume(get_client(msg), params[1]);
+                msg.reply("Volume set!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Invalid volume level!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+
+    // play
+    {
+        command: "play",
+        description: "Resumes paused playback",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.paused)
+            {
+                client.paused = false;
+                if (client.is_playing)
+                {
+                    client.encoder.voiceConnection.getEncoderStream().uncork();
+                }
+                msg.reply("Resuming!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Playback is already running").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+
+        }
+    },
+    // pause
+    {
+        command: "pause",
+        description: "Pauses your shit",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.paused)
+            {
+                msg.reply("Playback is already paused*").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                client.paused = true;
+                if (client.is_playing)
+                {
+                    client.encoder.voiceConnection.getEncoderStream().cork();
+                }
+                msg.reply("Pausing!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // skip
+    {
+        command: "skip",
+        description: "Skips the current song",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if(client.is_playing)
+            {
+                msg.reply("Skipping...").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                client.encoder.destroy();
+            }
+            else
+            {
+                msg.reply("There is nothing being played.").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // request
+    {
+        command: "request",
+        description: "Adds the requested video to the playlist queue",
+        parameters: ["video URL, video ID, playlist URL or alias"],
+        execute: function(msg, params)
+        {
+            var regExp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/;
+            var match = params[1].match(regExp);
+
+            if (match && match[2]){
+                queue_playlist(match[2], msg);
+            }
+            else
+            {
+                add_to_queue(params[1], msg);
+            }
+        }
+    },
+    // search
+    {
+        command: "search",
+        description: "Searches for a video on YouTube and adds it to the queue",
+        parameters: ["query"],
+        execute: function(msg, params)
+        {
+            if (yt_api_key === null)
+            {
+                msg.reply("You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 15000);
+                });
+            }
+            else
+            {
+                var q = "";
+                for (var i = 1; i < params.length; i++)
+                {
+                    q += params[i] + " ";
+                }
+                search_video(msg, q);
+            }
+
+        }
+    },
+    // np
+    {
+        command: "np",
+        description: "Displays the current song",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            var response = "Now playing: ";
+            if(client.is_playing)
+            {
+                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user})`;
+            }
+            else
+            {
+                response += "nothing!";
+            }
+            msg.reply(response).then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 10000);
+            });
+        }
+    },
+    // queue
+    {
+        command: "queue",
+        description: "Displays the queue",
+        parameters: [],
+        execute: function(msg) {
+            var response = "";
+            var client = get_client(msg);
+            if(client.queue.length === 0)
+            {
+                response = "the queue is empty.";
+            }
+            else
+            {
+                var long_queue = client.queue.length > 30;
+                for (var i = 0; i < (long_queue ? 30 : client.queue.length); i++)
+                {
+                    response += `"${client.queue[i].title}" (requested by ${client.queue[i].user})`;
+                }
+                if (long_queue)
+                {
+                    response += `\n**...and ${(client.queue.length - 30)} more.**`;
+                }
+            }
+            msg.reply(response).then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 20000);
+            });
+        }
+    },
+    // commands
+    {
+        command: "commands",
+        description: "Displays this message, duh!",
+        parameters: [],
+        execute: function(msg) {
+            var response = "Available commands:";
+
+            for(var i = 0; i < commands.length; i++) {
+                var c = commands[i];
+                response += `\n* ${c.command}`;
+
+                for(var j = 0; j < c.parameters.length; j++) {
+                    response += ` <${c.parameters[j]}>`;
+                }
+
+                response += `: ${c.description}`;
+            }
+            msg.author.openDM().then(dm => {
+                dm.sendMessage(response);
+            });
+
+        }
+    },
+    // clearqueue
+    {
+        command: "clearqueue",
+        description: "Removes all songs from the queue",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+
+            if (msg.author.isOwner || msg.member.hasRole(client.vip))
+            {
+                client.queue = [];
+                msg.reply("Queue has been cleared!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Must be VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // remove
+    {
+        command: "remove",
+        description: "Removes a song from the queue",
+        parameters: ["Request index or 'last'"],
+        execute: function(msg, params)
+        {
+            var index = params[1];
+            var client = get_client(msg);
+            if (client.queue.length === 0)
+            {
+                msg.reply("The queue is empty").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+
+            } else if(isNaN(index) && index !== "last")
+            {
+                msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+
+            if (index === "last") {index = client.queue.length;}
+            index = parseInt(index);
+            if (index < 1 || index > client.queue.length)
+            {
+                msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+
+            var deleted = client.queue.splice(index - 1, 1);
+            msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 5000);
+            });
+        }
+    },
     // toggle np
     {
         command: "nptoggle",
@@ -599,87 +897,6 @@ var commands =
             }
         }
     },
-    // vip
-    {
-        command: "vip",
-        description: "Set VIP role",
-        parameters: ["role name"],
-        execute: function(msg, params)
-        {
-            console.log(params);
-            var full_param = "";
-            for (var i = 1; i < params.length; i++)
-            {
-                if (i !== 1)
-                {
-                    full_param += " ";
-                }
-                full_param += params[i];
-            }
-            console.log(full_param);
-            var client = get_client(msg);
-            if (client.server.isOwner(msg.author))
-            {
-                for (var j = 0; j < msg.guild.roles.length; j++)
-                {
-                    if (full_param === msg.guild.roles[j].name)
-                    {
-                        if (msg.guild.roles[j].id !== client.vip)
-                        {
-                            client.vip = msg.guild.roles[j].id;
-                            msg.reply("VIP set!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                            write_changes();
-                        }
-                        else
-                        {
-                            msg.reply("VIP is already set to that role!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                        }
-                    }
-                }
-                msg.reply(`Could not find role "${full_param}"`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                msg.reply("Must be server owner!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
-    // volume
-    {
-        command: "volume",
-        description: "Set music volume.",
-        parameters: ["number (1-100)"],
-        execute: function(msg, params)
-        {
-            if (params[1] > 0 && params[1] < 101)
-            {
-                volume(get_client(msg), params[1]);
-                msg.reply("Volume set!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                msg.reply("Invalid volume level!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
     // setvoice
     {
         command: "voice",
@@ -778,277 +995,61 @@ var commands =
             }
         }
     },
-    // pause
+    // vip
     {
-        command: "pause",
-        description: "Pauses your shit",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-            if (client.paused)
-            {
-                msg.reply("Playback is already paused*").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                client.paused = true;
-                if (client.is_playing)
-                {
-                    client.encoder.voiceConnection.getEncoderStream().cork();
-                }
-                msg.reply("Pausing!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
-    // play
-    {
-        command: "play",
-        description: "Resumes paused playback",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-            if (client.paused)
-            {
-                client.paused = false;
-                if (client.is_playing)
-                {
-                    client.encoder.voiceConnection.getEncoderStream().uncork();
-                }
-                msg.reply("Resuming!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                msg.reply("Playback is already running").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-
-        }
-    },
-    // request
-    {
-        command: "request",
-        description: "Adds the requested video to the playlist queue",
-        parameters: ["video URL, video ID, playlist URL or alias"],
+        command: "vip",
+        description: "Set VIP role",
+        parameters: ["role name"],
         execute: function(msg, params)
         {
-            var regExp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/;
-            var match = params[1].match(regExp);
-
-            if (match && match[2]){
-                queue_playlist(match[2], msg);
-            }
-            else
+            console.log(params);
+            var full_param = "";
+            for (var i = 1; i < params.length; i++)
             {
-                add_to_queue(params[1], msg);
-            }
-        }
-    },
-    // search
-    {
-        command: "search",
-        description: "Searches for a video on YouTube and adds it to the queue",
-        parameters: ["query"],
-        execute: function(msg, params)
-        {
-            if (yt_api_key === null)
-            {
-                msg.reply("You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key").then((m) =>
+                if (i !== 1)
                 {
-                    setTimeout(function(){m.delete();}, 15000);
-                });
-            }
-            else
-            {
-                var q = "";
-                for (var i = 1; i < params.length; i++)
-                {
-                    q += params[i] + " ";
+                    full_param += " ";
                 }
-                search_video(msg, q);
+                full_param += params[i];
             }
-
-        }
-    },
-    // np
-    {
-        command: "np",
-        description: "Displays the current song",
-        parameters: [],
-        execute: function(msg)
-        {
+            console.log(full_param);
             var client = get_client(msg);
-            var response = "Now playing: ";
-            if(client.is_playing)
+            if (client.server.isOwner(msg.author))
             {
-                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user})`;
-            }
-            else
-            {
-                response += "nothing!";
-            }
-            msg.reply(response).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 10000);
-            });
-        }
-    },
-    // commands
-    {
-        command: "commands",
-        description: "Displays this message, duh!",
-        parameters: [],
-        execute: function(msg) {
-            var response = "Available commands:";
-
-            for(var i = 0; i < commands.length; i++) {
-                var c = commands[i];
-                response += `\n* ${c.command}`;
-
-                for(var j = 0; j < c.parameters.length; j++) {
-                    response += ` <${c.parameters[j]}>`;
+                for (var j = 0; j < msg.guild.roles.length; j++)
+                {
+                    if (full_param === msg.guild.roles[j].name)
+                    {
+                        if (msg.guild.roles[j].id !== client.vip)
+                        {
+                            client.vip = msg.guild.roles[j].id;
+                            msg.reply("VIP set!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            write_changes();
+                        }
+                        else
+                        {
+                            msg.reply("VIP is already set to that role!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                        }
+                    }
                 }
-
-                response += `: ${c.description}`;
-            }
-            msg.author.openDM().then(dm => {
-                dm.sendMessage(response);
-            });
-
-        }
-    },
-    // skip
-    {
-        command: "skip",
-        description: "Skips the current song",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-            if(client.is_playing)
-            {
-                msg.reply("Skipping...").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-                client.encoder.destroy();
-            }
-            else
-            {
-                msg.reply("There is nothing being played.").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
-    // queue
-    {
-        command: "queue",
-        description: "Displays the queue",
-        parameters: [],
-        execute: function(msg) {
-            var response = "";
-            var client = get_client(msg);
-            if(client.queue.length === 0)
-            {
-                response = "the queue is empty.";
-            }
-            else
-            {
-                var long_queue = client.queue.length > 30;
-                for (var i = 0; i < (long_queue ? 30 : client.queue.length); i++)
-                {
-                    response += `"${client.queue[i].title}" (requested by ${client.queue[i].user})`;
-                }
-                if (long_queue)
-                {
-                    response += `\n**...and ${(client.queue.length - 30)} more.**`;
-                }
-            }
-            msg.reply(response).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 20000);
-            });
-        }
-    },
-    // clearqueue
-    {
-        command: "clearqueue",
-        description: "Removes all songs from the queue",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-
-            if (msg.author.isOwner || msg.member.hasRole(client.vip))
-            {
-                client.queue = [];
-                msg.reply("Queue has been cleared!").then((m) =>
+                msg.reply(`Could not find role "${full_param}"`).then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
             else
             {
-                msg.reply("Must be VIP!").then((m) =>
+                msg.reply("Must be server owner!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
-        }
-    },
-    // remove
-    {
-        command: "remove",
-        description: "Removes a song from the queue",
-        parameters: ["Request index or 'last'"],
-        execute: function(msg, params)
-        {
-            var index = params[1];
-            var client = get_client(msg);
-            if (client.queue.length === 0)
-            {
-                msg.reply("The queue is empty").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-
-            } else if(isNaN(index) && index !== "last")
-            {
-                msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-
-            if (index === "last") {index = client.queue.length;}
-            index = parseInt(index);
-            if (index < 1 || index > client.queue.length)
-            {
-                msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-
-            var deleted = client.queue.splice(index - 1, 1);
-            msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
         }
     },
     // meme hell
