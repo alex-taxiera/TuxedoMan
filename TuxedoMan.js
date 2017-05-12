@@ -26,26 +26,26 @@ bot.Dispatcher.on("DISCONNECTED", e =>
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 {
-     var client = get_client(e);
-     if (e.user.id === bot.User.id)
-     {
-         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
-     }
-     else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-     {
-             client.paused = true;
-             client.encoder.voiceConnection.getEncoderStream().cork();
-     }
+    var client = get_client(e);
+    if (e.user.id === bot.User.id)
+    {
+        console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
+    }
+    else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    {
+        client.paused = true;
+        client.encoder.voiceConnection.getEncoderStream().cork();
+    }
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 {
-     var client = get_client(e);
-     if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-     {
-             client.paused = true;
-             client.encoder.voiceConnection.getEncoderStream().cork();
-     }
+    var client = get_client(e);
+    if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    {
+        client.paused = true;
+        client.encoder.voiceConnection.getEncoderStream().cork();
+    }
 });
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
@@ -56,7 +56,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
         var servers = bot.Guilds.toArray();
         if(!err)
         {
-            var tmp = null;
+            var tmp = undefined;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
             if (old_servers === [])
             {
@@ -76,25 +76,29 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                         break;
                     }
                 }
-                if (tmp !== null)
+                if (tmp !== undefined)
                 {
                     var tc = servers[i].textChannels;
                     for (j = 0; j < tc.length; j++)
                     {
                         if (tc[j].id === old_servers[tmp.position].tc.id)
                         {
-                            //TODO if (can send messages)
-                            tmp.tc = tc[j];
-                            break;
+                            if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                            {
+                                tmp.tc = tc[j];
+                                break;
+                            }
                         }
                     }
-                    if (tmp.tc === null)
+                    if (tmp.tc === undefined)
                     {
                         for (j = 0; j < tc.length; j++)
                         {
-                            //TODO if (can send messages)
-                            tmp.tc = tc[0];
-                            break;
+                            if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                            {
+                                tmp.tc = tc[j];
+                                break;
+                            }
                         }
                     }
                     var vc = servers[i].voiceChannels;
@@ -102,21 +106,21 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         if (vc[j].id === old_servers[tmp.position].vc.id)
                         {
-                            //TODO if (can speak)
-                            if (vc[j].join())
+                            if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
                             {
+                                vc[j].join();
                                 tmp.vc = vc[j];
                                 break;
                             }
                         }
                     }
-                    if (tmp.vc === null)
+                    if (tmp.vc === undefined)
                     {
                         for (j = 0; j < vc.length; j++)
                         {
-                            //TODO if (can speak)
-                            if (vc[j].join())
+                            if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
                             {
+                                vc[j].join();
                                 tmp.vc = vc[j];
                                 break;
                             }
@@ -141,7 +145,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                         lmao_count: 0
                     });
                     delete servers[i];
-                    tmp = null;
+                    tmp = undefined;
                 }
             }
             sweep_clients_and_init(servers);
@@ -425,10 +429,11 @@ function search_command(command_name)
 
 function handle_command(msg, text, meme)
 {
+    var command = "";
     if (!meme)
     {
         var params = text.split(" ");
-        var command = search_command(params[0]);
+        command = search_command(params[0]);
 
         if(command)
         {
@@ -439,19 +444,17 @@ function handle_command(msg, text, meme)
                     setTimeout(function(){m.delete();}, 25000);
                 });
             }
-             else
-             {
+            else
+            {
                 command.execute(msg, params);
                 return true;
             }
         }
-        //return false;
     }
     else
     {
-        var command = search_command("memes");
+        command = search_command("memes");
         command.execute(msg, text);
-        //return false;
     }
 }
 
