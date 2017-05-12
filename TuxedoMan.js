@@ -139,7 +139,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                         swamp: true,
                         lmao_count: 0
                     });
-                    servers[i] = null;
+                    delete servers[i];
                     tmp = null;
                 }
             }
@@ -175,7 +175,7 @@ function sweep_clients_and_init(servers)
 {
     for (var i = 0; i < servers.length; i++)
     {
-        if (servers[i] !== null)
+        if (servers[i] !== undefined)
         {
             var tmp = {};
             var j;
