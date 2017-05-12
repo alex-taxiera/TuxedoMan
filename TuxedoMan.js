@@ -56,6 +56,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
         var servers = bot.Guilds.toArray();
         if(!err)
         {
+            var tmp = null;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
             if (old_servers === [])
             {
@@ -64,46 +65,82 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
             }
             for (var i = 0; i < servers.length; i++)
             {
-                for (var z = 0; z < old_servers.length; z++)
+                var j;
+                for (j = 0; j < old_servers.length; j++)
                 {
-                    if (servers[i].id === old_servers[z].server.id)
+                    if (servers[i].id === old_servers[j].server.id)
                     {
-                        var vc = servers[i].voiceChannels;
-                        for (var j = 0; j < vc.length; j++)
+                        tmp = {};
+                        tmp.position = j;
+                        tmp.server = servers[i];
+                        break;
+                    }
+                }
+                if (tmp !== null)
+                {
+                    var tc = servers[i].textChannels;
+                    for (j = 0; j < tc.length; j++)
+                    {
+                        if (tc[j].id === old_servers[tmp.position].tc.id)
                         {
-                            if (vc[j].id === old_servers[z].vc.id)
+                            tmp.tc = tc[j];
+                            break;
+                        }
+                    }
+                    if (tmp.tc === null)
+                    {
+                        for (j = 0; j < tc.length; j++)
+                        {
+                            //TODO if (can send messages)
+                            tmp.tc = tc[0];
+                            break;
+                        }
+                    }
+                    var vc = servers[i].voiceChannels;
+                    for (j = 0; j < vc.length; j++)
+                    {
+                        if (vc[j].id === old_servers[tmp.position].vc.id)
+                        {
+                            //TODO if (can speak)
+                            if (vc[j].join())
                             {
-                                if (vc[j].join())
-                                {
-                                    var tc = servers[i].textChannels;
-                                    for (var k = 0; k < tc.length; k++)
-                                    {
-                                        if (tc[k].id === old_servers[z].tc.id)
-                                        {
-                                            s.push({
-                                                server: servers[i],
-                                                tc: tc[k],
-                                                vc: vc[j],
-                                                vip: old_servers[z].vip,
-                                                queue: [],
-                                                now_playing: {},
-                                                is_playing: false,
-                                                paused: false,
-                                                autoplay: old_servers[z].autoplay,
-                                                inform_np: old_servers[z].inform_np,
-                                                announce_auto: old_servers[z].announce_auto,
-                                                encoder: {},
-                                                volume: 25,
-                                                meme: old_servers[z].meme,
-                                                swamp: true,
-                                                lmao_count: 0
-                                            });
-                                        }
-                                    }
-                                }
+                                tmp.vc = vc[j];
+                                break;
                             }
                         }
                     }
+                    if (tmp.vc === null)
+                    {
+                        for (j = 0; j < vc.length; j++)
+                        {
+                            //TODO if (can speak)
+                            if (vc[j].join())
+                            {
+                                tmp.vc = vc[j];
+                                break;
+                            }
+                        }
+                    }
+                    s.push({
+                        server: tmp.server,
+                        tc: tmp.tc,
+                        vc: tmp.vc,
+                        vip: old_servers[tmp.position].vip,
+                        queue: [],
+                        now_playing: {},
+                        is_playing: false,
+                        paused: false,
+                        autoplay: old_servers[tmp.position].autoplay,
+                        inform_np: old_servers[tmp.position].inform_np,
+                        announce_auto: old_servers[tmp.position].announce_auto,
+                        encoder: {},
+                        volume: 25,
+                        meme: old_servers[tmp.position].meme,
+                        swamp: true,
+                        lmao_count: 0
+                    });
+                    servers[i] = null;
+                    tmp = null;
                 }
             }
             sweep_clients_and_init(servers);
@@ -138,48 +175,48 @@ function sweep_clients_and_init(servers)
 {
     for (var i = 0; i < servers.length; i++)
     {
-        for (var j = -1; j < s.length; j++)
+        if (servers[i] !== null)
         {
-            if (s.length !== 0)
+            var tmp = {};
+            var j;
+            tmp.server = servers[i];
+
+            var tc = servers[i].textChannels;
+            for (j = 0; j < tc.length; j++)
             {
-                if (j === -1)
+                //TODO if (can send messages)
+                tmp.tc = tc[0];
+                break;
+            }
+
+            var vc = servers[i].voiceChannels;
+            for (j = 0; j < vc.length; j++)
+            {
+                //TODO if (can speak)
+                if (vc[j].join())
                 {
-                    j++;
-                }
-                if (servers[i].id === s[j].server.id)
-                {
+                    tmp.vc = vc[j];
                     break;
                 }
             }
-            if (j === (s.length - 1))
-            {
-                var vc = servers[i].voiceChannels;
-                for (var k = 0; k < vc.length; k++)
-                {
-                    if (vc[k].join())
-                    {
-                        s.push({
-                            server: servers[i],
-                            tc: servers[i].textChannels[0],
-                            vc: vc[k],
-                            vip: null,
-                            queue: [],
-                            now_playing: {},
-                            is_playing: false,
-                            paused: false,
-                            autoplay: true,
-                            inform_np: true,
-                            announce_auto: true,
-                            encoder: {},
-                            volume: 25,
-                            meme: true,
-                            swamp: true,
-                            lmao_count: 0
-                        });
-                        break;
-                    }
-                }
-            }
+            s.push({
+                server: tmp.server,
+                tc: tmp.tc,
+                vc: tmp.vc,
+                vip: null,
+                queue: [],
+                now_playing: {},
+                is_playing: false,
+                paused: false,
+                autoplay: true,
+                inform_np: true,
+                announce_auto: true,
+                encoder: {},
+                volume: 25,
+                meme: true,
+                swamp: true,
+                lmao_count: 0
+            });
         }
     }
     write_changes();
@@ -484,7 +521,6 @@ function delete_invoke(msg)
 {
     if (bot.User.permissionsFor(msg.channel).Text.MANAGE_MESSAGES)
     {
-        //FIXME MANAGE_MESSAGES
         setTimeout(function(){msg.delete();}, 5000);
     }
 }
@@ -515,7 +551,6 @@ var commands =
             }
         }
     },
-
     // play
     {
         command: "play",
