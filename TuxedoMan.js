@@ -83,6 +83,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         if (tc[j].id === old_servers[tmp.position].tc.id)
                         {
+                            //TODO if (can send messages)
                             tmp.tc = tc[j];
                             break;
                         }
@@ -161,8 +162,10 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
     {
         if (text[0] == "*")
         {
-            handle_command(msg, text.substring(1), false);
-            delete_invoke(msg);
+            if (handle_command(msg, text.substring(1), false))
+            {
+                delete_invoke(msg);
+            }
         }
         else if (get_client(msg).meme)
         {
@@ -439,13 +442,16 @@ function handle_command(msg, text, meme)
              else
              {
                 command.execute(msg, params);
+                return true;
             }
         }
+        //return false;
     }
     else
     {
         var command = search_command("memes");
         command.execute(msg, text);
+        //return false;
     }
 }
 
