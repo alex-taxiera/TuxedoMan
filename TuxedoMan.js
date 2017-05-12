@@ -1095,7 +1095,6 @@ var commands =
             //baby
             else if (text.includes(" baby ") || text === "baby")
             {
-                console.log("Sending baby.gif...");
                 msg.channel.uploadFile("images\\baby.gif", "images\\baby.gif");
             }
             //ban
