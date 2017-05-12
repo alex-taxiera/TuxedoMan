@@ -491,6 +491,58 @@ function delete_invoke(msg)
 
 var commands =
 [
+    // toggle np
+    {
+        command: "nptoggle",
+        description: "Toggle announcing when a song starts playing",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.inform_np = !client.inform_np;
+                msg.reply(`Now Playing announcements set to ${client.inform_np}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                return write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // toggle auto np
+    {
+        command: "autonptoggle",
+        description: "Toggle announcing when an autoplay song starts playing",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.announce_auto = !client.announce_auto;
+                msg.reply(`Now Playing (autoplay) announcements set to ${client.announce_auto}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                return write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
     // toggle autoplay
     {
         command: "autotoggle",
