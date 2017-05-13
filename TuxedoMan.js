@@ -704,7 +704,7 @@ var commands =
             var response = "Now playing: ";
             if(client.is_playing)
             {
-                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user})`;
+                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user.username})`;
             }
             else
             {
