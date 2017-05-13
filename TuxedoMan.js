@@ -9,9 +9,9 @@ const token = fs.readFileSync("data\\token.txt", "utf-8");
 const serverdata = "data\\servers.json";
 var files = fs.readdirSync("playlist");
 const rng = seedrandom();
-var s = []; //s = servers (list of servers with all info)
+var s; //s = servers (list of servers with all info)
 
-var bot = new Discordie({autoreconnect: true});
+var bot = new Discordie();
 function start()
 {
     bot.connect({token: token});
@@ -22,6 +22,7 @@ start();
 bot.Dispatcher.on("DISCONNECTED", e =>
 {
     console.log(e.error);
+    start();
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
@@ -50,6 +51,7 @@ bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
+    s = [];
     console.log("BZZT ONLINE BZZT");
     fs.stat(serverdata, function(err)
     {
@@ -191,17 +193,19 @@ function sweep_clients_and_init(servers)
             var tc = servers[i].textChannels;
             for (j = 0; j < tc.length; j++)
             {
-                //TODO if (can send messages)
-                tmp.tc = tc[0];
-                break;
+                if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                {
+                    tmp.tc = tc[j];
+                    break;
+                }
             }
 
             var vc = servers[i].voiceChannels;
             for (j = 0; j < vc.length; j++)
             {
-                //TODO if (can speak)
-                if (vc[j].join())
+                if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
                 {
+                    vc[j].join();
                     tmp.vc = vc[j];
                     break;
                 }
