@@ -17,6 +17,46 @@ function start()
     bot.connect({token: token});
 }
 
+function _can(permissions, context)
+{
+    var can = false;
+    var perm = bot.User.permissionsFor(context);
+    for (var i = 0; i < permissions.length; i++)
+    {
+        if (context.type === 0)
+        {
+            var text = perm.Text;
+            for (var p in text)
+            {
+                if (!text.hasOwnProperty(p))
+                {
+                    continue;
+                }
+                if (p === permissions[i])
+                {
+                    can = text[p];
+                }
+            }
+        }
+        else if (context.type === 2)
+        {
+            var voice = perm.Voice;
+            for (var p in voice)
+            {
+                if (!voice.hasOwnProperty(p))
+                {
+                    continue;
+                }
+                if (p === permissions[i])
+                {
+                    can = voice[p];
+                }
+            }
+        }
+    }
+    return can;
+}
+
 start();
 
 bot.Dispatcher.on("DISCONNECTED", e =>
@@ -53,6 +93,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
 {
     s = [];
     console.log("BZZT ONLINE BZZT");
+    bot.User.setGame("BZZT KILLING BZZT");
     fs.stat(serverdata, function(err)
     {
         var servers = bot.Guilds.toArray();
@@ -85,7 +126,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         if (tc[j].id === old_servers[tmp.position].tc.id)
                         {
-                            if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                            if (_can(["SEND_MESSAGES"], tc[j]))
                             {
                                 tmp.tc = tc[j];
                                 break;
@@ -96,7 +137,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         for (j = 0; j < tc.length; j++)
                         {
-                            if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                            if (_can(["SEND_MESSAGES"], tc[j]))
                             {
                                 tmp.tc = tc[j];
                                 break;
@@ -108,7 +149,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         if (vc[j].id === old_servers[tmp.position].vc.id)
                         {
-                            if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
+                            if (_can(["SPEAK", "CONNECT"], vc[j]))
                             {
                                 vc[j].join();
                                 tmp.vc = vc[j];
@@ -120,7 +161,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     {
                         for (j = 0; j < vc.length; j++)
                         {
-                            if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
+                            if (_can(["SPEAK", "CONNECT"], vc[j]))
                             {
                                 vc[j].join();
                                 tmp.vc = vc[j];
@@ -129,9 +170,9 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                         }
                     }
                     s.push({
-                        server: tmp.server,
-                        tc: tmp.tc,
-                        vc: tmp.vc,
+                        server: {id: tmp.server.id, name: tmp.server.name},
+                        tc: {id: tmp.tc.id, name: tmp.tc.name},
+                        vc: {id: tmp.vc.id, name: tmp.vc.name},
                         vip: old_servers[tmp.position].vip,
                         queue: [],
                         now_playing: {},
@@ -170,7 +211,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
         {
             if (handle_command(msg, text.substring(1), false))
             {
-                if (bot.User.permissionsFor(msg.channel).Text.MANAGE_MESSAGES)
+                if (_can("MANAGE_MESSAGES", msg.channel))
                 {
                     setTimeout(function(){msg.delete();}, 5000);
                 }
@@ -185,7 +226,8 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 
 function sweep_clients_and_init(servers)
 {
-    for (var i = 0; i < servers.length; i++)
+    var i;
+    for (i = 0; i < servers.length; i++)
     {
         if (servers[i] !== undefined)
         {
@@ -196,7 +238,7 @@ function sweep_clients_and_init(servers)
             var tc = servers[i].textChannels;
             for (j = 0; j < tc.length; j++)
             {
-                if (bot.User.permissionsFor(tc[j]).Text.SEND_MESSAGES)
+                if (_can(["SEND_MESSAGES"], tc[j]))
                 {
                     tmp.tc = tc[j];
                     break;
@@ -206,7 +248,7 @@ function sweep_clients_and_init(servers)
             var vc = servers[i].voiceChannels;
             for (j = 0; j < vc.length; j++)
             {
-                if (bot.User.permissionsFor(vc[j]).Voice.SPEAK && bot.User.permissionsFor(vc[j]).Voice.CONNECT)
+                if (_can(["SPEAK", "CONNECT"], vc[j]))
                 {
                     vc[j].join();
                     tmp.vc = vc[j];
@@ -214,9 +256,9 @@ function sweep_clients_and_init(servers)
                 }
             }
             s.push({
-                server: tmp.server,
-                tc: tmp.tc,
-                vc: tmp.vc,
+                server: {id: tmp.server.id, name: tmp.server.name},
+                tc: {id: tmp.tc.id, name: tmp.tc.name},
+                vc: {id: tmp.vc.id, name: tmp.vc.name},
                 vip: null,
                 queue: [],
                 now_playing: {},
@@ -233,18 +275,20 @@ function sweep_clients_and_init(servers)
             });
         }
     }
-    write_changes();
-
-    bot.User.setGame("BZZT KILLING BZZT");
-    console.log("BZZT READY TO KILL BZZT");
-
-    for (i = 0; i < s.length; i++)
+    setTimeout(function()
     {
-        if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
+        for (i = 0; i < s.length; i++)
         {
-            auto_queue(s[i]);
+            if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
+            {
+                console.log(`BZZT START AUTOPLAY FOR ${s[i].server.name.toUpperCase()} BZZT`);
+                auto_queue(s[i]);
+            }
         }
-    }
+    }, 2000);
+
+    write_changes();
+    console.log("BZZT READY TO KILL BZZT");
 }
 
 function write_changes()
@@ -253,9 +297,9 @@ function write_changes()
     for (var i = 0; i < s.length; i++)
     {
         tmp.push({
-            server: {id: s[i].server.id, name: s[i].server.name},
-            tc: {id: s[i].tc.id, name: s[i].tc.name},
-            vc: {id: s[i].vc.id, name: s[i].vc.name},
+            server: s[i].server,
+            tc: s[i].tc,
+            vc: s[i].vc,
             vip: s[i].vip,
             autoplay: s[i].autoplay,
             inform_np: s[i].inform_np,
@@ -350,6 +394,13 @@ function volume(client, vol)
     client.encoder.voiceConnection.getEncoder().setVolume(vol);
 }
 
+function get_tc(client)
+{
+    const guild = bot.Guilds.find(g => g.id == client.server.id);
+    //TODO if channel no longer exists
+    return guild.channels.find(c => c.id == client.tc.id);
+}
+
 function play_next_song(client, msg)
 {
     if (client.queue.length === 0)
@@ -379,7 +430,8 @@ function play_next_song(client, msg)
     {
         if (client.inform_np && client.announce_auto || client.inform_np && user.id !== bot.User.id)
         {
-            client.tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
+            var tc = get_tc(client);
+            tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
             {
                 setTimeout(function(){m.delete();}, 25000);
             });
