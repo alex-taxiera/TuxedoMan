@@ -412,7 +412,7 @@ function play_next_song(client, msg)
                 console.log(`BZZT NEXT IN QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
                 play_next_song(client, null);
             }
-            else if (client.autoplay)
+            else if (!client.paused && client.autoplay)
             {
                 console.log(`BZZT AUTO QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
                 auto_queue(client);
@@ -562,7 +562,7 @@ var commands =
     // play
     {
         command: "play",
-        description: "Resumes paused playback",
+        description: "Resumes paused/stopped playback",
         parameters: [],
         execute: function(msg)
         {
@@ -571,6 +571,7 @@ var commands =
             {
                 if (client.autoplay)
                 {
+                    client.paused = false;
                     auto_queue(client);
                 }
                 else
@@ -613,7 +614,7 @@ var commands =
             var client = get_client(msg);
             if (client.paused)
             {
-                msg.reply("Playback is already paused*").then((m) =>
+                msg.reply("Playback is already paused!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
@@ -626,6 +627,32 @@ var commands =
                     client.encoder.voiceConnection.getEncoderStream().cork();
                 }
                 msg.reply("Pausing!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // stop
+    {
+        command: "stop",
+        description: "Delete current song and prevent further playback",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.is_playing)
+            {
+                msg.reply("Stopping...").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                client.paused = true;
+                client.encoder.destroy();
+            }
+            else
+            {
+                msg.reply("Bot is not playing anything!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
@@ -923,9 +950,10 @@ var commands =
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
-                if (client.autoplay)
+                if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
                 {
-                    play_next_song(client);
+                    client.paused = false;
+                    auto_queue(client);
                 }
                 return write_changes();
             }
