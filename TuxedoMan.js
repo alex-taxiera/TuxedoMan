@@ -868,7 +868,7 @@ var commands =
         {
             var client = get_client(msg);
 
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.queue = [];
                 msg.reply("Queue has been cleared!").then((m) =>
@@ -894,7 +894,7 @@ var commands =
         {
             var index = params[1];
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 if (client.queue.length === 0)
                 {
@@ -944,7 +944,7 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.inform_np = !client.inform_np;
                 msg.reply(`Now Playing announcements set to ${client.inform_np}!`).then((m) =>
@@ -970,7 +970,7 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.announce_auto = !client.announce_auto;
                 msg.reply(`Now Playing (autoplay) announcements set to ${client.announce_auto}!`).then((m) =>
@@ -996,7 +996,7 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.autoplay = !client.autoplay;
                 msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
@@ -1027,7 +1027,7 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.meme = !client.meme;
                 msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
@@ -1054,22 +1054,41 @@ var commands =
         {
             var client = get_client(msg);
             var vc = bot.Channels.voiceForGuild(msg.guild);
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 for (var j = 0; j < vc.length; j++)
                 {
                     if (params[1] === vc[j].name)
                     {
-                        if (client.vc !== vc[j])
+                        if (client.vc.id !== vc[j].id)
                         {
-                            //TODO need to check perms
-                            client.vc = {id: vc[j].id, name: vc[j].name};
-                            msg.reply("Default set!").then((m) =>
+                            if (_can(["CONNECT"], vc[j]))
                             {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                            write_changes();
-                            return vc[j].join();
+                                if (_can(["SPEAK"], vc[j]))
+                                {
+                                    client.vc = {id: vc[j].id, name: vc[j].name};
+                                    msg.reply("Default set!").then((m) =>
+                                    {
+                                        setTimeout(function(){m.delete();}, 5000);
+                                    });
+                                    write_changes();
+                                    return vc[j].join();
+                                }
+                                else
+                                {
+                                    msg.reply("Cannot speak in that channel!").then((m) =>
+                                    {
+                                        setTimeout(function(){m.delete();}, 5000);
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                msg.reply("Cannot connect to that channel!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                            }
                         }
                         else
                         {
@@ -1104,21 +1123,30 @@ var commands =
             var client = get_client(msg);
             var tc = bot.Channels.textForGuild(msg.guild);
 
-            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 for (var j = 0; j < tc.length; j++)
                 {
                     if (params[1] === tc[j].name)
                     {
-                        if (client.tc !== tc[j])
+                        if (client.tc.id !== tc[j].id)
                         {
-                            // need to check perms
-                            client.tc = {id: tc[j].id, name: tc[j].name};
-                            msg.reply("Default set!").then((m) =>
+                            if (_can(["SEND_MESSAGES"], tc[j]))
                             {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                            return write_changes();
+                                client.tc = {id: tc[j].id, name: tc[j].name};
+                                msg.reply("Default set!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                return write_changes();
+                            }
+                            else
+                            {
+                                msg.reply("Cannot send messages there!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                            }
                         }
                         else
                         {
@@ -1162,7 +1190,7 @@ var commands =
             }
             console.log(full_param);
             var client = get_client(msg);
-            if (client.server.isOwner(msg.author))
+            if (msg.guild.isOwner(msg.author))
             {
                 for (var j = 0; j < msg.guild.roles.length; j++)
                 {
