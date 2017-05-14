@@ -170,7 +170,10 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
         {
             if (handle_command(msg, text.substring(1), false))
             {
-                delete_invoke(msg);
+                if (bot.User.permissionsFor(msg.channel).Text.MANAGE_MESSAGES)
+                {
+                    setTimeout(function(){msg.delete();}, 5000);
+                }
             }
         }
         else if (get_client(msg).meme)
@@ -528,14 +531,6 @@ function queue_playlist(playlistId, msg, pageToken = "")
             queue_playlist(playlistId, msg, json.nextPageToken);
         }
     });
-}
-
-function delete_invoke(msg)
-{
-    if (bot.User.permissionsFor(msg.channel).Text.MANAGE_MESSAGES)
-    {
-        setTimeout(function(){msg.delete();}, 5000);
-    }
 }
 
 var commands =
@@ -1110,27 +1105,29 @@ var commands =
             }
         }
     },
-    // restart
-    // {
-    //     command: "restart",
-    //     description: "Restart the bot",
-    //     parameters: [],
-    //     execute: function(msg)
-    //     {
-    //         var client = get_client(msg);
-    //         if (client.server.isOwner(msg.author))
-    //         {
-    //             bot.disconnect();
-    //         }
-    //         else
-    //         {
-    //             msg.reply("Must be server owner!").then((m) =>
-    //             {
-    //                 setTimeout(function(){m.delete();}, 5000);
-    //             });
-    //         }
-    //     }
-    // },
+    /*
+    //restart
+    {
+        command: "restart",
+        description: "Restart the bot",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.server.isOwner(msg.author))
+            {
+                bot.disconnect();
+            }
+            else
+            {
+                msg.reply("Must be server owner!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    */
     // meme hell
     {
         //meme hell
