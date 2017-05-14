@@ -164,7 +164,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 {
     var msg = e.message;
     var text = msg.content;
-    if (!msg.author.bot)
+    if (msg.author.id !== bot.User.id)
     {
         if (text[0] == "*")
         {
