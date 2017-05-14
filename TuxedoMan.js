@@ -363,9 +363,12 @@ function add_to_queue(video, msg, mute = false)
     var client = get_client(msg);
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
     {
-        if(error)
+        if (error)
         {
-            msg.reply(`The requested video (${video}) does not exist or cannot be played.`);
+            msg.reply(`The requested video (${video}) does not exist or cannot be played.`).then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 5000);
+            });
             console.log(`Error (${video}): ${error}`);
         }
         else
@@ -379,7 +382,7 @@ function add_to_queue(video, msg, mute = false)
                     setTimeout(function(){m.delete();}, 10000);
                 });
             }
-            if(!client.is_playing && client.queue.length === 1)
+            if (!client.is_playing && client.queue.length === 1)
             {
                 client.paused = false;
                 return play_next_song(client);
@@ -396,9 +399,8 @@ function volume(client, vol)
 
 function get_tc(client)
 {
-    const guild = bot.Guilds.find(g => g.id == client.server.id);
     //TODO if channel no longer exists
-    return guild.channels.find(c => c.id == client.tc.id);
+    return bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
 }
 
 function play_next_song(client, msg)
@@ -447,7 +449,6 @@ function play_next_song(client, msg)
         console.log(`BZZT SONG START ON ${client.server.name.toUpperCase()} BZZT`);
         client.encoder.play();
         volume(client, client.volume);
-        //console.log(client.encoder);
         client.is_playing = true;
 
         if (client.encoder.voiceConnection.channel.members.length === 1)
@@ -1061,8 +1062,8 @@ var commands =
                     {
                         if (client.vc !== vc[j])
                         {
-                            // need to check perms
-                            client.vc = vc[j];
+                            //TODO need to check perms
+                            client.vc = {id: vc[j].id, name: vc[j].name};
                             msg.reply("Default set!").then((m) =>
                             {
                                 setTimeout(function(){m.delete();}, 5000);
@@ -1112,7 +1113,7 @@ var commands =
                         if (client.tc !== tc[j])
                         {
                             // need to check perms
-                            client.tc = tc[j];
+                            client.tc = {id: tc[j].id, name: tc[j].name};
                             msg.reply("Default set!").then((m) =>
                             {
                                 setTimeout(function(){m.delete();}, 5000);
