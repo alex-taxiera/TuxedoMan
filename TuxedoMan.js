@@ -269,9 +269,10 @@ function write_changes()
 
 function get_client(e)
 {
+    var i;
     if (e.guildId)
     {
-        for (var i = 0; i < s.length; i++)
+        for (i = 0; i < s.length; i++)
         {
             if (s[i].server.id === e.guildId)
             {
@@ -281,7 +282,7 @@ function get_client(e)
     }
     else if (e.guild.id)
     {
-        for (var i = 0; i < s.length; i++)
+        for (i = 0; i < s.length; i++)
         {
             if (s[i].server.id === e.guild.id)
             {
@@ -567,7 +568,11 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.paused)
+            if (!client.is_playing)
+            {
+                play_next_song(client, msg);
+            }
+            else if (client.paused)
             {
                 client.paused = false;
                 if (client.is_playing)
@@ -1136,6 +1141,7 @@ var commands =
         parameters: [],
         execute: function(msg, text) {
             text = text.toLowerCase();
+            var client = get_client(msg);
             //MEME HELL DO NOT GO BELOW
 
             //DVA EXAMPLE
@@ -1277,7 +1283,6 @@ var commands =
             //lmao
             if (text.includes(" lmao ") || text === "lmao")
             {
-                var client = get_client(msg);
                 client.lmao_count++;
                 if (client.lmao_count > 10)
                 {
@@ -1303,7 +1308,6 @@ var commands =
             //myswamp
             if (text.includes("swamp"))
             {
-                var client = get_client(msg);
                 if (client.swamp)
                 {
                     client.swamp = false;
