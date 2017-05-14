@@ -240,9 +240,8 @@ function sweep_clients_and_init(servers)
 
     for (i = 0; i < s.length; i++)
     {
-        if (s[i].autoplay)
+        if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
         {
-            console.log(`BZZT AUTOPLAY FOR ${s[i].server.name.toUpperCase()} BZZT`);
             play_next_song(s[i]);
         }
     }
