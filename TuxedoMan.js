@@ -242,7 +242,7 @@ function sweep_clients_and_init(servers)
     {
         if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
         {
-            play_next_song(s[i]);
+            auto_queue(s[i]);
         }
     }
 }
@@ -291,7 +291,7 @@ function get_client(e)
     }
 }
 
-function auto_queue(client, msg)
+function auto_queue(client)
 {
     // get a random video
     var randomList = Math.floor((rng() * files.length));
@@ -304,12 +304,12 @@ function auto_queue(client, msg)
         if (error)
         {
             console.log(`ERROR: ${video} ${error}`);
-            return auto_queue();
+            auto_queue(client);
         }
         else
         {
             client.queue.push({title: info.title, url: video, user: bot.User});
-            play_next_song(client, msg);
+            play_next_song(client, null);
         }
     });
 }
@@ -356,7 +356,7 @@ function play_next_song(client, msg)
     {
         if (client.autoplay)
         {
-            return auto_queue(client, msg);
+            return auto_queue(client);
         }
         else if (msg !== null)
         {
@@ -415,7 +415,7 @@ function play_next_song(client, msg)
             else if (client.autoplay)
             {
                 console.log(`BZZT AUTO QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
-                play_next_song(client, null);
+                auto_queue(client);
             }
         });
     });
@@ -567,9 +567,19 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (!client.is_playing)
+            if (!client.is_playing && client.queue.length === 0)
             {
-                play_next_song(client, msg);
+                if (client.autoplay)
+                {
+                    auto_queue(client);
+                }
+                else
+                {
+                    msg.reply("Turn autoplay on, or use search or request to pick a song!").then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 10000);
+                    });
+                }
             }
             else if (client.paused)
             {
