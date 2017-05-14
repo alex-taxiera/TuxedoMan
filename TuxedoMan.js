@@ -779,7 +779,7 @@ var commands =
         {
             var client = get_client(msg);
 
-            if (msg.author.isOwner || msg.member.hasRole(client.vip))
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.queue = [];
                 msg.reply("Queue has been cleared!").then((m) =>
@@ -805,7 +805,7 @@ var commands =
         {
             var index = params[1];
             var client = get_client(msg);
-            if (msg.author.isOwner || msg.member.hasRole(client.vip))
+            if (client.server.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 if (client.queue.length === 0)
                 {
@@ -1110,6 +1110,27 @@ var commands =
             }
         }
     },
+    // restart
+    // {
+    //     command: "restart",
+    //     description: "Restart the bot",
+    //     parameters: [],
+    //     execute: function(msg)
+    //     {
+    //         var client = get_client(msg);
+    //         if (client.server.isOwner(msg.author))
+    //         {
+    //             bot.disconnect();
+    //         }
+    //         else
+    //         {
+    //             msg.reply("Must be server owner!").then((m) =>
+    //             {
+    //                 setTimeout(function(){m.delete();}, 5000);
+    //             });
+    //         }
+    //     }
+    // },
     // meme hell
     {
         //meme hell
