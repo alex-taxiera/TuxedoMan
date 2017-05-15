@@ -1403,7 +1403,7 @@ var commands =
                 msg.channel.uploadFile("images\\left.jpg");
             }
             //lmao
-            if (text.includes(" lmao ") || text === "lmao")
+            if (text.includes("lmao"))
             {
                 client.lmao_count++;
                 if (client.lmao_count > 10)
