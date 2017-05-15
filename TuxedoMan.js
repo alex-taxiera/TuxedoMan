@@ -20,11 +20,15 @@ function start()
 function _can(permissions, context)
 {
     var can = false;
-    var perm = bot.User.permissionsFor(context);
     for (var i = 0; i < permissions.length; i++)
     {
-        if (context.type === 0)
+        if (context === undefined)
         {
+            return false;
+        }
+        if (context.isGuildText)
+        {
+            var perm = bot.User.permissionsFor(context);
             var text = perm.Text;
             for (var p in text)
             {
@@ -38,8 +42,9 @@ function _can(permissions, context)
                 }
             }
         }
-        else if (context.type === 2)
+        else if (context.isGuildVoice)
         {
+            var perm = bot.User.permissionsFor(context);
             var voice = perm.Voice;
             for (var p in voice)
             {
@@ -91,6 +96,7 @@ bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
+
     s = [];
     console.log("BZZT ONLINE BZZT");
     bot.User.setGame("BZZT KILLING BZZT");
@@ -114,82 +120,78 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     if (servers[i].id === old_servers[j].server.id)
                     {
                         tmp = {};
-                        tmp.position = j;
                         tmp.server = servers[i];
+                    }
+                    if (tmp !== undefined)
+                    {
+                        var k;
+                        var old_tc = bot.Channels.textForGuild(tmp.server.id)
+                        .find(c => c.id == old_servers[j].tc.id);
+                        if (_can(["SEND_MESSAGES"], old_tc))
+                        {
+                            tmp.tc = old_tc;
+                        }
+                        if (tmp.tc === undefined)
+                        {
+                            var tc = bot.Channels.textForGuild(tmp.server.id);
+                            for (k = 0; k < tc.length; k++)
+                            {
+                                if (_can(["SEND_MESSAGES"], tc[k]))
+                                {
+                                    tmp.tc = tc[k];
+                                    break;
+                                }
+                            }
+                        }
+
+                        var old_vc = bot.Channels.voiceForGuild(tmp.server.id)
+                        .find(c => c.id == old_servers[j].vc.id);
+                        if (_can(["SPEAK", "CONNECT"], old_vc))
+                        {
+                            old_vc.join();
+                            tmp.vc = old_vc;
+                            break;
+                        }
+                        if (tmp.vc === undefined)
+                        {
+                            var vc = bot.Channels.voiceForGuild(tmp.server.id);
+                            for (k = 0; k < vc.length; k++)
+                            {
+                                if (_can(["SPEAK", "CONNECT"], vc[k]))
+                                {
+                                    vc[k].join();
+                                    tmp.vc = vc[k];
+                                    break;
+                                }
+                            }
+                        }
+                        s.push({
+                            server:         {id: tmp.server.id,
+                                            name: tmp.server.name},
+                            tc:             {id: tmp.tc.id,
+                                            name: tmp.tc.name},
+                            vc:             {id: tmp.vc.id,
+                                            name: tmp.vc.name},
+                            vip:            old_servers[j].vip,
+                            queue:          [],
+                            now_playing:    {},
+                            is_playing:     false,
+                            paused:         false,
+                            autoplay:       old_servers[j].autoplay,
+                            inform_np:      old_servers[j].inform_np,
+                            announce_auto:  old_servers[j].announce_auto,
+                            encoder:        {},
+                            volume:         25,
+                            meme:           old_servers[j].meme,
+                            swamp:          true,
+                            lmao_count:     0
+                        });
+                        delete servers[i];
+                        tmp = undefined;
                         break;
                     }
                 }
-                if (tmp !== undefined)
-                {
-                    var tc = servers[i].textChannels;
-                    for (j = 0; j < tc.length; j++)
-                    {
-                        if (tc[j].id === old_servers[tmp.position].tc.id)
-                        {
-                            if (_can(["SEND_MESSAGES"], tc[j]))
-                            {
-                                tmp.tc = tc[j];
-                                break;
-                            }
-                        }
-                    }
-                    if (tmp.tc === undefined)
-                    {
-                        for (j = 0; j < tc.length; j++)
-                        {
-                            if (_can(["SEND_MESSAGES"], tc[j]))
-                            {
-                                tmp.tc = tc[j];
-                                break;
-                            }
-                        }
-                    }
-                    var vc = servers[i].voiceChannels;
-                    for (j = 0; j < vc.length; j++)
-                    {
-                        if (vc[j].id === old_servers[tmp.position].vc.id)
-                        {
-                            if (_can(["SPEAK", "CONNECT"], vc[j]))
-                            {
-                                vc[j].join();
-                                tmp.vc = vc[j];
-                                break;
-                            }
-                        }
-                    }
-                    if (tmp.vc === undefined)
-                    {
-                        for (j = 0; j < vc.length; j++)
-                        {
-                            if (_can(["SPEAK", "CONNECT"], vc[j]))
-                            {
-                                vc[j].join();
-                                tmp.vc = vc[j];
-                                break;
-                            }
-                        }
-                    }
-                    s.push({
-                        server: {id: tmp.server.id, name: tmp.server.name},
-                        tc: {id: tmp.tc.id, name: tmp.tc.name},
-                        vc: {id: tmp.vc.id, name: tmp.vc.name},
-                        vip: old_servers[tmp.position].vip,
-                        queue: [],
-                        now_playing: {},
-                        is_playing: false,
-                        paused: false,
-                        autoplay: old_servers[tmp.position].autoplay,
-                        inform_np: old_servers[tmp.position].inform_np,
-                        announce_auto: old_servers[tmp.position].announce_auto,
-                        encoder: {},
-                        volume: 25,
-                        meme: old_servers[tmp.position].meme,
-                        swamp: true,
-                        lmao_count: 0
-                    });
-                    delete servers[i];
-                    tmp = undefined;
-                }
+
             }
             sweep_clients_and_init(servers);
         }
@@ -231,11 +233,11 @@ function sweep_clients_and_init(servers)
     {
         if (servers[i] !== undefined)
         {
-            var tmp = {};
             var j;
+            var tmp = {};
             tmp.server = servers[i];
 
-            var tc = servers[i].textChannels;
+            var tc = bot.Channels.textForGuild(tmp.server.id);
             for (j = 0; j < tc.length; j++)
             {
                 if (_can(["SEND_MESSAGES"], tc[j]))
@@ -244,8 +246,7 @@ function sweep_clients_and_init(servers)
                     break;
                 }
             }
-
-            var vc = servers[i].voiceChannels;
+            var vc = bot.Channels.voiceForGuild(tmp.server.id);
             for (j = 0; j < vc.length; j++)
             {
                 if (_can(["SPEAK", "CONNECT"], vc[j]))
@@ -256,22 +257,25 @@ function sweep_clients_and_init(servers)
                 }
             }
             s.push({
-                server: {id: tmp.server.id, name: tmp.server.name},
-                tc: {id: tmp.tc.id, name: tmp.tc.name},
-                vc: {id: tmp.vc.id, name: tmp.vc.name},
-                vip: null,
-                queue: [],
-                now_playing: {},
-                is_playing: false,
-                paused: false,
-                autoplay: true,
-                inform_np: true,
-                announce_auto: true,
-                encoder: {},
-                volume: 25,
-                meme: true,
-                swamp: true,
-                lmao_count: 0
+                server:         {id: tmp.server.id,
+                                name: tmp.server.name},
+                tc:             {id: tmp.tc.id,
+                                name: tmp.tc.name},
+                vc:             {id: tmp.vc.id,
+                                name: tmp.vc.name},
+                vip:            null,
+                queue:          [],
+                now_playing:    {},
+                is_playing:     false,
+                paused:         false,
+                autoplay:       true,
+                inform_np:      true,
+                announce_auto:  true,
+                encoder:        {},
+                volume:         25,
+                meme:           true,
+                swamp:          true,
+                lmao_count:     0
             });
         }
     }
@@ -297,14 +301,14 @@ function write_changes()
     for (var i = 0; i < s.length; i++)
     {
         tmp.push({
-            server: s[i].server,
-            tc: s[i].tc,
-            vc: s[i].vc,
-            vip: s[i].vip,
-            autoplay: s[i].autoplay,
-            inform_np: s[i].inform_np,
-            announce_auto: s[i].announce_auto,
-            meme: s[i].meme
+            server:         s[i].server,
+            tc:             s[i].tc,
+            vc:             s[i].vc,
+            vip:            s[i].vip,
+            autoplay:       s[i].autoplay,
+            inform_np:      s[i].inform_np,
+            announce_auto:  s[i].announce_auto,
+            meme:           s[i].meme
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
