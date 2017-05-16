@@ -213,7 +213,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
         {
             if (handle_command(msg, text.substring(1), false))
             {
-                if (_can("MANAGE_MESSAGES", msg.channel))
+                if (_can("MANAGE_MESSAGES", msg.guild))
                 {
                     setTimeout(function(){msg.delete();}, 5000);
                 }
@@ -221,7 +221,10 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
         }
         else if (get_client(msg).meme)
         {
-            handle_command(msg, text, true);
+            if (_can(["SEND_MESSAGES"], msg.channel))
+            {
+                handle_command(msg, text, true);
+            }
         }
     }
 });
@@ -367,13 +370,12 @@ function add_to_queue(video, msg, mute = false)
     var client = get_client(msg);
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
     {
+        var str = "";
         if (error)
         {
-            msg.reply(`The requested video (${video}) does not exist or cannot be played.`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
             console.log(`Error (${video}): ${error}`);
+            str = `The requested video (${video}) does not exist or cannot be played.`;
+            return {promise: msg.reply(str), content: str};
         }
         else
         {
@@ -381,10 +383,8 @@ function add_to_queue(video, msg, mute = false)
 
             if (!mute)
             {
-                msg.reply(`\"${info.title}" has been added to the queue.`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 10000);
-                });
+                str = `\"${info.title}" has been added to the queue.`;
+                return {promise: msg.reply(str), content: str};
             }
             if (!client.is_playing && client.queue.length === 1)
             {
@@ -403,8 +403,24 @@ function volume(client, vol)
 
 function get_tc(client)
 {
-    //TODO if channel no longer exists
-    return bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
+    var text = bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
+    if (text === undefined || !_can(["SEND_MESSAGES"], text))
+    {
+        var tc = bot.Channels.textForGuild(client.server.id);
+        for (var i = 0; i < tc.length; i++)
+        {
+            if (_can(["SEND_MESSAGES"], tc[i]))
+            {
+                text = client.tc = tc[i];
+                return text;
+            }
+        }
+        return undefined;
+    }
+    else
+    {
+        return text;
+    }
 }
 
 function play_next_song(client, msg)
@@ -437,10 +453,13 @@ function play_next_song(client, msg)
         if (client.inform_np && client.announce_auto || client.inform_np && user.id !== bot.User.id)
         {
             var tc = get_tc(client);
-            tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
+            if (tc !== undefined)
             {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+                tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 25000);
+                });
+            }
         }
 
         var info = bot.VoiceConnections.getForGuild(client.server.id);
@@ -496,6 +515,7 @@ function handle_command(msg, text, meme)
     var command = "";
     if (!meme)
     {
+        var client = get_client(msg);
         var params = text.split(" ");
         command = search_command(params[0]);
 
@@ -505,12 +525,32 @@ function handle_command(msg, text, meme)
             {
                 msg.reply("Insufficient parameters!").then((m) =>
                 {
-                    setTimeout(function(){m.delete();}, 25000);
+                    setTimeout(function(){m.delete();}, 10000);
                 });
             }
             else
             {
-                command.execute(msg, params);
+                var message = {};
+                message = command.execute(msg, params);
+                if (message !== undefined)
+                {
+                    message.promise.then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 10000);
+                    })
+                    .catch(() =>
+                    {
+                        var tc = get_tc(client);
+                        if (tc !== undefined)
+                        {
+                            tc.sendMessage(message.content)
+                            .then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 10000);
+                            });
+                        }
+                    });
+                }
                 return true;
             }
         }
@@ -527,22 +567,20 @@ function search_video(msg, query)
     request(`https://www.googleapis.com/youtube/v3/search?part=id&type=video&q=${encodeURIComponent(query)}&key=${yt_api_key}`, (error, response, body) =>
     {
         var json = JSON.parse(body);
+        var str = "";
         if ("error" in json)
         {
-            msg.reply(`An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+            str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
+            return {promise: msg.reply(str), content: str};
         }
         else if (json.items.length === 0)
         {
-            msg.reply("No videos found matching the search criteria.").then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
-        } else
+            str = "No videos found matching the search criteria.";
+            return {promise: msg.reply(str), content: str};
+        }
+        else
         {
-            add_to_queue(json.items[0].id.videoId, msg);
+            return add_to_queue(json.items[0].id.videoId, msg);
         }
     });
 }
@@ -554,17 +592,12 @@ function queue_playlist(playlistId, msg, pageToken = "")
         var json = JSON.parse(body);
         if ("error" in json)
         {
-            msg.reply(`An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+            return msg.reply(`An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`);
         }
         else if (json.items.length === 0)
         {
-            msg.reply("No videos found within playlist.").then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+            return [msg.reply("No videos found within playlist."),
+            "No videos found within playlist."];
         }
         else
         {
@@ -578,14 +611,11 @@ function queue_playlist(playlistId, msg, pageToken = "")
                 {
                     var json = JSON.parse(body);
                     console.log(json);
-                    msg.reply(`${json.items[0].snippet.localized.title} has been queued.`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
+                    return [msg.reply(`${json.items[0].snippet.localized.title} has been queued.`),
+                    `${json.items[0].snippet.localized.title} has been queued.`];
                 });
-                return;
             }
-            queue_playlist(playlistId, msg, json.nextPageToken);
+            return queue_playlist(playlistId, msg, json.nextPageToken);
         }
     });
 }
@@ -599,20 +629,17 @@ var commands =
         parameters: ["number (1-100)"],
         execute: function(msg, params)
         {
+            var str = "";
             if (params[1] > 0 && params[1] < 101)
             {
                 volume(get_client(msg), params[1]);
-                msg.reply("Volume set!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Volume set!";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Invalid volume level!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Invalid volume level!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -624,19 +651,18 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (!client.is_playing && client.queue.length === 0)
             {
                 if (client.autoplay)
                 {
                     client.paused = false;
-                    auto_queue(client);
+                    return auto_queue(client);
                 }
                 else
                 {
-                    msg.reply("Turn autoplay on, or use search or request to pick a song!").then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 10000);
-                    });
+                    str = "Turn autoplay on, or use search or request to pick a song!";
+                    return {promise: msg.reply(str), content: str};
                 }
             }
             else if (client.paused)
@@ -646,19 +672,14 @@ var commands =
                 {
                     client.encoder.voiceConnection.getEncoderStream().uncork();
                 }
-                msg.reply("Resuming!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Resuming!";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Playback is already running").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Playback is already running";
+                return {promise: msg.reply(str), content: str};
             }
-
         }
     },
     // pause
@@ -669,12 +690,11 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (client.paused)
             {
-                msg.reply("Playback is already paused!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Playback is already paused!";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
@@ -683,10 +703,8 @@ var commands =
                 {
                     client.encoder.voiceConnection.getEncoderStream().cork();
                 }
-                msg.reply("Pausing!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Pausing!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -698,21 +716,18 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (client.is_playing)
             {
-                msg.reply("Stopping...").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
                 client.paused = true;
                 client.encoder.destroy();
+                str = "Stopping...";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Bot is not playing anything!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Bot is not playing anything!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -724,20 +739,17 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if(client.is_playing)
             {
-                msg.reply("Skipping...").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
                 client.encoder.destroy();
+                str = "Skipping...";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("There is nothing being played.").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "There is nothing being played.";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -752,11 +764,11 @@ var commands =
             var match = params[1].match(regExp);
 
             if (match && match[2]){
-                queue_playlist(match[2], msg);
+                return queue_playlist(match[2], msg);
             }
             else
             {
-                add_to_queue(params[1], msg);
+                return add_to_queue(params[1], msg);
             }
         }
     },
@@ -767,12 +779,10 @@ var commands =
         parameters: ["query"],
         execute: function(msg, params)
         {
+            var str = "You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key";
             if (yt_api_key === null)
             {
-                msg.reply("You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 15000);
-                });
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
@@ -781,7 +791,7 @@ var commands =
                 {
                     q += params[i] + " ";
                 }
-                search_video(msg, q);
+                return search_video(msg, q);
             }
 
         }
@@ -794,19 +804,16 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            var response = "Now playing: ";
+            var str = "Now playing: ";
             if(client.is_playing)
             {
-                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user.username})`;
+                str += `"${client.now_playing.title}" (requested by ${client.now_playing.user.username})`;
             }
             else
             {
-                response += "nothing!";
+                str += "nothing!";
             }
-            msg.reply(response).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 10000);
-            });
+            return {promise: msg.reply(str), content: str};
         }
     },
     // queue
@@ -815,28 +822,25 @@ var commands =
         description: "Displays the queue",
         parameters: [],
         execute: function(msg) {
-            var response = "";
             var client = get_client(msg);
+            var str = "";
             if(client.queue.length === 0)
             {
-                response = "the queue is empty.";
+                str = "the queue is empty.";
             }
             else
             {
                 var long_queue = client.queue.length > 30;
                 for (var i = 0; i < (long_queue ? 30 : client.queue.length); i++)
                 {
-                    response += `"${client.queue[i].title}" (requested by ${client.queue[i].user})`;
+                    str += `"${client.queue[i].title}" (requested by ${client.queue[i].user})`;
                 }
                 if (long_queue)
                 {
-                    response += `\n**...and ${(client.queue.length - 30)} more.**`;
+                    str += `\n**...and ${(client.queue.length - 30)} more.**`;
                 }
             }
-            msg.reply(response).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 20000);
-            });
+            return {promise: msg.reply(str), content: str};
         }
     },
     // commands
@@ -844,23 +848,25 @@ var commands =
         command: "commands",
         description: "Displays this message, duh!",
         parameters: [],
-        execute: function(msg) {
-            var response = "Available commands:";
-
-            for(var i = 0; i < commands.length; i++) {
+        execute: function(msg)
+        {
+            var str = "Available commands:";
+            for (var i = 0; i < commands.length; i++)
+            {
                 var c = commands[i];
-                response += `\n* ${c.command}`;
-
-                for(var j = 0; j < c.parameters.length; j++) {
-                    response += ` <${c.parameters[j]}>`;
+                str += `\n* ${c.command}`;
+                for (var j = 0; j < c.parameters.length; j++)
+                {
+                    str += ` <${c.parameters[j]}>`;
                 }
-
-                response += `: ${c.description}`;
+                str += `: ${c.description}`;
             }
-            msg.author.openDM().then(dm => {
-                dm.sendMessage(response);
+            msg.author.openDM()
+            .then(dm =>
+            {
+                dm.sendMessage(str);
             });
-
+            return;
         }
     },
     // clearqueue
@@ -871,21 +877,17 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.queue = [];
-                msg.reply("Queue has been cleared!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Queue has been cleared!";
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -898,45 +900,37 @@ var commands =
         {
             var index = params[1];
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 if (client.queue.length === 0)
                 {
-                    msg.reply("The queue is empty").then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
+                    str = "The queue is empty";
+                    return {promise: msg.reply(str), content: str};
 
-                } else if(isNaN(index) && index !== "last")
+                }
+                else if (isNaN(index) && index !== "last")
                 {
-                    msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
+                    str = `Argument "${index}" is not a valid index.`;
+                    return {promise: msg.reply(str), content: str};
                 }
 
                 if (index === "last") {index = client.queue.length;}
                 index = parseInt(index);
                 if (index < 1 || index > client.queue.length)
                 {
-                    msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
+                    str = `Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`;
+                    return {promise: msg.reply(str), content: str};
                 }
 
                 var deleted = client.queue.splice(index - 1, 1);
-                msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = `Request "${deleted[0].title}" was removed from the queue.`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -948,21 +942,18 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.inform_np = !client.inform_np;
-                msg.reply(`Now Playing announcements set to ${client.inform_np}!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-                return write_changes();
+                write_changes();
+                str = `Now Playing announcements set to ${client.inform_np}!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -974,21 +965,18 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.announce_auto = !client.announce_auto;
-                msg.reply(`Now Playing (autoplay) announcements set to ${client.announce_auto}!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-                return write_changes();
+                write_changes();
+                str = `Now Playing (autoplay) announcements set to ${client.announce_auto}!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -1000,26 +988,23 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.autoplay = !client.autoplay;
-                msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
                 if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
                 {
                     client.paused = false;
                     auto_queue(client);
                 }
-                return write_changes();
+                write_changes();
+                str = `Autoplay set to ${client.autoplay}!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -1031,21 +1016,18 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 client.meme = !client.meme;
-                msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
                 write_changes();
+                str = `Meme posting set to ${client.meme}!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -1057,6 +1039,7 @@ var commands =
         execute: function(msg, params)
         {
             var client = get_client(msg);
+            var str = "";
             var vc = bot.Channels.voiceForGuild(msg.guild);
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
@@ -1071,49 +1054,37 @@ var commands =
                                 if (_can(["SPEAK"], vc[j]))
                                 {
                                     client.vc = {id: vc[j].id, name: vc[j].name};
-                                    msg.reply("Default set!").then((m) =>
-                                    {
-                                        setTimeout(function(){m.delete();}, 5000);
-                                    });
                                     write_changes();
-                                    return vc[j].join();
+                                    vc[j].join();
+                                    str = "Default set!";
+                                    return {promise: msg.reply(str), content: str};
                                 }
                                 else
                                 {
-                                    msg.reply("Cannot speak in that channel!").then((m) =>
-                                    {
-                                        setTimeout(function(){m.delete();}, 5000);
-                                    });
+                                    str = "Cannot speak in that channel!";
+                                    return {promise: msg.reply(str), content: str};
                                 }
                             }
                             else
                             {
-                                msg.reply("Cannot connect to that channel!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
+                                str = "Cannot connect to that channel!";
+                                return {promise: msg.reply(str), content: str};
                             }
                         }
                         else
                         {
-                            return msg.reply("Already default channel!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
+                            str = "Already default channel!";
+                            return {promise: msg.reply(str), content: str};
                         }
                     }
                 }
-                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = `Could not find ${params[1]} channel!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -1125,8 +1096,9 @@ var commands =
         execute: function(msg, params)
         {
             var client = get_client(msg);
-            var tc = bot.Channels.textForGuild(msg.guild);
+            var str = "";
 
+            var tc = bot.Channels.textForGuild(msg.guild);
             if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
                 for (var j = 0; j < tc.length; j++)
@@ -1138,40 +1110,30 @@ var commands =
                             if (_can(["SEND_MESSAGES"], tc[j]))
                             {
                                 client.tc = {id: tc[j].id, name: tc[j].name};
-                                msg.reply("Default set!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return write_changes();
+                                write_changes();
+                                str = "Default set!";
+                                return {promise: msg.reply(str), content: str};
                             }
                             else
                             {
-                                msg.reply("Cannot send messages there!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
+                                str = "Cannot send messages there!";
+                                return {promise: msg.reply(str), content: str};
                             }
                         }
                         else
                         {
-                            return msg.reply("Already default channel!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
+                            str = "Already default channel!";
+                            return {promise: msg.reply(str), content: str};
                         }
                     }
                 }
-                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = `Could not find ${params[1]} channel!`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be VIP!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be VIP!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
@@ -1182,7 +1144,6 @@ var commands =
         parameters: ["role name"],
         execute: function(msg, params)
         {
-            console.log(params);
             var full_param = "";
             for (var i = 1; i < params.length; i++)
             {
@@ -1192,8 +1153,8 @@ var commands =
                 }
                 full_param += params[i];
             }
-            console.log(full_param);
             var client = get_client(msg);
+            var str = "";
             if (msg.guild.isOwner(msg.author))
             {
                 for (var j = 0; j < msg.guild.roles.length; j++)
@@ -1203,32 +1164,24 @@ var commands =
                         if (msg.guild.roles[j].id !== client.vip)
                         {
                             client.vip = msg.guild.roles[j].id;
-                            msg.reply("VIP set!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
                             write_changes();
+                            str = "VIP set!";
+                            return {promise: msg.reply(str), content: str};
                         }
                         else
                         {
-                            msg.reply("VIP is already set to that role!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
+                            str = "VIP is already set to that role!";
+                            return {promise: msg.reply(str), content: str};
                         }
                     }
                 }
-                msg.reply(`Could not find role "${full_param}"`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = `Could not find role "${full_param}"`;
+                return {promise: msg.reply(str), content: str};
             }
             else
             {
-                msg.reply("Must be server owner!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                str = "Must be server owner!";
+                return {promise: msg.reply(str), content: str};
             }
         }
     },
