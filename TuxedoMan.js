@@ -9,51 +9,103 @@ const token = fs.readFileSync("data\\token.txt", "utf-8");
 const serverdata = "data\\servers.json";
 var files = fs.readdirSync("playlist");
 const rng = seedrandom();
-var s = []; //s = servers (list of servers with all info)
-var inform_np = true;
+var s; //s = servers (list of servers with all info)
 
-var bot = new Discordie({autoreconnect: true});
+var bot = new Discordie();
 function start()
 {
     bot.connect({token: token});
+}
+
+function _can(permissions, context)
+{
+    var can = false;
+    for (var i = 0; i < permissions.length; i++)
+    {
+        if (context === undefined)
+        {
+            return false;
+        }
+        if (context.isGuildText)
+        {
+            var perm = bot.User.permissionsFor(context);
+            var text = perm.Text;
+            for (var p in text)
+            {
+                if (!text.hasOwnProperty(p))
+                {
+                    continue;
+                }
+                if (p === permissions[i])
+                {
+                    can = text[p];
+                }
+            }
+        }
+        else if (context.isGuildVoice)
+        {
+            var perm = bot.User.permissionsFor(context);
+            var voice = perm.Voice;
+            for (var p in voice)
+            {
+                if (!voice.hasOwnProperty(p))
+                {
+                    continue;
+                }
+                if (p === permissions[i])
+                {
+                    can = voice[p];
+                }
+            }
+        }
+    }
+    return can;
 }
 
 start();
 
 bot.Dispatcher.on("DISCONNECTED", e =>
 {
-    console.log("Disconnected: " + e.error);
+    console.log(e.error);
     start();
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 {
-     var client = get_client(e);
-     if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-     {
-             client.paused = true;
-             client.encoder.voiceConnection.getEncoderStream().cork();
-     }
+    var client = get_client(e);
+    if (e.user.id === bot.User.id)
+    {
+        console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
+    }
+    else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    {
+        client.paused = true;
+        client.encoder.voiceConnection.getEncoderStream().cork();
+    }
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 {
-     var client = get_client(e);
-     if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-     {
-             client.paused = true;
-             client.encoder.voiceConnection.getEncoderStream().cork();
-     }
+    var client = get_client(e);
+    if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    {
+        client.paused = true;
+        client.encoder.voiceConnection.getEncoderStream().cork();
+    }
 });
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
+
+    s = [];
     console.log("BZZT ONLINE BZZT");
+    bot.User.setGame("BZZT KILLING BZZT");
     fs.stat(serverdata, function(err)
     {
         var servers = bot.Guilds.toArray();
         if(!err)
         {
+            var tmp = undefined;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
             if (old_servers === [])
             {
@@ -62,45 +114,84 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
             }
             for (var i = 0; i < servers.length; i++)
             {
-                for (var z = 0; z < old_servers.length; z++)
+                var j;
+                for (j = 0; j < old_servers.length; j++)
                 {
-                    if (servers[i].id === old_servers[z].server.id)
+                    if (servers[i].id === old_servers[j].server.id)
                     {
-                        var vc = servers[i].voiceChannels;
-                        for (var j = 0; j < vc.length; j++)
+                        tmp = {};
+                        tmp.server = servers[i];
+                    }
+                    if (tmp !== undefined)
+                    {
+                        var k;
+                        var old_tc = bot.Channels.textForGuild(tmp.server.id)
+                        .find(c => c.id == old_servers[j].tc.id);
+                        if (_can(["SEND_MESSAGES"], old_tc))
                         {
-                            if (vc[j].id === old_servers[z].vc.id)
+                            tmp.tc = old_tc;
+                        }
+                        if (tmp.tc === undefined)
+                        {
+                            var tc = bot.Channels.textForGuild(tmp.server.id);
+                            for (k = 0; k < tc.length; k++)
                             {
-                                if (vc[j].join())
+                                if (_can(["SEND_MESSAGES"], tc[k]))
                                 {
-                                    var tc = servers[i].textChannels;
-                                    for (var k = 0; k < tc.length; k++)
-                                    {
-                                        if (tc[k].id === old_servers[z].tc.id)
-                                        {
-                                            s.push({
-                                                server: servers[i],
-                                                tc: tc[k],
-                                                vc: vc[j],
-                                                vip: old_servers[z].vip,
-                                                queue: [],
-                                                now_playing: {},
-                                                is_playing: false,
-                                                paused: false,
-                                                autoplay: old_servers[z].autoplay,
-                                                encoder: {},
-                                                volume: 25,
-                                                meme: old_servers[z].meme,
-                                                swamp: true,
-                                                lmao_count: 0
-                                            });
-                                        }
-                                    }
+                                    tmp.tc = tc[k];
+                                    break;
                                 }
                             }
                         }
+
+                        var old_vc = bot.Channels.voiceForGuild(tmp.server.id)
+                        .find(c => c.id == old_servers[j].vc.id);
+                        if (_can(["SPEAK", "CONNECT"], old_vc))
+                        {
+                            old_vc.join();
+                            tmp.vc = old_vc;
+                            break;
+                        }
+                        if (tmp.vc === undefined)
+                        {
+                            var vc = bot.Channels.voiceForGuild(tmp.server.id);
+                            for (k = 0; k < vc.length; k++)
+                            {
+                                if (_can(["SPEAK", "CONNECT"], vc[k]))
+                                {
+                                    vc[k].join();
+                                    tmp.vc = vc[k];
+                                    break;
+                                }
+                            }
+                        }
+                        s.push({
+                            server:         {id: tmp.server.id,
+                                            name: tmp.server.name},
+                            tc:             {id: tmp.tc.id,
+                                            name: tmp.tc.name},
+                            vc:             {id: tmp.vc.id,
+                                            name: tmp.vc.name},
+                            vip:            old_servers[j].vip,
+                            queue:          [],
+                            now_playing:    {},
+                            is_playing:     false,
+                            paused:         false,
+                            autoplay:       old_servers[j].autoplay,
+                            inform_np:      old_servers[j].inform_np,
+                            announce_auto:  old_servers[j].announce_auto,
+                            encoder:        {},
+                            volume:         25,
+                            meme:           old_servers[j].meme,
+                            swamp:          true,
+                            lmao_count:     0
+                        });
+                        delete servers[i];
+                        tmp = undefined;
+                        break;
                     }
                 }
+
             }
             sweep_clients_and_init(servers);
         }
@@ -116,12 +207,17 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 {
     var msg = e.message;
     var text = msg.content;
-    if (!msg.author.bot)
+    if (msg.author.id !== bot.User.id)
     {
         if (text[0] == "*")
         {
-            handle_command(msg, text.substring(1), false);
-            delete_invoke(msg);
+            if (handle_command(msg, text.substring(1), false))
+            {
+                if (_can("MANAGE_MESSAGES", msg.channel))
+                {
+                    setTimeout(function(){msg.delete();}, 5000);
+                }
+            }
         }
         else if (get_client(msg).meme)
         {
@@ -132,63 +228,71 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 
 function sweep_clients_and_init(servers)
 {
-    for (var i = 0; i < servers.length; i++)
+    var i;
+    for (i = 0; i < servers.length; i++)
     {
-        for (var j = -1; j < s.length; j++)
+        if (servers[i] !== undefined)
         {
-            if (s.length !== 0)
+            var j;
+            var tmp = {};
+            tmp.server = servers[i];
+
+            var tc = bot.Channels.textForGuild(tmp.server.id);
+            for (j = 0; j < tc.length; j++)
             {
-                if (j === -1)
+                if (_can(["SEND_MESSAGES"], tc[j]))
                 {
-                    j++;
-                }
-                if (servers[i].id === s[j].server.id)
-                {
+                    tmp.tc = tc[j];
                     break;
                 }
             }
-            if (j === (s.length - 1))
+            var vc = bot.Channels.voiceForGuild(tmp.server.id);
+            for (j = 0; j < vc.length; j++)
             {
-                var vc = servers[i].voiceChannels;
-                for (var k = 0; k < vc.length; k++)
+                if (_can(["SPEAK", "CONNECT"], vc[j]))
                 {
-                    if (vc[k].join())
-                    {
-                        s.push({
-                            server: servers[i],
-                            tc: servers[i].textChannels[0],
-                            vc: vc[k],
-                            vip: null,
-                            queue: [],
-                            now_playing: {},
-                            is_playing: false,
-                            paused: false,
-                            autoplay: true,
-                            encoder: {},
-                            volume: 25,
-                            meme: true,
-                            swamp: true,
-                            lmao_count: 0
-                        });
-                        break;
-                    }
+                    vc[j].join();
+                    tmp.vc = vc[j];
+                    break;
                 }
             }
+            s.push({
+                server:         {id: tmp.server.id,
+                                name: tmp.server.name},
+                tc:             {id: tmp.tc.id,
+                                name: tmp.tc.name},
+                vc:             {id: tmp.vc.id,
+                                name: tmp.vc.name},
+                vip:            null,
+                queue:          [],
+                now_playing:    {},
+                is_playing:     false,
+                paused:         false,
+                autoplay:       true,
+                inform_np:      true,
+                announce_auto:  true,
+                encoder:        {},
+                volume:         25,
+                meme:           true,
+                swamp:          true,
+                lmao_count:     0
+            });
         }
     }
-    write_changes();
-
-    bot.User.setGame("BZZT KILLING BZZT");
-    console.log("BZZT READY TO KILL BZZT");
-
-    for (i = 0; i < s.length; i++)
+    setTimeout(function()
     {
-        if (s[i].autoplay)
+        for (i = 0; i < s.length; i++)
         {
-            console.log(`BZZT AUTOPLAY FOR ${s[i].server.name.toUpperCase()} BZZT`);
-            play_next_song(s[i]);
+            if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
+            {
+                console.log(`BZZT START AUTOPLAY FOR ${s[i].server.name.toUpperCase()} BZZT`);
+                auto_queue(s[i]);
+            }
         }
-    }
+    }, 2000);
+
+    write_changes();
+    console.log("BZZT READY TO KILL BZZT");
 }
 
 function write_changes()
@@ -197,12 +301,14 @@ function write_changes()
     for (var i = 0; i < s.length; i++)
     {
         tmp.push({
-            server: s[i].server,
-            tc: s[i].tc,
-            vc: s[i].vc,
-            vip: s[i].vip,
-            autoplay: s[i].autoplay,
-            meme: s[i].meme
+            server:         s[i].server,
+            tc:             s[i].tc,
+            vc:             s[i].vc,
+            vip:            s[i].vip,
+            autoplay:       s[i].autoplay,
+            inform_np:      s[i].inform_np,
+            announce_auto:  s[i].announce_auto,
+            meme:           s[i].meme
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
@@ -210,9 +316,10 @@ function write_changes()
 
 function get_client(e)
 {
+    var i;
     if (e.guildId)
     {
-        for (var i = 0; i < s.length; i++)
+        for (i = 0; i < s.length; i++)
         {
             if (s[i].server.id === e.guildId)
             {
@@ -222,7 +329,7 @@ function get_client(e)
     }
     else if (e.guild.id)
     {
-        for (var i = 0; i < s.length; i++)
+        for (i = 0; i < s.length; i++)
         {
             if (s[i].server.id === e.guild.id)
             {
@@ -232,7 +339,7 @@ function get_client(e)
     }
 }
 
-function auto_queue(client, msg)
+function auto_queue(client)
 {
     // get a random video
     var randomList = Math.floor((rng() * files.length));
@@ -245,12 +352,12 @@ function auto_queue(client, msg)
         if (error)
         {
             console.log(`ERROR: ${video} ${error}`);
-            return auto_queue();
+            auto_queue(client);
         }
         else
         {
-            client.queue.push({title: info.title, url: video, user: "PIANO_MKII"});
-            play_next_song(client, msg);
+            client.queue.push({title: info.title, url: video, user: bot.User});
+            play_next_song(client, null);
         }
     });
 }
@@ -260,14 +367,17 @@ function add_to_queue(video, msg, mute = false)
     var client = get_client(msg);
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
     {
-        if(error)
+        if (error)
         {
-            msg.reply(`The requested video (${video}) does not exist or cannot be played.`);
+            msg.reply(`The requested video (${video}) does not exist or cannot be played.`).then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 5000);
+            });
             console.log(`Error (${video}): ${error}`);
         }
         else
         {
-            client.queue.push({title: info.title, url: video, user: msg.author.username});
+            client.queue.push({title: info.title, url: video, user: msg.author});
 
             if (!mute)
             {
@@ -276,7 +386,7 @@ function add_to_queue(video, msg, mute = false)
                     setTimeout(function(){m.delete();}, 10000);
                 });
             }
-            if(!client.is_playing && client.queue.length === 1)
+            if (!client.is_playing && client.queue.length === 1)
             {
                 client.paused = false;
                 return play_next_song(client);
@@ -291,13 +401,19 @@ function volume(client, vol)
     client.encoder.voiceConnection.getEncoder().setVolume(vol);
 }
 
+function get_tc(client)
+{
+    //TODO if channel no longer exists
+    return bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
+}
+
 function play_next_song(client, msg)
 {
     if (client.queue.length === 0)
     {
         if (client.autoplay)
         {
-            return auto_queue(client, msg);
+            return auto_queue(client);
         }
         else if (msg !== null)
         {
@@ -318,9 +434,10 @@ function play_next_song(client, msg)
     video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
     video.once("end", () =>
     {
-        if (inform_np)
+        if (client.inform_np && client.announce_auto || client.inform_np && user.id !== bot.User.id)
         {
-            client.tc.sendMessage(`Now playing: "${title}" (requested by ${user})`).then((m) =>
+            var tc = get_tc(client);
+            tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
             {
                 setTimeout(function(){m.delete();}, 25000);
             });
@@ -336,7 +453,6 @@ function play_next_song(client, msg)
         console.log(`BZZT SONG START ON ${client.server.name.toUpperCase()} BZZT`);
         client.encoder.play();
         volume(client, client.volume);
-        //console.log(client.encoder);
         client.is_playing = true;
 
         if (client.encoder.voiceConnection.channel.members.length === 1)
@@ -353,10 +469,10 @@ function play_next_song(client, msg)
                 console.log(`BZZT NEXT IN QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
                 play_next_song(client, null);
             }
-            else if (client.autoplay)
+            else if (!client.paused && client.autoplay)
             {
                 console.log(`BZZT AUTO QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
-                play_next_song(client, null);
+                auto_queue(client);
             }
         });
     });
@@ -377,10 +493,11 @@ function search_command(command_name)
 
 function handle_command(msg, text, meme)
 {
+    var command = "";
     if (!meme)
     {
         var params = text.split(" ");
-        var command = search_command(params[0]);
+        command = search_command(params[0]);
 
         if(command)
         {
@@ -391,15 +508,16 @@ function handle_command(msg, text, meme)
                     setTimeout(function(){m.delete();}, 25000);
                 });
             }
-             else
-             {
+            else
+            {
                 command.execute(msg, params);
+                return true;
             }
         }
     }
     else
     {
-        var command = search_command("memes");
+        command = search_command("memes");
         command.execute(msg, text);
     }
 }
@@ -472,75 +590,8 @@ function queue_playlist(playlistId, msg, pageToken = "")
     });
 }
 
-function delete_invoke(msg)
-{
-    if (bot.User.permissionsFor(msg.channel).Text.MANAGE_MESSAGES)
-    {
-        //FIXME MANAGE_MESSAGES
-        setTimeout(function(){msg.delete();}, 5000);
-    }
-}
-
 var commands =
 [
-    //  vip
-    {
-        command: "vip",
-        description: "Set VIP role",
-        parameters: ["role name"],
-        execute: function(msg, params)
-        {
-            console.log(params);
-            var full_param = "";
-            for (var i = 1; i < params.length; i++)
-            {
-                if (i !== 1)
-                {
-                    full_param += " ";
-                }
-                full_param += params[i];
-            }
-            console.log(full_param);
-            var client = get_client(msg);
-            if (client.server.isOwner(msg.author))
-            {
-                for (var j = 0; j < msg.guild.roles.length; j++)
-                {
-                    if (full_param === msg.guild.roles[j].name)
-                    {
-                        if (msg.guild.roles[j].id !== client.vip)
-                        {
-                            client.vip = msg.guild.roles[j].id;
-                            msg.reply("VIP set!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                            return write_changes();
-                        }
-                        else
-                        {
-                            msg.reply("VIP is already set to that role!").then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 5000);
-                            });
-                            return;
-                        }
-                    }
-                }
-                msg.reply(`Could not find role "${full_param}"`).then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                msg.reply("Must be server owner!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
     // volume
     {
         command: "volume",
@@ -565,146 +616,30 @@ var commands =
             }
         }
     },
-    // setvoice
-    {
-        command: "voice",
-        description: "Set voice channel to start up in.",
-        parameters: ["voice channel name"],
-        execute: function(msg, params)
-        {
-            var client = get_client(msg);
-            var vc = bot.Channels.voiceForGuild(msg.guild);
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
-            {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
-                {
-                    for (var j = 0; j < vc.length; j++)
-                    {
-                        if (params[1] === vc[j].name)
-                        {
-                            if (client.vc !== vc[j])
-                            {
-                                // need to check perms
-                                client.vc = vc[j];
-                                msg.reply("Default set!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                write_changes();
-                                return vc[j].join();
-                            }
-                            else
-                            {
-                                msg.reply("Already default channel!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return;
-                            }
-                        }
-                    }
-                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
-                }
-            }
-            msg.reply("Must be server VIP!").then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
-        }
-    },
-    // settext
-    {
-        command: "text",
-        description: "Set text channel to announce things in.",
-        parameters: ["text channel name"],
-        execute: function(msg, params)
-        {
-            var client = get_client(msg);
-            var tc = bot.Channels.textForGuild(msg.guild);
-
-            for (var i = 0; i < msg.member.roles.length || client.server.isOwner(msg.author); i++)
-            {
-                if (client.server.isOwner(msg.author) || msg.member.roles[i].id === client.vip)
-                {
-                    for (var j = 0; j < tc.length; j++)
-                    {
-                        if (params[1] === tc[j].name)
-                        {
-                            if (client.tc !== tc[j])
-                            {
-                                // need to check perms
-                                client.tc = tc[j];
-                                msg.reply("Default set!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return write_changes();
-                            }
-                            else
-                            {
-                                msg.reply("Already default channel!").then((m) =>
-                                {
-                                    setTimeout(function(){m.delete();}, 5000);
-                                });
-                                return;
-                            }
-                        }
-                    }
-                    msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
-                }
-            }
-            msg.reply("Must be VIP!").then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
-        }
-    },
-    // pause
-    {
-        command: "pause",
-        description: "Pauses your shit",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-            if (client.paused)
-            {
-                msg.reply("Playback is already paused*").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-            else
-            {
-                client.paused = true;
-                if (client.is_playing)
-                {
-                    client.encoder.voiceConnection.getEncoderStream().cork();
-                }
-                msg.reply("Pausing!").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
-        }
-    },
     // play
     {
         command: "play",
-        description: "Resumes paused playback",
+        description: "Resumes paused/stopped playback",
         parameters: [],
         execute: function(msg)
         {
             var client = get_client(msg);
-            if (client.paused)
+            if (!client.is_playing && client.queue.length === 0)
+            {
+                if (client.autoplay)
+                {
+                    client.paused = false;
+                    auto_queue(client);
+                }
+                else
+                {
+                    msg.reply("Turn autoplay on, or use search or request to pick a song!").then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 10000);
+                    });
+                }
+            }
+            else if (client.paused)
             {
                 client.paused = false;
                 if (client.is_playing)
@@ -724,6 +659,86 @@ var commands =
                 });
             }
 
+        }
+    },
+    // pause
+    {
+        command: "pause",
+        description: "Pauses your shit",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.paused)
+            {
+                msg.reply("Playback is already paused!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                client.paused = true;
+                if (client.is_playing)
+                {
+                    client.encoder.voiceConnection.getEncoderStream().cork();
+                }
+                msg.reply("Pausing!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // stop
+    {
+        command: "stop",
+        description: "Delete current song and prevent further playback",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.is_playing)
+            {
+                msg.reply("Stopping...").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                client.paused = true;
+                client.encoder.destroy();
+            }
+            else
+            {
+                msg.reply("Bot is not playing anything!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // skip
+    {
+        command: "skip",
+        description: "Skips the current song",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if(client.is_playing)
+            {
+                msg.reply("Skipping...").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                client.encoder.destroy();
+            }
+            else
+            {
+                msg.reply("There is nothing being played.").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // request
@@ -782,7 +797,7 @@ var commands =
             var response = "Now playing: ";
             if(client.is_playing)
             {
-                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user})`;
+                response += `"${client.now_playing.title}" (requested by ${client.now_playing.user.username})`;
             }
             else
             {
@@ -792,55 +807,6 @@ var commands =
             {
                 setTimeout(function(){m.delete();}, 10000);
             });
-        }
-    },
-    // commands
-    {
-        command: "commands",
-        description: "Displays this message, duh!",
-        parameters: [],
-        execute: function(msg) {
-            var response = "Available commands:";
-
-            for(var i = 0; i < commands.length; i++) {
-                var c = commands[i];
-                response += `\n* ${c.command}`;
-
-                for(var j = 0; j < c.parameters.length; j++) {
-                    response += ` <${c.parameters[j]}>`;
-                }
-
-                response += `: ${c.description}`;
-            }
-            msg.author.openDM().then(dm => {
-                dm.sendMessage(response);
-            });
-
-        }
-    },
-    // skip
-    {
-        command: "skip",
-        description: "Skips the current song",
-        parameters: [],
-        execute: function(msg)
-        {
-            var client = get_client(msg);
-            if(client.is_playing)
-            {
-                msg.reply("Skipping...").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-                client.encoder.destroy();
-            }
-            else
-            {
-                msg.reply("There is nothing being played.").then((m) =>
-                {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
-            }
         }
     },
     // queue
@@ -873,6 +839,30 @@ var commands =
             });
         }
     },
+    // commands
+    {
+        command: "commands",
+        description: "Displays this message, duh!",
+        parameters: [],
+        execute: function(msg) {
+            var response = "Available commands:";
+
+            for(var i = 0; i < commands.length; i++) {
+                var c = commands[i];
+                response += `\n* ${c.command}`;
+
+                for(var j = 0; j < c.parameters.length; j++) {
+                    response += ` <${c.parameters[j]}>`;
+                }
+
+                response += `: ${c.description}`;
+            }
+            msg.author.openDM().then(dm => {
+                dm.sendMessage(response);
+            });
+
+        }
+    },
     // clearqueue
     {
         command: "clearqueue",
@@ -881,22 +871,22 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg);
-            for (var i = 0; i < msg.member.roles.length || msg.author.isOwner; i++)
+
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                if (msg.author.isOwner || msg.member.roles[i].id === client.vip)
+                client.queue = [];
+                msg.reply("Queue has been cleared!").then((m) =>
                 {
-                    client.queue = [];
-                    msg.reply("Queue has been cleared!").then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 5000);
-                    });
-                    return;
-                }
+                    setTimeout(function(){m.delete();}, 5000);
+                });
             }
-            msg.reply("Must be VIP!").then((m) =>
+            else
             {
-                setTimeout(function(){m.delete();}, 5000);
-            });
+                msg.reply("Must be VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
         }
     },
     // remove
@@ -908,38 +898,363 @@ var commands =
         {
             var index = params[1];
             var client = get_client(msg);
-            if (client.queue.length === 0)
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
             {
-                msg.reply("The queue is empty").then((m) =>
+                if (client.queue.length === 0)
                 {
-                    setTimeout(function(){m.delete();}, 5000);
-                });
+                    msg.reply("The queue is empty").then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
 
-            } else if(isNaN(index) && index !== "last")
-            {
-                msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
+                } else if(isNaN(index) && index !== "last")
+                {
+                    msg.reply(`Argument "${index}" is not a valid index.`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                }
+
+                if (index === "last") {index = client.queue.length;}
+                index = parseInt(index);
+                if (index < 1 || index > client.queue.length)
+                {
+                    msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
+                    {
+                        setTimeout(function(){m.delete();}, 5000);
+                    });
+                }
+
+                var deleted = client.queue.splice(index - 1, 1);
+                msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
-
-            if (index === "last") {index = client.queue.length;}
-            index = parseInt(index);
-            if (index < 1 || index > client.queue.length)
+            else
             {
-                msg.reply(`Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`).then((m) =>
+                msg.reply("Must be VIP!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 5000);
                 });
             }
-
-            var deleted = client.queue.splice(index - 1, 1);
-            msg.reply(`Request "${deleted[0].title}" was removed from the queue.`).then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 5000);
-            });
         }
     },
+    // toggle np
+    {
+        command: "nptoggle",
+        description: "Toggle announcing when a song starts playing",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.inform_np = !client.inform_np;
+                msg.reply(`Now Playing announcements set to ${client.inform_np}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                return write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // toggle auto np
+    {
+        command: "autonptoggle",
+        description: "Toggle announcing when an autoplay song starts playing",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.announce_auto = !client.announce_auto;
+                msg.reply(`Now Playing (autoplay) announcements set to ${client.announce_auto}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                return write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // toggle autoplay
+    {
+        command: "autotoggle",
+        description: "Toggle music autoplay",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.autoplay = !client.autoplay;
+                msg.reply(`Autoplay set to ${client.autoplay}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
+                {
+                    client.paused = false;
+                    auto_queue(client);
+                }
+                return write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // toggle meme
+    {
+        command: "memetoggle",
+        description: "Toggle meme posting",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                client.meme = !client.meme;
+                msg.reply(`Meme posting set to ${client.meme}!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+                write_changes();
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // setvoice
+    {
+        command: "voice",
+        description: "Set voice channel to start up in.",
+        parameters: ["voice channel name"],
+        execute: function(msg, params)
+        {
+            var client = get_client(msg);
+            var vc = bot.Channels.voiceForGuild(msg.guild);
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                for (var j = 0; j < vc.length; j++)
+                {
+                    if (params[1] === vc[j].name)
+                    {
+                        if (client.vc.id !== vc[j].id)
+                        {
+                            if (_can(["CONNECT"], vc[j]))
+                            {
+                                if (_can(["SPEAK"], vc[j]))
+                                {
+                                    client.vc = {id: vc[j].id, name: vc[j].name};
+                                    msg.reply("Default set!").then((m) =>
+                                    {
+                                        setTimeout(function(){m.delete();}, 5000);
+                                    });
+                                    write_changes();
+                                    return vc[j].join();
+                                }
+                                else
+                                {
+                                    msg.reply("Cannot speak in that channel!").then((m) =>
+                                    {
+                                        setTimeout(function(){m.delete();}, 5000);
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                msg.reply("Cannot connect to that channel!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                            }
+                        }
+                        else
+                        {
+                            return msg.reply("Already default channel!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                        }
+                    }
+                }
+                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Must be server VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // settext
+    {
+        command: "text",
+        description: "Set text channel to announce things in.",
+        parameters: ["text channel name"],
+        execute: function(msg, params)
+        {
+            var client = get_client(msg);
+            var tc = bot.Channels.textForGuild(msg.guild);
+
+            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            {
+                for (var j = 0; j < tc.length; j++)
+                {
+                    if (params[1] === tc[j].name)
+                    {
+                        if (client.tc.id !== tc[j].id)
+                        {
+                            if (_can(["SEND_MESSAGES"], tc[j]))
+                            {
+                                client.tc = {id: tc[j].id, name: tc[j].name};
+                                msg.reply("Default set!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                                return write_changes();
+                            }
+                            else
+                            {
+                                msg.reply("Cannot send messages there!").then((m) =>
+                                {
+                                    setTimeout(function(){m.delete();}, 5000);
+                                });
+                            }
+                        }
+                        else
+                        {
+                            return msg.reply("Already default channel!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                        }
+                    }
+                }
+                msg.reply(`Could not find ${params[1]} channel!`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Must be VIP!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    // vip
+    {
+        command: "vip",
+        description: "Set VIP role",
+        parameters: ["role name"],
+        execute: function(msg, params)
+        {
+            console.log(params);
+            var full_param = "";
+            for (var i = 1; i < params.length; i++)
+            {
+                if (i !== 1)
+                {
+                    full_param += " ";
+                }
+                full_param += params[i];
+            }
+            console.log(full_param);
+            var client = get_client(msg);
+            if (msg.guild.isOwner(msg.author))
+            {
+                for (var j = 0; j < msg.guild.roles.length; j++)
+                {
+                    if (full_param === msg.guild.roles[j].name)
+                    {
+                        if (msg.guild.roles[j].id !== client.vip)
+                        {
+                            client.vip = msg.guild.roles[j].id;
+                            msg.reply("VIP set!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                            write_changes();
+                        }
+                        else
+                        {
+                            msg.reply("VIP is already set to that role!").then((m) =>
+                            {
+                                setTimeout(function(){m.delete();}, 5000);
+                            });
+                        }
+                    }
+                }
+                msg.reply(`Could not find role "${full_param}"`).then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+            else
+            {
+                msg.reply("Must be server owner!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    /*
+    //restart
+    {
+        command: "restart",
+        description: "Restart the bot",
+        parameters: [],
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            if (client.server.isOwner(msg.author))
+            {
+                bot.disconnect();
+            }
+            else
+            {
+                msg.reply("Must be server owner!").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 5000);
+                });
+            }
+        }
+    },
+    */
     // meme hell
     {
         //meme hell
@@ -948,6 +1263,7 @@ var commands =
         parameters: [],
         execute: function(msg, text) {
             text = text.toLowerCase();
+            var client = get_client(msg);
             //MEME HELL DO NOT GO BELOW
 
             //DVA EXAMPLE
@@ -956,141 +1272,139 @@ var commands =
                 msg.channel.uploadFile("images\\kek.png");
             }
             //ayya
-            else if (text.includes(" ayya ") || text === "ayya")
+            if (text.includes(" ayya ") || text === "ayya")
             {
                 msg.channel.sendMessage("AYYA AYYA AYYA");
             }
             //panda
-            else if (text.includes(" panda ") || text === "panda")
+            if (text.includes(" panda ") || text === "panda")
             {
                 msg.channel.sendMessage("Panda\nPanda\nPanda\nPanda\nPanda");
             }
             //stain
-            else if (text.includes(" stain ") || text === "stain")
+            if (text.includes(" stain ") || text === "stain")
             {
                 msg.channel.sendMessage("STAIN STAIN STAIN STAIN STAIN STAIN STAIN STAIN STAIN STAIN STAIN");
             }
             //baby
-            else if (text.includes(" baby ") || text === "baby")
+            if (text.includes(" baby ") || text === "baby")
             {
-                console.log("Sending baby.gif...");
                 msg.channel.uploadFile("images\\baby.gif", "images\\baby.gif");
             }
             //ban
-            else if (text.includes(" ban ") || text === "ban")
+            if (text.includes(" ban ") || text === "ban")
             {
                 msg.channel.uploadFile("images\\ban.jpg");
             }
             //bb
-            else if (text.includes(" bb ") || text === "bb")
+            if (text.includes(" bb ") || text === "bb")
             {
                 msg.channel.sendMessage("Big Brother is watching™");
             }
             //black
-            else if (text.includes(" black ") || text === "black")
+            if (text.includes(" black ") || text === "black")
             {
                 msg.channel.sendMessage("'I hate black people, I swear' ~Fig 2016");
             }
             //blueberry
-            else if (text.includes(" blueberry pie ") || text === "blueberry pie")
+            if (text.includes(" blueberry pie ") || text === "blueberry pie")
             {
                 msg.channel.sendMessage("BLUEBERRY FUCKING PIE? WHAT KIND OF FILTHY, UNWASHED, DEGENERATES DECIDED TO COME UP WITH THIS SHIT. FIRST YOU GIVE PEOPLE THE POWER TO DICTATE THEIR CREAM FILLING, NOW YOU'RE LETTING THEM CONDENSE A HOME COOKED PASTRY INTO A BITE SIZED CRUMPET SHIT? REALLY? FUCKING REALLY? I AM GOING TO FIND WHEVER MADE THIS ONLY TO DISEMBOWLE THEM, INFLATE THEIR ORGANS AND SHOVE THEM BACK INSIDE, SO THAT THEIR BODY RESEMBLES THE BLUEBERRY GIRL IN CHARLIE AND THE CHOCOLA-FUCKING-TE FACTA-FUCKING-ORY. THAT'S RIGHT. THAT'S WHO CREATED THIS. IT'S EVIL AND I SHALL HAVE NO PART OF IT. IF YOU HAVE A CONCIENSE, OR ANY SEMPLENCE OF A SOUL, YOU WILL THROW THOSE AWAY, OR BETTER YET, BURN THEM AND SPREAD THEIR ASHES THOROUGHLY INTO A VENUS FLYTRAP FLOWERBED. THAT IS ALL.");
             }
             //boob
-            else if (text.includes(" boob ") || text === "boob")
+            if (text.includes(" boob ") || text === "boob")
             {
                 msg.channel.uploadFile("images\\underboob.jpg");
             }
             //bye
-            else if (text.includes(" bye ") || text === "bye")
+            if (text.includes(" bye ") || text === "bye")
             {
                 msg.channel.uploadFile("images\\bye.gif", "images\\bye.gif");
             }
             //daddy
-            else if (text.includes(" daddy ") || text === "daddy")
+            if (text.includes(" daddy ") || text === "daddy")
             {
                 msg.channel.sendMessage("<@192158164798406658>");
             }
             //danganroppa
-            else if (text.includes("danganroppa"))
+            if (text.includes("danganroppa"))
             {
                 msg.channel.sendMessage("Dangit Wrongpan?");
             }
             //debbie
-            else if (text.includes("debbie"))
+            if (text.includes("debbie"))
             {
                 msg.channel.sendMessage("WHAT WILL DEBBIE THINK!");
             }
             //dilligaf
-            else if (text.includes("dilligaf"))
+            if (text.includes("dilligaf"))
             {
                 msg.channel.uploadFile("images\\dilligaf.png");
             }
             //doyoueven
-            else if (text.includes(" doyoueven ") || text === "doyoueven" || text.includes("do you even ") || text === "do you even")
+            if (text.includes(" doyoueven ") || text === "doyoueven" || text.includes("do you even ") || text === "do you even")
             {
                 msg.channel.uploadFile("images\\doyoueven.jpg");
             }
             //dozicus
-            else if (text.includes("dozicus"))
+            if (text.includes("dozicus"))
             {
                 msg.channel.sendMessage("DozicusPrimeTheDestroyerOfWorldsFredButtonIdiotMushroomBurger Stormborn of house targaryen, first of her name, queen of the andals and first men, khaleesi, mother of dragons and breaker of chains.");
             }
             //embargo
-            else if (text.includes("embargo"))
+            if (text.includes("embargo"))
             {
                 msg.channel.sendMessage("But now, Gwilith was dead. His world had turned into his worst enemy, and now the only thing he knew was the wind. This was the beginning of Embargo. This was the beginning of the end. <@185936558036090880>");
             }
             //fig
-            else if (text.includes(" fig ") || text === "fig")
+            if (text.includes(" fig ") || text === "fig")
             {
                 msg.channel.sendMessage("WHAT WOULD FIG DO!");
                 msg.channel.sendMessage("'I hate black people, I swear' ~Fig 2016");
             }
             //gg
-            else if (text.includes(" gg ") || text === "gg")
+            if (text.includes(" gg ") || text === "gg")
             {
                 msg.channel.sendMessage("<:golduck:250425534427824128> ***GIT GUD*** <:golduck:250425534427824128> <:golduck:250425534427824128> ***GIT GUD*** <:golduck:250425534427824128> <:golduck:250425534427824128> ***GIT GUD*** <:golduck:250425534427824128> <:golduck:250425534427824128> ***GIT GUD*** <:golduck:250425534427824128> <:golduck:250425534427824128> ***GIT GUD*** <:golduck:250425534427824128>");
             }
             //goodshit
-            else if (text.includes("goodshit") || text.includes("good shit"))
+            if (text.includes("goodshit") || text.includes("good shit"))
             {
                 msg.channel.sendMessage("👌👀👌👀👌👀👌👀👌👀 good shit go౦ԁ sHit👌 thats ✔ some good👌👌shit right👌👌th 👌 ere👌👌👌 right✔there ✔✔if i do ƽaү so my selｆ 💯 i say so 💯 thats what im talking about right there right there (chorus: ʳᶦᵍʰᵗ ᵗʰᵉʳᵉ) mMMMMᎷМ💯 👌👌 👌НO0ОଠＯOOＯOОଠଠOoooᵒᵒᵒᵒᵒᵒᵒᵒᵒ👌 👌👌 👌 💯 👌 👀 👀 👀 👌👌Good shit");
             }
             //highfive
-            else if (text.includes("highfive") || text.includes("high five"))
+            if (text.includes("highfive") || text.includes("high five"))
             {
                 msg.channel.uploadFile("images\\highfive.jpg");
             }
             //hue
-            else if (text.includes("hue"))
+            if (text.includes("hue"))
             {
                 msg.channel.sendMessage("HUE+HUE+HUE+HUE+HUE+HUE+HUE+HUE+");
             }
             //ignis
-            else if (text.includes("ignis"))
+            if (text.includes("ignis"))
             {
                 msg.channel.uploadFile("images\\ignis.gif", "images\\ignis.gif");
             }
             //iwata
-            else if (text.includes("iwata"))
+            if (text.includes("iwata"))
             {
                 msg.channel.uploadFile("images\\iwata.jpg");
             }
             //jon
-            else if (text.includes(" jon ") || text === "jon")
+            if (text.includes(" jon ") || text === "jon")
             {
                 msg.channel.uploadFile("images\\jon.gif", "images\\jon.gif");
             }
             //left
-            else if (text.includes(" left ") || text === "left")
+            if (text.includes(" left ") || text === "left")
             {
                 msg.channel.uploadFile("images\\left.jpg");
             }
             //lmao
-            else if (text.includes(" lmao ") || text === "lmao")
+            if (text.includes(" lmao ") || text === "lmao")
             {
-                var client = get_client(msg);
                 client.lmao_count++;
                 if (client.lmao_count > 10)
                 {
@@ -1099,24 +1413,23 @@ var commands =
                 }
             }
             //mao
-            else if (text.includes(" mao ") || text === "mao")
+            if (text.includes(" mao ") || text === "mao")
             {
                 msg.channel.uploadFile("images\\mao.jpg");
             }
             //minarah
-            else if (text.includes("minarah"))
+            if (text.includes("minarah"))
             {
                 msg.channel.sendMessage("Minarah Dark Blade the Black Rose, she grew up a bandit, a warrior, was trained as an assassin. She's had a hard life. She's *not* a hero. <@119963118016266241>");
             }
             //miyamoto
-            else if (text.includes("miyamoto"))
+            if (text.includes("miyamoto"))
             {
                 msg.channel.uploadFile("images\\miyamoto.gif", "images\\miyamoto.gif");
             }
             //myswamp
-            else if (text.includes("swamp"))
+            if (text.includes("swamp"))
             {
-                var client = get_client(msg);
                 if (client.swamp)
                 {
                     client.swamp = false;
@@ -1129,72 +1442,72 @@ var commands =
                 }
             }
             //nebby
-            else if (text.includes("nebby"))
+            if (text.includes("nebby"))
             {
                 msg.channel.uploadFile("images\\nebby.gif", "images\\nebby.gif");
             }
             //pedo
-            else if (text.includes("pedo"))
+            if (text.includes("pedo"))
             {
                 msg.channel.uploadFile("images\\pedo.png");
             }
             //pepe
-            else if (text.includes(" pepe ") || text === "pepe")
+            if (text.includes(" pepe ") || text === "pepe")
             {
                 msg.channel.sendMessage("*FUCKING PEPE,THAT SCUM ON MY BALLSACK!. FUCK THAT BUNDLE OF STICKS SHOVING UP HIS ASS HAVING 'I LIVE WITH MY MOM' JORDAN 3'S WEARING MOTHERHUGGER! THAT SOUTHERN, 'I CHEATED ON MY SISTER WITH MY MOTHER' COUNTRY ASS MOTHERHUGGER. BUT YEAH, FUCK HIM...*");
             }
             //petyr
-            else if (text.includes("petyr"))
+            if (text.includes("petyr"))
             {
                 msg.channel.uploadFile("images\\petyr.jpeg");
             }
             //pls
-            else if (text.includes("please the team") || text.includes("pleasetheteam") || text === "pls")
+            if (text.includes("please the team") || text.includes("pleasetheteam") || text === "pls")
             {
                 msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif");
             }
             //poopkink
-            else if (text.includes("poopkink"))
+            if (text.includes("poopkink"))
             {
                 msg.channel.sendMessage("http://www.poopkink.com");
             }
             //pushthepayload
-            else if (text.includes("payload"))
+            if (text.includes("payload"))
             {
                 msg.channel.uploadFile("images\\payload.gif", "images\\payload.gif");
             }
             //snorlax
-            else if (text.includes("snorlax"))
+            if (text.includes("snorlax"))
             {
                 msg.channel.uploadFile("images\\snorlax.gif", "images\\snorlax.gif");
             }
             //sonicno
-            else if (text.includes("sonicno") || text.includes("sonic no"))
+            if (text.includes("sonicno") || text.includes("sonic no"))
             {
                 msg.channel.uploadFile("images\\sonicno.jpg");
             }
             //spookyshit
-            else if (text.includes("spookyshit") || text.includes("spooky shit"))
+            if (text.includes("spookyshit") || text.includes("spooky shit"))
             {
                 msg.channel.sendMessage("🎃👻🎃👻🎃👻👻👻🎃👻 spooky shit spooky sHit🎃 thats ✔ some spooky🎃🎃shit right🎃🎃th 🎃 ere🎃🎃🎃 right✔there ✔✔if i do ƽaү so my selｆ 💯 i say so 💯 thats what im talking about right there right there (chorus: ʳᶦᵍʰᵗ ᵗʰᵉʳᵉ) mMMMMᎷМ💯 🎃🎃 🎃НO0ОଠＯOOＯOОଠଠOoooᵒᵒᵒᵒᵒᵒᵒᵒᵒ🎃 🎃 🎃 🎃 💯 🎃 👻👻 👻 🎃🎃spooky shit 🎃👻🎃👻🎃👻👻👻🎃👻 spooky shit spooky sHit🎃 thats ✔ some spooky🎃🎃shit right🎃🎃th 🎃 ere🎃🎃🎃 right✔there ✔✔if i do ƽaү so my selｆ 💯 i say so 💯 thats what im talking about right there right there (chorus: ʳᶦᵍʰᵗ ᵗʰᵉʳᵉ) mMMMMᎷМ💯 🎃🎃 🎃НO0ОଠＯOOＯOОଠଠOoooᵒᵒᵒᵒᵒᵒᵒᵒᵒ🎃 🎃 🎃 🎃 💯 🎃 👻👻 👻 🎃🎃spooky shit");
             }
             //tbc
-            else if (text.includes("tbc") || text.includes("tobecontinued") || text.includes("to be continued"))
+            if (text.includes("tbc") || text.includes("tobecontinued") || text.includes("to be continued"))
             {
                 msg.channel.uploadFile("images\\tbc.png");
             }
             //valor
-            else if (text.includes("valor"))
+            if (text.includes("valor"))
             {
                 msg.channel.uploadFile("images\\valor.png");
             }
             //who
-            else if (text.includes("who are th") || text === "who")
+            if (text.includes("who are th") || text === "who")
             {
                 msg.channel.uploadFile("images\\people.gif", "images\\people.gif");
             }
             //womb
-            else if (text.includes("womb"))
+            if (text.includes("womb"))
             {
                 msg.channel.uploadFile("images\\womb.gif", "images\\womb.gif");
             }
