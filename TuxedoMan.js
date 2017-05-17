@@ -19,16 +19,15 @@ function start()
 
 function _can(permissions, context)
 {
-    var can = false;
     for (var i = 0; i < permissions.length; i++)
     {
         if (context === undefined)
         {
             return false;
         }
+        var perm = bot.User.permissionsFor(context);
         if (context.isGuildText)
         {
-            var perm = bot.User.permissionsFor(context);
             var text = perm.Text;
             for (var p in text)
             {
@@ -38,13 +37,15 @@ function _can(permissions, context)
                 }
                 if (p === permissions[i])
                 {
-                    can = text[p];
+                    if(!text[p])
+                    {
+                        return false;
+                    }
                 }
             }
         }
         else if (context.isGuildVoice)
         {
-            var perm = bot.User.permissionsFor(context);
             var voice = perm.Voice;
             for (var p in voice)
             {
@@ -54,12 +55,34 @@ function _can(permissions, context)
                 }
                 if (p === permissions[i])
                 {
-                    can = voice[p];
+                    if(!voice[p])
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+        //TODO something for sending a guild
+        else
+        {
+            var general = perm.General;
+            for (var p in general)
+            {
+                if (!general.hasOwnProperty(p))
+                {
+                    continue;
+                }
+                if (p === permissions[i])
+                {
+                    if(!general[p])
+                    {
+                        return false;
+                    }
                 }
             }
         }
     }
-    return can;
+    return true;
 }
 
 start();
@@ -365,9 +388,31 @@ function auto_queue(client)
     });
 }
 
+function message_handler(message, client)
+{
+    if (message !== undefined)
+    {
+        message.promise.then((m) =>
+        {
+            setTimeout(function(){m.delete();}, 10000);
+        })
+        .catch(() =>
+        {
+            var tc = get_tc(client);
+            if (tc !== undefined)
+            {
+                tc.sendMessage(message.content)
+                .then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 10000);
+                });
+            }
+        });
+    }
+}
+
 function add_to_queue(video, msg, mute = false)
 {
-    var client = get_client(msg);
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
     {
         var str = "";
@@ -375,16 +420,17 @@ function add_to_queue(video, msg, mute = false)
         {
             console.log(`Error (${video}): ${error}`);
             str = `The requested video (${video}) does not exist or cannot be played.`;
-            return {promise: msg.reply(str), content: str};
+            message_handler({promise: msg.reply(str), content: str}, client);
         }
         else
         {
+            var client = get_client(msg);
             client.queue.push({title: info.title, url: video, user: msg.author});
 
             if (!mute)
             {
                 str = `\"${info.title}" has been added to the queue.`;
-                return {promise: msg.reply(str), content: str};
+                message_handler({promise: msg.reply(str), content: str}, client);
             }
             if (!client.is_playing && client.queue.length === 1)
             {
@@ -439,7 +485,7 @@ function play_next_song(client, msg)
             });
         }
     }
-
+    client.is_playing = true;
     var video_url = client.queue[0].url;
     var title = client.queue[0].title;
     var user = client.queue[0].user;
@@ -472,7 +518,6 @@ function play_next_song(client, msg)
         console.log(`BZZT SONG START ON ${client.server.name.toUpperCase()} BZZT`);
         client.encoder.play();
         volume(client, client.volume);
-        client.is_playing = true;
 
         if (client.encoder.voiceConnection.channel.members.length === 1)
         {
@@ -513,6 +558,7 @@ function search_command(command_name)
 function handle_command(msg, text, meme)
 {
     var command = "";
+    var m = msg;
     if (!meme)
     {
         var client = get_client(msg);
@@ -523,34 +569,14 @@ function handle_command(msg, text, meme)
         {
             if (params.length - 1 < command.parameters.length)
             {
-                msg.reply("Insufficient parameters!").then((m) =>
+                return msg.reply("Insufficient parameters!").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 10000);
                 });
             }
             else
             {
-                var message = {};
-                message = command.execute(msg, params);
-                if (message !== undefined)
-                {
-                    message.promise.then((m) =>
-                    {
-                        setTimeout(function(){m.delete();}, 10000);
-                    })
-                    .catch(() =>
-                    {
-                        var tc = get_tc(client);
-                        if (tc !== undefined)
-                        {
-                            tc.sendMessage(message.content)
-                            .then((m) =>
-                            {
-                                setTimeout(function(){m.delete();}, 10000);
-                            });
-                        }
-                    });
-                }
+                message_handler(command.execute(m, params), client);
                 return true;
             }
         }
@@ -558,7 +584,7 @@ function handle_command(msg, text, meme)
     else
     {
         command = search_command("memes");
-        command.execute(msg, text);
+        return command.execute(m, text);
     }
 }
 
@@ -571,12 +597,12 @@ function search_video(msg, query)
         if ("error" in json)
         {
             str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
-            return {promise: msg.reply(str), content: str};
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
         }
         else if (json.items.length === 0)
         {
             str = "No videos found matching the search criteria.";
-            return {promise: msg.reply(str), content: str};
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
         }
         else
         {
@@ -587,17 +613,19 @@ function search_video(msg, query)
 
 function queue_playlist(playlistId, msg, pageToken = "")
 {
+    var str = "";
     request(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${yt_api_key}&pageToken=${pageToken}`, (error, response, body) =>
     {
         var json = JSON.parse(body);
         if ("error" in json)
         {
-            return msg.reply(`An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`);
+            str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
         }
         else if (json.items.length === 0)
         {
-            return [msg.reply("No videos found within playlist."),
-            "No videos found within playlist."];
+            str = "No videos found within playlist.";
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
         }
         else
         {
@@ -610,9 +638,8 @@ function queue_playlist(playlistId, msg, pageToken = "")
                 request(`https://www.googleapis.com/youtube/v3/playlists?part=snippet%2Clocalizations&id=${playlistId}&fields=items(localizations%2Csnippet%2Flocalized%2Ftitle)&key=${yt_api_key}`, (e, r, body) =>
                 {
                     var json = JSON.parse(body);
-                    console.log(json);
-                    return [msg.reply(`${json.items[0].snippet.localized.title} has been queued.`),
-                    `${json.items[0].snippet.localized.title} has been queued.`];
+                    str = `${json.items[0].snippet.localized.title} has been queued.`;
+                    return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
                 });
             }
             return queue_playlist(playlistId, msg, json.nextPageToken);
@@ -793,7 +820,6 @@ var commands =
                 }
                 return search_video(msg, q);
             }
-
         }
     },
     // np
@@ -833,7 +859,7 @@ var commands =
                 var long_queue = client.queue.length > 30;
                 for (var i = 0; i < (long_queue ? 30 : client.queue.length); i++)
                 {
-                    str += `"${client.queue[i].title}" (requested by ${client.queue[i].user})`;
+                    str += `"${client.queue[i].title}" (requested by ${client.queue[i].user.username})`;
                 }
                 if (long_queue)
                 {
