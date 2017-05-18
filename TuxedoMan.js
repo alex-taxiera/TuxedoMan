@@ -26,10 +26,11 @@ function _can(permissions, context)
             return false;
         }
         var perm = bot.User.permissionsFor(context);
+        var p;
         if (context.isGuildText)
         {
             var text = perm.Text;
-            for (var p in text)
+            for (p in text)
             {
                 if (!text.hasOwnProperty(p))
                 {
@@ -47,7 +48,7 @@ function _can(permissions, context)
         else if (context.isGuildVoice)
         {
             var voice = perm.Voice;
-            for (var p in voice)
+            for (p in voice)
             {
                 if (!voice.hasOwnProperty(p))
                 {
@@ -62,24 +63,9 @@ function _can(permissions, context)
                 }
             }
         }
-        //TODO something for sending a guild
         else
         {
-            var general = perm.General;
-            for (var p in general)
-            {
-                if (!general.hasOwnProperty(p))
-                {
-                    continue;
-                }
-                if (p === permissions[i])
-                {
-                    if(!general[p])
-                    {
-                        return false;
-                    }
-                }
-            }
+            return false;
         }
     }
     return true;
@@ -236,7 +222,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
         {
             if (handle_command(msg, text.substring(1), false))
             {
-                if (_can("MANAGE_MESSAGES", msg.guild))
+                if (_can(["MANAGE_MESSAGES"], msg.channel))
                 {
                     setTimeout(function(){msg.delete();}, 5000);
                 }
