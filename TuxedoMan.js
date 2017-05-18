@@ -114,7 +114,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
         var servers = bot.Guilds.toArray();
         if(!err)
         {
-            var tmp = undefined;
+            var tmp;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
             if (old_servers === [])
             {
@@ -124,6 +124,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
             for (var i = 0; i < servers.length; i++)
             {
                 var j;
+                tmp = undefined;
                 for (j = 0; j < old_servers.length; j++)
                 {
                     if (servers[i].id === old_servers[j].server.id)
@@ -159,7 +160,6 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                         {
                             old_vc.join();
                             tmp.vc = old_vc;
-                            break;
                         }
                         if (tmp.vc === undefined)
                         {
@@ -196,11 +196,9 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                             lmao_count:     0
                         });
                         delete servers[i];
-                        tmp = undefined;
                         break;
                     }
                 }
-
             }
             sweep_clients_and_init(servers);
         }
