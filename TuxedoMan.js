@@ -323,7 +323,8 @@ function write_changes()
             autoplay:       s[i].autoplay,
             inform_np:      s[i].inform_np,
             announce_auto:  s[i].announce_auto,
-            meme:           s[i].meme
+            meme:           s[i].meme,
+            volume:         s[i].volume
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
@@ -434,6 +435,7 @@ function volume(client, vol)
 {
     client.volume = vol;
     client.encoder.voiceConnection.getEncoder().setVolume(vol);
+    write_changes();
 }
 
 function get_tc(client)
