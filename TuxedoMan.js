@@ -85,6 +85,11 @@ bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
     if (e.user.id === bot.User.id)
     {
         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
+        if (e.newChannelId === null)
+        {
+            var vc = bot.Channels.find(c => c.id == e.channelId);
+            vc.join(vc).catch((e) => {console.log(e);});
+        }
     }
     else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
     {
