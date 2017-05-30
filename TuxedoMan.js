@@ -1437,7 +1437,10 @@ var commands =
             //pls
             if (text.includes("please the team") || text.includes("pleasetheteam") || text === "pls")
             {
-                msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif");
+                msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 30000);
+                });
             }
             //poopkink
             if (text.includes("poopkink"))
