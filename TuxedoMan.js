@@ -195,7 +195,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                             inform_np:      old_servers[j].inform_np,
                             announce_auto:  old_servers[j].announce_auto,
                             encoder:        {},
-                            volume:         25,
+                            volume:         old_servers[j].volume,
                             meme:           old_servers[j].meme,
                             swamp:          true,
                             lmao_count:     0
@@ -287,7 +287,7 @@ function sweep_clients_and_init(servers)
                 inform_np:      true,
                 announce_auto:  true,
                 encoder:        {},
-                volume:         25,
+                volume:         10,
                 meme:           true,
                 swamp:          true,
                 lmao_count:     0
@@ -742,6 +742,7 @@ var commands =
             {
                 client.paused = true;
                 client.encoder.destroy();
+                client.now_playing = {};
                 str = "Stopping...";
                 return {promise: msg.reply(str), content: str};
             }
