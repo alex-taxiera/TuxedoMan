@@ -434,7 +434,10 @@ function add_to_queue(video, msg, mute = false)
 function volume(client, vol)
 {
     client.volume = vol;
-    client.encoder.voiceConnection.getEncoder().setVolume(vol);
+    if (client.is_playing)
+    {
+        client.encoder.voiceConnection.getEncoder().setVolume(vol);
+    }
     write_changes();
 }
 
