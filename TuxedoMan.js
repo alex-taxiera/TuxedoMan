@@ -647,13 +647,13 @@ var commands =
     {
         command: "volume",
         description: "Set music volume.",
-        parameters: ["number (1-100)"],
+        parameters: ["number (1-200)"],
         execute: function(msg, params)
         {
             var str = "";
-            if (params[1] > 0 && params[1] < 101)
+            if (params[1] > 0 && params[1] < 201)
             {
-                volume(get_client(msg), params[1]);
+                volume(get_client(msg), params[1]/2);
                 str = "Volume set!";
                 return {promise: msg.reply(str), content: str};
             }
