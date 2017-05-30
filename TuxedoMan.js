@@ -85,6 +85,11 @@ bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
     if (e.user.id === bot.User.id)
     {
         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
+        if (e.newChannelId === null)
+        {
+            var vc = bot.Channels.find(c => c.id == e.channelId);
+            vc.join(vc).catch((e) => {console.log(e);});
+        }
     }
     else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
     {
@@ -190,7 +195,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                             inform_np:      old_servers[j].inform_np,
                             announce_auto:  old_servers[j].announce_auto,
                             encoder:        {},
-                            volume:         25,
+                            volume:         old_servers[j].volume,
                             meme:           old_servers[j].meme,
                             swamp:          true,
                             lmao_count:     0
@@ -282,7 +287,7 @@ function sweep_clients_and_init(servers)
                 inform_np:      true,
                 announce_auto:  true,
                 encoder:        {},
-                volume:         25,
+                volume:         10,
                 meme:           true,
                 swamp:          true,
                 lmao_count:     0
@@ -318,7 +323,8 @@ function write_changes()
             autoplay:       s[i].autoplay,
             inform_np:      s[i].inform_np,
             announce_auto:  s[i].announce_auto,
-            meme:           s[i].meme
+            meme:           s[i].meme,
+            volume:         s[i].volume
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
@@ -428,7 +434,11 @@ function add_to_queue(video, msg, mute = false)
 function volume(client, vol)
 {
     client.volume = vol;
-    client.encoder.voiceConnection.getEncoder().setVolume(vol);
+    if (client.is_playing)
+    {
+        client.encoder.voiceConnection.getEncoder().setVolume(vol);
+    }
+    write_changes();
 }
 
 function get_tc(client)
@@ -637,13 +647,13 @@ var commands =
     {
         command: "volume",
         description: "Set music volume.",
-        parameters: ["number (1-100)"],
+        parameters: ["number (1-200)"],
         execute: function(msg, params)
         {
             var str = "";
-            if (params[1] > 0 && params[1] < 101)
+            if (params[1] > 0 && params[1] < 201)
             {
-                volume(get_client(msg), params[1]);
+                volume(get_client(msg), params[1]/2);
                 str = "Volume set!";
                 return {promise: msg.reply(str), content: str};
             }
@@ -732,6 +742,7 @@ var commands =
             {
                 client.paused = true;
                 client.encoder.destroy();
+                client.now_playing = {};
                 str = "Stopping...";
                 return {promise: msg.reply(str), content: str};
             }
@@ -1279,6 +1290,11 @@ var commands =
             {
                 msg.channel.uploadFile("images\\underboob.jpg");
             }
+            //bruh
+            if (text === "bruh")
+            {
+                msg.channel.uploadFile("images\\bruh.jpg");
+            }
             //bye
             if (text.includes(" bye ") || text === "bye")
             {
@@ -1427,7 +1443,10 @@ var commands =
             //pls
             if (text.includes("please the team") || text.includes("pleasetheteam") || text === "pls")
             {
-                msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif");
+                msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif").then((m) =>
+                {
+                    setTimeout(function(){m.delete();}, 30000);
+                });
             }
             //poopkink
             if (text.includes("poopkink"))
