@@ -1290,6 +1290,11 @@ var commands =
             {
                 msg.channel.uploadFile("images\\underboob.jpg");
             }
+            //bruh
+            if (text === "bruh")
+            {
+                msg.channel.uploadFile("images\\bruh.jpg");
+            }
             //bye
             if (text.includes(" bye ") || text === "bye")
             {
