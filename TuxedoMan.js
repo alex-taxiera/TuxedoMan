@@ -358,10 +358,8 @@ function get_client(e)
 function auto_queue(client)
 {
     // get a random video
-    var randomList = Math.floor((rng() * files.length));
-    var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[randomList]}`, "utf-8"));
-    var randomLineIndex = Math.floor(rng() * autoplaylist.length);
-    var video = autoplaylist[randomLineIndex].link;
+    var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[Math.floor((rng() * files.length))]}`, "utf-8"));
+    var video = autoplaylist[Math.floor(rng() * autoplaylist.length)].link;
 
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
     {
