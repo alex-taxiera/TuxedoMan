@@ -110,7 +110,7 @@ bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 
 bot.Dispatcher.on("GUILD_CREATE", e =>
 {
-    servers = [];
+    var servers = [];
     servers.push(e.guild);
     sweep_clients_and_init(servers);
 });
@@ -597,7 +597,7 @@ function handle_command(msg, text, meme)
     else
     {
         command = search_command("memes");
-        return command.execute(m, text);
+        return command.execute(msg, text);
     }
 }
 
@@ -662,6 +662,7 @@ function queue_playlist(playlistId, msg, pageToken = "")
 
 function deny_rank(msg, rank)
 {
+    var str = "";
     if (rank === 2)
     {
         str = "Must be VIP!";
@@ -1188,7 +1189,7 @@ var commands =
             var vip_role = "";
             if (client.vip !== null)
             {
-                role = guild.roles.find(r => r.id === client.vip);
+                var role = guild.roles.find(r => r.id === client.vip);
                 vip_role = role.name;
             }
             else
