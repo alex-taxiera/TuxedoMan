@@ -110,7 +110,6 @@ bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
-
     s = [];
     console.log("BZZT ONLINE BZZT");
     bot.User.setGame("BZZT KILLING BZZT");
@@ -550,7 +549,6 @@ function search_command(command_name)
 function handle_command(msg, text, meme)
 {
     var command = "";
-    var m = msg;
     if (!meme)
     {
         var client = get_client(msg);
@@ -568,7 +566,14 @@ function handle_command(msg, text, meme)
             }
             else
             {
-                message_handler(command.execute(m, params), client);
+                if (rank(msg) >= command.rank)
+                {
+                    message_handler(command.execute(msg, params), client);
+                }
+                else if (rank(msg) < command.rank)
+                {
+                    message_handler(deny_rank(msg, command.rank));
+                }
                 return true;
             }
         }
@@ -639,6 +644,37 @@ function queue_playlist(playlistId, msg, pageToken = "")
     });
 }
 
+function deny_rank(msg, rank)
+{
+    if (rank === 2)
+    {
+        str = "Must be VIP!";
+        return {promise: msg.reply(str), content: str};
+    }
+    else if (rank === 3)
+    {
+        str = "Must be server owner!";
+        return {promise: msg.reply(str), content: str};
+    }
+}
+
+function rank(msg)
+{
+    var client = get_client(msg);
+    if (msg.guild.isOwner(msg.author))
+    {
+        return 3;
+    }
+    else if (msg.member.hasRole(client.vip))
+    {
+        return 2;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 var commands =
 [
     // volume
@@ -646,6 +682,7 @@ var commands =
         command: "volume",
         description: "Set music volume.",
         parameters: ["number (1-200)"],
+        rank: 1,
         execute: function(msg, params)
         {
             var str = "";
@@ -667,6 +704,7 @@ var commands =
         command: "play",
         description: "Resumes paused/stopped playback",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var client = get_client(msg);
@@ -706,6 +744,7 @@ var commands =
         command: "pause",
         description: "Pauses your shit",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var client = get_client(msg);
@@ -732,6 +771,7 @@ var commands =
         command: "stop",
         description: "Delete current song and prevent further playback",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var client = get_client(msg);
@@ -756,6 +796,7 @@ var commands =
         command: "skip",
         description: "Skips the current song",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var client = get_client(msg);
@@ -778,6 +819,7 @@ var commands =
         command: "request",
         description: "Adds the requested video to the playlist queue",
         parameters: ["video URL, video ID, playlist URL or alias"],
+        rank: 1,
         execute: function(msg, params)
         {
             var regExp = /^.*(youtu.be\/|list=)([^#\&\?]*).*/;
@@ -797,6 +839,7 @@ var commands =
         command: "search",
         description: "Searches for a video on YouTube and adds it to the queue",
         parameters: ["query"],
+        rank: 1,
         execute: function(msg, params)
         {
             var str = "You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key";
@@ -820,6 +863,7 @@ var commands =
         command: "np",
         description: "Displays the current song",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var client = get_client(msg);
@@ -840,6 +884,7 @@ var commands =
         command: "queue",
         description: "Displays the queue",
         parameters: [],
+        rank: 1,
         execute: function(msg) {
             var client = get_client(msg);
             var str = "";
@@ -867,13 +912,27 @@ var commands =
         command: "commands",
         description: "Displays this message, duh!",
         parameters: [],
+        rank: 1,
         execute: function(msg)
         {
             var str = "Available commands:";
             for (var i = 0; i < commands.length; i++)
             {
                 var c = commands[i];
-                str += `\n* ${c.command}`;
+                var rank = "";
+                if (c.rank === 2)
+                {
+                    rank = "VIP";
+                }
+                else if (c.rank === 3)
+                {
+                    rank = "Owner";
+                }
+                else
+                {
+                    rank = "Anyone";
+                }
+                str += `\n* ${c.command} (${rank})`;
                 for (var j = 0; j < c.parameters.length; j++)
                 {
                     str += ` <${c.parameters[j]}>`;
@@ -893,21 +952,14 @@ var commands =
         command: "clearqueue",
         description: "Removes all songs from the queue",
         parameters: [],
+        rank: 2,
         execute: function(msg)
         {
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
-            {
-                client.queue = [];
-                str = "Queue has been cleared!";
-                return {promise: msg.reply(str), content: str};
-            }
-            else
-            {
-                str = "Must be VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            client.queue = [];
+            str = "Queue has been cleared!";
+            return {promise: msg.reply(str), content: str};
         }
     },
     // remove
@@ -915,42 +967,35 @@ var commands =
         command: "remove",
         description: "Removes a song from the queue",
         parameters: ["Request index or 'last'"],
+        rank: 2,
         execute: function(msg, params)
         {
             var index = params[1];
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            if (client.queue.length === 0)
             {
-                if (client.queue.length === 0)
-                {
-                    str = "The queue is empty";
-                    return {promise: msg.reply(str), content: str};
+                str = "The queue is empty";
+                return {promise: msg.reply(str), content: str};
 
-                }
-                else if (isNaN(index) && index !== "last")
-                {
-                    str = `Argument "${index}" is not a valid index.`;
-                    return {promise: msg.reply(str), content: str};
-                }
-
-                if (index === "last") {index = client.queue.length;}
-                index = parseInt(index);
-                if (index < 1 || index > client.queue.length)
-                {
-                    str = `Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`;
-                    return {promise: msg.reply(str), content: str};
-                }
-
-                var deleted = client.queue.splice(index - 1, 1);
-                str = `Request "${deleted[0].title}" was removed from the queue.`;
+            }
+            else if (isNaN(index) && index !== "last")
+            {
+                str = `Argument "${index}" is not a valid index.`;
                 return {promise: msg.reply(str), content: str};
             }
-            else
+
+            if (index === "last") {index = client.queue.length;}
+            index = parseInt(index);
+            if (index < 1 || index > client.queue.length)
             {
-                str = "Must be VIP!";
+                str = `Cannot remove request #${index} from the queue (there are only ${client.queue.length} requests currently)`;
                 return {promise: msg.reply(str), content: str};
             }
+
+            var deleted = client.queue.splice(index - 1, 1);
+            str = `Request "${deleted[0].title}" was removed from the queue.`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // toggle np
@@ -958,22 +1003,15 @@ var commands =
         command: "nptoggle",
         description: "Toggle announcing when a song starts playing",
         parameters: [],
+        rank: 2,
         execute: function(msg)
         {
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
-            {
-                client.inform_np = !client.inform_np;
-                write_changes();
-                str = `Now Playing announcements set to ${client.inform_np}!`;
-                return {promise: msg.reply(str), content: str};
-            }
-            else
-            {
-                str = "Must be server VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            client.inform_np = !client.inform_np;
+            write_changes();
+            str = `Now Playing announcements set to ${client.inform_np}!`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // toggle auto np
@@ -981,22 +1019,15 @@ var commands =
         command: "autonptoggle",
         description: "Toggle announcing when an autoplay song starts playing",
         parameters: [],
+        rank: 2,
         execute: function(msg)
         {
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
-            {
-                client.announce_auto = !client.announce_auto;
-                write_changes();
-                str = `Now Playing (autoplay) announcements set to ${client.announce_auto}!`;
-                return {promise: msg.reply(str), content: str};
-            }
-            else
-            {
-                str = "Must be server VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            client.announce_auto = !client.announce_auto;
+            write_changes();
+            str = `Now Playing (autoplay) announcements set to ${client.announce_auto}!`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // toggle autoplay
@@ -1004,27 +1035,20 @@ var commands =
         command: "autotoggle",
         description: "Toggle music autoplay",
         parameters: [],
+        rank: 2,
         execute: function(msg)
         {
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            client.autoplay = !client.autoplay;
+            if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
             {
-                client.autoplay = !client.autoplay;
-                if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
-                {
-                    client.paused = false;
-                    auto_queue(client);
-                }
-                write_changes();
-                str = `Autoplay set to ${client.autoplay}!`;
-                return {promise: msg.reply(str), content: str};
+                client.paused = false;
+                auto_queue(client);
             }
-            else
-            {
-                str = "Must be server VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            write_changes();
+            str = `Autoplay set to ${client.autoplay}!`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // toggle meme
@@ -1032,22 +1056,15 @@ var commands =
         command: "memetoggle",
         description: "Toggle meme posting",
         parameters: [],
+        rank: 2,
         execute: function(msg)
         {
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
-            {
-                client.meme = !client.meme;
-                write_changes();
-                str = `Meme posting set to ${client.meme}!`;
-                return {promise: msg.reply(str), content: str};
-            }
-            else
-            {
-                str = "Must be server VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            client.meme = !client.meme;
+            write_changes();
+            str = `Meme posting set to ${client.meme}!`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // setvoice
@@ -1055,56 +1072,49 @@ var commands =
         command: "voice",
         description: "Set voice channel to start up in.",
         parameters: ["voice channel name"],
+        rank: 2,
         execute: function(msg, params)
         {
             var client = get_client(msg);
             var str = "";
             var vc = bot.Channels.voiceForGuild(msg.guild);
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            for (var j = 0; j < vc.length; j++)
             {
-                for (var j = 0; j < vc.length; j++)
+                if (params[1] === vc[j].name)
                 {
-                    if (params[1] === vc[j].name)
+                    if (client.vc.id !== vc[j].id)
                     {
-                        if (client.vc.id !== vc[j].id)
+                        if (_can(["CONNECT"], vc[j]))
                         {
-                            if (_can(["CONNECT"], vc[j]))
+                            if (_can(["SPEAK"], vc[j]))
                             {
-                                if (_can(["SPEAK"], vc[j]))
-                                {
-                                    client.vc = {id: vc[j].id, name: vc[j].name};
-                                    write_changes();
-                                    vc[j].join();
-                                    str = "Default set!";
-                                    return {promise: msg.reply(str), content: str};
-                                }
-                                else
-                                {
-                                    str = "Cannot speak in that channel!";
-                                    return {promise: msg.reply(str), content: str};
-                                }
+                                client.vc = {id: vc[j].id, name: vc[j].name};
+                                write_changes();
+                                vc[j].join();
+                                str = "Default set!";
+                                return {promise: msg.reply(str), content: str};
                             }
                             else
                             {
-                                str = "Cannot connect to that channel!";
+                                str = "Cannot speak in that channel!";
                                 return {promise: msg.reply(str), content: str};
                             }
                         }
                         else
                         {
-                            str = "Already default channel!";
+                            str = "Cannot connect to that channel!";
                             return {promise: msg.reply(str), content: str};
                         }
                     }
+                    else
+                    {
+                        str = "Already default channel!";
+                        return {promise: msg.reply(str), content: str};
+                    }
                 }
-                str = `Could not find ${params[1]} channel!`;
-                return {promise: msg.reply(str), content: str};
             }
-            else
-            {
-                str = "Must be server VIP!";
-                return {promise: msg.reply(str), content: str};
-            }
+            str = `Could not find ${params[1]} channel!`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     // settext
@@ -1112,48 +1122,78 @@ var commands =
         command: "text",
         description: "Set text channel to announce things in.",
         parameters: ["text channel name"],
+        rank: 2,
         execute: function(msg, params)
         {
             var client = get_client(msg);
             var str = "";
 
             var tc = bot.Channels.textForGuild(msg.guild);
-            if (msg.guild.isOwner(msg.author) || msg.member.hasRole(client.vip))
+            for (var j = 0; j < tc.length; j++)
             {
-                for (var j = 0; j < tc.length; j++)
+                if (params[1] === tc[j].name)
                 {
-                    if (params[1] === tc[j].name)
+                    if (client.tc.id !== tc[j].id)
                     {
-                        if (client.tc.id !== tc[j].id)
+                        if (_can(["SEND_MESSAGES"], tc[j]))
                         {
-                            if (_can(["SEND_MESSAGES"], tc[j]))
-                            {
-                                client.tc = {id: tc[j].id, name: tc[j].name};
-                                write_changes();
-                                str = "Default set!";
-                                return {promise: msg.reply(str), content: str};
-                            }
-                            else
-                            {
-                                str = "Cannot send messages there!";
-                                return {promise: msg.reply(str), content: str};
-                            }
+                            client.tc = {id: tc[j].id, name: tc[j].name};
+                            write_changes();
+                            str = "Default set!";
+                            return {promise: msg.reply(str), content: str};
                         }
                         else
                         {
-                            str = "Already default channel!";
+                            str = "Cannot send messages there!";
                             return {promise: msg.reply(str), content: str};
                         }
                     }
+                    else
+                    {
+                        str = "Already default channel!";
+                        return {promise: msg.reply(str), content: str};
+                    }
                 }
-                str = `Could not find ${params[1]} channel!`;
-                return {promise: msg.reply(str), content: str};
+            }
+            str = `Could not find ${params[1]} channel!`;
+            return {promise: msg.reply(str), content: str};
+        }
+    },
+    // prefs
+    {
+        command: "prefs",
+        description: "Display current bot preferences",
+        parameters: [],
+        rank: 2,
+        execute: function(msg)
+        {
+            var client = get_client(msg);
+            var guild = bot.Guilds.toArray().find(g => g.id === client.server.id);
+            var vip_role = "";
+            if (client.vip !== null)
+            {
+                role = guild.roles.find(r => r.id === client.vip);
+                vip_role = role.name;
             }
             else
             {
-                str = "Must be VIP!";
-                return {promise: msg.reply(str), content: str};
+                vip_role = "None";
             }
+            msg.reply("Preferences", false, {
+                color: 0x3498db,
+                fields: [{name: "Default Text Channel", value: client.tc.name},
+                {name: "Default Voice Channel", value: client.vc.name},
+                {name: "VIP Role", value: vip_role},
+                {name: "Autoplay", value: client.autoplay},
+                {name: "Announce Now Playing", value: client.inform_np},
+                {name: "Announce Now Playing from Autoplay", value: client.announce_auto},
+                {name: "Memes", value: client.meme},
+                {name: "Music Volume", value: `${client.volume}%`}]
+            })
+            .then((m) =>
+            {
+                setTimeout(function(){m.delete();}, 25000);
+            });
         }
     },
     // vip
@@ -1161,6 +1201,7 @@ var commands =
         command: "vip",
         description: "Set VIP role",
         parameters: ["role name"],
+        rank: 3,
         execute: function(msg, params)
         {
             var full_param = "";
@@ -1174,34 +1215,26 @@ var commands =
             }
             var client = get_client(msg);
             var str = "";
-            if (msg.guild.isOwner(msg.author))
+            for (var j = 0; j < msg.guild.roles.length; j++)
             {
-                for (var j = 0; j < msg.guild.roles.length; j++)
+                if (full_param === msg.guild.roles[j].name)
                 {
-                    if (full_param === msg.guild.roles[j].name)
+                    if (msg.guild.roles[j].id !== client.vip)
                     {
-                        if (msg.guild.roles[j].id !== client.vip)
-                        {
-                            client.vip = msg.guild.roles[j].id;
-                            write_changes();
-                            str = "VIP set!";
-                            return {promise: msg.reply(str), content: str};
-                        }
-                        else
-                        {
-                            str = "VIP is already set to that role!";
-                            return {promise: msg.reply(str), content: str};
-                        }
+                        client.vip = msg.guild.roles[j].id;
+                        write_changes();
+                        str = "VIP set!";
+                        return {promise: msg.reply(str), content: str};
+                    }
+                    else
+                    {
+                        str = "VIP is already set to that role!";
+                        return {promise: msg.reply(str), content: str};
                     }
                 }
-                str = `Could not find role "${full_param}"`;
-                return {promise: msg.reply(str), content: str};
             }
-            else
-            {
-                str = "Must be server owner!";
-                return {promise: msg.reply(str), content: str};
-            }
+            str = `Could not find role "${full_param}"`;
+            return {promise: msg.reply(str), content: str};
         }
     },
     /*
