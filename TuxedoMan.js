@@ -330,16 +330,17 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     }
                 }
             }
+            var init_servers = [];
             for (i = 0; i < s.length; i++)
             {
+                init_servers.push(s[i].server);
                 var index = servers.findIndex(servers => servers.id === s[i].server.id);
                 if (index !== -1)
                 {
                     servers.splice(index, 1);
                 }
             }
-            var tmp_s = s;
-            setTimeout(function(){init(tmp_s);}, 2000);
+            setTimeout(function(){init(init_servers);}, 2000);
             sweep_clients(servers);
         }
         else
