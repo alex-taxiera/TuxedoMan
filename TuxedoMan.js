@@ -681,7 +681,7 @@ function rank(msg)
     {
         return 3;
     }
-    else if (msg.member.hasRole(client.vip))
+    else if (client.vip !== null && msg.member.hasRole(client.vip))
     {
         return 2;
     }
