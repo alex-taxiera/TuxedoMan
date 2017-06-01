@@ -3,18 +3,56 @@ const ytdl = require("youtube-dl");
 const fs = require("fs");
 const seedrandom = require("seedrandom");
 const request = require("request");
-
-const yt_api_key = "AIzaSyDfos2RYQBFyr_KZlIdXkmJJ2jN8327XV0";
-const token = fs.readFileSync("token.txt", "utf-8");
+const token = "token.txt";
+const ytkey = "ytkey.txt";
+var yt_api_key = "";
 const serverdata = "data\\servers.json";
-var files = fs.readdirSync("playlist");
+const playlist = ".\\playlist";
 const rng = seedrandom();
 var s; //s = servers (list of servers with all info)
 
-var bot = new Discordie();
+var bot = new Discordie({autoReconnect: true});
 function start()
 {
-    bot.connect({token: token});
+    fs.open(token, "a+", () =>
+    {
+        var tok = fs.readFileSync(token, "utf-8");
+        if (tok !== "")
+        {
+            fs.open(ytkey, "a+", () =>
+            {
+                yt_api_key = fs.readFileSync(ytkey, "utf-8");
+                if (yt_api_key !== "")
+                {
+                    fs.stat(playlist, (err) =>
+                    {
+                        if (err)
+                        {
+                            console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
+                            fs.mkdirSync("playlist");
+                        }
+                    });
+                    fs.stat(".\\data", (err) =>
+                    {
+                        if (err)
+                        {
+                            console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
+                            fs.mkdirSync("data");
+                        }
+                    });
+                    bot.connect({token: tok});
+                }
+                else
+                {
+                    console.log("BZZT YOUTUBE API KEY EMPTY BZZT");
+                }
+            });
+        }
+        else
+        {
+            console.log("BZZT TOKEN EMPTY BZZT");
+        }
+    });
 }
 
 function _can(permissions, context)
@@ -76,7 +114,8 @@ start();
 bot.Dispatcher.on("DISCONNECTED", e =>
 {
     console.log(e.error);
-    start();
+    console.log(`auto reconnect ${e.autoReconnect}`);
+    console.log(e.delay);
 });
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
@@ -200,7 +239,7 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
     s = [];
     console.log("BZZT ONLINE BZZT");
     bot.User.setGame("BZZT KILLING BZZT");
-    fs.stat(serverdata, function(err)
+    fs.open(serverdata, "r", (err) =>
     {
         var servers = bot.Guilds.toArray();
         if(!err)
@@ -389,7 +428,7 @@ function sweep_clients(servers)
                 now_playing:    {},
                 is_playing:     false,
                 paused:         false,
-                autoplay:       true,
+                autoplay:       false,
                 inform_np:      true,
                 announce_auto:  true,
                 encoder:        {},
@@ -434,7 +473,10 @@ function write_changes()
             volume:         s[i].volume
         });
     }
-    fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
+    fs.open(serverdata, "w+", () =>
+    {
+        fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
+    });
     console.log("BZZT WROTE TO FILE BZZT");
 }
 
@@ -452,6 +494,12 @@ function get_client(guildId)
 function auto_queue(client)
 {
     // get a random video
+    var files = fs.readdirSync(playlist);
+    if (files.length === 0)
+    {
+        client.autoplay = false;
+        return console.log("BZZT NO PLAYLISTS IN PLAYLIST FOLDER");
+    }
     var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[Math.floor((rng() * files.length))]}`, "utf-8"));
     var video = autoplaylist[Math.floor(rng() * autoplaylist.length)].link;
 
