@@ -347,6 +347,10 @@ function sweep_clients_and_init(servers)
                     break;
                 }
             }
+            if (tmp.tc === undefined)
+            {
+                tmp.tc = {id: "0", name: ""};
+            }
             var vc = bot.Channels.voiceForGuild(tmp.server.id);
             for (j = 0; j < vc.length; j++)
             {
@@ -356,6 +360,10 @@ function sweep_clients_and_init(servers)
                     tmp.vc = vc[j];
                     break;
                 }
+            }
+            if (tmp.vc === undefined)
+            {
+                tmp.vc = {id: "0", name: ""};
             }
             s.push({
                 server:         {id: tmp.server.id,
