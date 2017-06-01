@@ -5,7 +5,7 @@ const seedrandom = require("seedrandom");
 const request = require("request");
 
 const yt_api_key = "AIzaSyDfos2RYQBFyr_KZlIdXkmJJ2jN8327XV0";
-const token = fs.readFileSync("data\\token.txt", "utf-8");
+const token = fs.readFileSync("token.txt", "utf-8");
 const serverdata = "data\\servers.json";
 var files = fs.readdirSync("playlist");
 const rng = seedrandom();
