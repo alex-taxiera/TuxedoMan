@@ -112,6 +112,7 @@ bot.Dispatcher.on("GUILD_CREATE", e =>
 {
     var servers = [];
     servers.push(e.guild);
+    console.log(`BZZT JOINED ${e.guild.name} GUILD BZZT`);
     sweep_clients_and_init(servers);
 });
 
@@ -119,6 +120,7 @@ bot.Dispatcher.on("GUILD_DELETE", e =>
 {
     var index = s.findIndex(s => s.server.id === e.guildId);
     var client = get_client(e);
+    console.log(`BZZT LEFT ${client.server.name} GUILD BZZT`);
     client.paused = true;
     if (client.is_playing)
     {
@@ -140,7 +142,6 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
         {
             var tmp;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
-            console.log(old_servers);
             if (old_servers.length === 0)
             {
                 console.log("BZZT EMPTY SERVER FILE BZZT");
@@ -322,7 +323,6 @@ function sweep_clients_and_init(servers)
             {
                 if (servers[i].id === s[j].server.id && s[j].autoplay && bot.User.getVoiceChannel(s[j].server.id).members.length !== 1)
                 {
-                    console.log(`BZZT START AUTOPLAY FOR ${s[j].server.name.toUpperCase()} BZZT`);
                     auto_queue(s[j]);
                 }
             }
@@ -392,6 +392,7 @@ function auto_queue(client)
         }
         else
         {
+            console.log(`BZZT AUTO QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
             client.queue.push({title: info.title, url: video, user: bot.User});
             play_next_song(client, null);
         }
@@ -549,7 +550,6 @@ function play_next_song(client, msg)
             }
             else if (!client.paused && client.autoplay)
             {
-                console.log(`BZZT AUTO QUEUE ON ${client.server.name.toUpperCase()} BZZT`);
                 auto_queue(client);
             }
         });
@@ -649,6 +649,7 @@ function queue_playlist(playlistId, msg, pageToken = "")
         }
         else
         {
+            console.log(`BZZT QUEUE PLAYLIST ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
             for (var i = 0; i < json.items.length; i++)
             {
                 add_to_queue(json.items[i].snippet.resourceId.videoId, msg, true);
@@ -854,6 +855,7 @@ var commands =
             }
             else
             {
+                console.log(`BZZT REQUEST VIDEO ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
                 return add_to_queue(params[1], msg);
             }
         }
@@ -878,6 +880,7 @@ var commands =
                 {
                     q += params[i] + " ";
                 }
+                console.log(`BZZT SEARCH VIDEO ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
                 return search_video(msg, q);
             }
         }
