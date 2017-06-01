@@ -124,7 +124,7 @@ bot.Dispatcher.on("GUILD_DELETE", e =>
     {
         client.encoder.destroy();
     }
-    s.splice(index, 1);
+    //s.splice(index, 1);
     write_changes();
 });
 
@@ -530,7 +530,7 @@ function play_next_song(client, msg)
 
         console.log(`BZZT SONG START ON ${client.server.name.toUpperCase()} BZZT`);
         client.encoder.play();
-        volume(client, client.volume);
+        client.encoder.voiceConnection.getEncoder().setVolume(client.volume);
 
         if (client.encoder.voiceConnection.channel.members.length === 1)
         {
