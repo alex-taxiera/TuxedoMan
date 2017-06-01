@@ -81,7 +81,7 @@ bot.Dispatcher.on("DISCONNECTED", e =>
 
 bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 {
-    var client = get_client(e);
+    var client = get_client(e.guildId);
     if (e.user.id === bot.User.id)
     {
         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
@@ -100,12 +100,77 @@ bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 
 bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 {
-    var client = get_client(e);
+    var client = get_client(e.guildId);
     if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
     {
         client.paused = true;
         client.encoder.voiceConnection.getEncoderStream().cork();
     }
+});
+
+bot.Dispatcher.on("CHANNEL_CREATE", e =>
+{
+    var ch = e.channel;
+    var client = get_client(ch.guild_id);
+
+    if (ch.type === 0 && client.tc.id === "0" && _can(["SEND_MESSAGES"],ch))
+    {
+        client.tc = {id: ch.id, name: ch.name};
+    }
+    else if (ch.type === 2 && client.vc.id === "0" && _can(["SPEAK", "CONNECT"], ch))
+    {
+        ch.join();
+        client.vc = {id: ch.id, name: ch.name};
+    }
+    else
+    {
+        return;
+    }
+    write_changes();
+});
+
+bot.Dispatcher.on("CHANNEL_DELETE", e =>
+{
+    var client = get_client(e.data.guild_id);
+    var i;
+    if (e.channelId === client.tc.id)
+    {
+        var tc = bot.Channels.textForGuild(client.server.id);
+        for (i = 0; i < tc.length; i++)
+        {
+            if (_can(["SEND_MESSAGES"], tc[i]))
+            {
+                client.tc = {id: tc[i].id, name: tc[i].name};
+                break;
+            }
+        }
+        if (e.channelId === client.tc.id)
+        {
+            client.tc = {id: "0", name: ""};
+        }
+    }
+    else if (e.channelId === client.vc.id)
+    {
+        var vc = bot.Channels.voiceForGuild(client.server.id);
+        for (i = 0; i < vc.length; i++)
+        {
+            if (_can(["SPEAK", "CONNECT"], vc[i]))
+            {
+                vc[i].join();
+                client.vc = {id: vc[i].id, name: vc[i].name};
+                break;
+            }
+        }
+        if (e.channelId === client.vc.id)
+        {
+            client.vc = {id: "0", name: ""};
+        }
+    }
+    else
+    {
+        return;
+    }
+    write_changes();
 });
 
 bot.Dispatcher.on("GUILD_CREATE", e =>
@@ -119,7 +184,7 @@ bot.Dispatcher.on("GUILD_CREATE", e =>
 bot.Dispatcher.on("GUILD_DELETE", e =>
 {
     var index = s.findIndex(s => s.server.id === e.guildId);
-    var client = get_client(e);
+    var client = get_client(e.guildId);
     console.log(`BZZT LEFT ${client.server.name} GUILD BZZT`);
     client.paused = true;
     if (client.is_playing)
@@ -251,7 +316,7 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
                 }
             }
         }
-        else if (get_client(msg).meme)
+        else if (get_client(msg.guild.id).meme)
         {
             if (_can(["SEND_MESSAGES"], msg.channel))
             {
@@ -352,27 +417,13 @@ function write_changes()
     console.log("BZZT WROTE TO FILE BZZT");
 }
 
-function get_client(e)
+function get_client(guildId)
 {
-    var i;
-    if (e.guildId)
+    for (var i = 0; i < s.length; i++)
     {
-        for (i = 0; i < s.length; i++)
+        if (s[i].server.id === guildId)
         {
-            if (s[i].server.id === e.guildId)
-            {
-                return s[i];
-            }
-        }
-    }
-    else if (e.guild.id)
-    {
-        for (i = 0; i < s.length; i++)
-        {
-            if (s[i].server.id === e.guild.id)
-            {
-                return s[i];
-            }
+            return s[i];
         }
     }
 }
@@ -435,7 +486,7 @@ function add_to_queue(video, msg, mute = false)
         }
         else
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             client.queue.push({title: info.title, url: video, user: msg.author});
 
             if (!mute)
@@ -574,7 +625,7 @@ function handle_command(msg, text, meme)
     var command = "";
     if (!meme)
     {
-        var client = get_client(msg);
+        var client = get_client(msg.guild.id);
         var params = text.split(" ");
         command = search_command(params[0]);
 
@@ -617,12 +668,12 @@ function search_video(msg, query)
         if ("error" in json)
         {
             str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
-            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg.guild.id));
         }
         else if (json.items.length === 0)
         {
             str = "No videos found matching the search criteria.";
-            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg.guild.id));
         }
         else
         {
@@ -640,16 +691,16 @@ function queue_playlist(playlistId, msg, pageToken = "")
         if ("error" in json)
         {
             str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
-            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg.guild.id));
         }
         else if (json.items.length === 0)
         {
             str = "No videos found within playlist.";
-            return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
+            return message_handler({promise: msg.reply(str), content: str}, get_client(msg.guild.id));
         }
         else
         {
-            console.log(`BZZT QUEUE PLAYLIST ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
+            console.log(`BZZT QUEUE PLAYLIST ON ${get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
             for (var i = 0; i < json.items.length; i++)
             {
                 add_to_queue(json.items[i].snippet.resourceId.videoId, msg, true);
@@ -660,7 +711,7 @@ function queue_playlist(playlistId, msg, pageToken = "")
                 {
                     var json = JSON.parse(body);
                     str = `${json.items[0].snippet.localized.title} has been queued.`;
-                    return message_handler({promise: msg.reply(str), content: str}, get_client(msg));
+                    return message_handler({promise: msg.reply(str), content: str}, get_client(msg.guild.id));
                 });
             }
             return queue_playlist(playlistId, msg, json.nextPageToken);
@@ -685,7 +736,7 @@ function deny_rank(msg, rank)
 
 function rank(msg)
 {
-    var client = get_client(msg);
+    var client = get_client(msg.guild.id);
     if (msg.guild.isOwner(msg.author))
     {
         return 3;
@@ -713,7 +764,7 @@ var commands =
             var str = "";
             if (params[1] > 0 && params[1] < 201)
             {
-                volume(get_client(msg), params[1]/2);
+                volume(get_client(msg.guild.id), params[1]/2);
                 str = "Volume set!";
                 return {promise: msg.reply(str), content: str};
             }
@@ -732,7 +783,7 @@ var commands =
         rank: 1,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if (!client.is_playing && client.queue.length === 0)
             {
@@ -772,7 +823,7 @@ var commands =
         rank: 1,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if (client.paused)
             {
@@ -799,7 +850,7 @@ var commands =
         rank: 1,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if (client.is_playing)
             {
@@ -824,7 +875,7 @@ var commands =
         rank: 1,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if(client.is_playing)
             {
@@ -855,7 +906,7 @@ var commands =
             }
             else
             {
-                console.log(`BZZT REQUEST VIDEO ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
+                console.log(`BZZT REQUEST VIDEO ON ${get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
                 return add_to_queue(params[1], msg);
             }
         }
@@ -880,7 +931,7 @@ var commands =
                 {
                     q += params[i] + " ";
                 }
-                console.log(`BZZT SEARCH VIDEO ON ${get_client(msg).server.name.toUpperCase()} BZZT`);
+                console.log(`BZZT SEARCH VIDEO ON ${get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
                 return search_video(msg, q);
             }
         }
@@ -893,7 +944,7 @@ var commands =
         rank: 1,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "Now playing: ";
             if(client.is_playing)
             {
@@ -913,7 +964,7 @@ var commands =
         parameters: [],
         rank: 1,
         execute: function(msg) {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if(client.queue.length === 0)
             {
@@ -982,7 +1033,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             client.queue = [];
             str = "Queue has been cleared!";
@@ -998,7 +1049,7 @@ var commands =
         execute: function(msg, params)
         {
             var index = params[1];
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             if (client.queue.length === 0)
             {
@@ -1033,7 +1084,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             client.inform_np = !client.inform_np;
             write_changes();
@@ -1049,7 +1100,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             client.announce_auto = !client.announce_auto;
             write_changes();
@@ -1065,7 +1116,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             client.autoplay = !client.autoplay;
             if (client.autoplay && bot.User.getVoiceChannel(msg.guild).members.length !== 1)
@@ -1086,7 +1137,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             client.meme = !client.meme;
             write_changes();
@@ -1102,7 +1153,7 @@ var commands =
         rank: 2,
         execute: function(msg, params)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             var vc = bot.Channels.voiceForGuild(msg.guild);
             for (var j = 0; j < vc.length; j++)
@@ -1152,7 +1203,7 @@ var commands =
         rank: 2,
         execute: function(msg, params)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
 
             var tc = bot.Channels.textForGuild(msg.guild);
@@ -1194,7 +1245,7 @@ var commands =
         rank: 2,
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var guild = bot.Guilds.toArray().find(g => g.id === client.server.id);
             var vip_role = "";
             if (client.vip !== null)
@@ -1240,7 +1291,7 @@ var commands =
                 }
                 full_param += params[i];
             }
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             var str = "";
             for (var j = 0; j < msg.guild.roles.length; j++)
             {
@@ -1272,7 +1323,7 @@ var commands =
         parameters: [],
         execute: function(msg)
         {
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             if (client.server.isOwner(msg.author))
             {
                 bot.disconnect();
@@ -1295,7 +1346,7 @@ var commands =
         parameters: [],
         execute: function(msg, text) {
             text = text.toLowerCase();
-            var client = get_client(msg);
+            var client = get_client(msg.guild.id);
             //MEME HELL DO NOT GO BELOW
 
             //DVA EXAMPLE
