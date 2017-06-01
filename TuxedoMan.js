@@ -212,7 +212,6 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                             swamp:          true,
                             lmao_count:     0
                         });
-                        delete servers[i];
                         break;
                     }
                 }
@@ -259,7 +258,8 @@ function sweep_clients_and_init(servers)
     var j;
     for (i = 0; i < servers.length; i++)
     {
-        if (servers[i] !== undefined)
+        var already_exists = s.find(s => s.server.id === servers[i].id);
+        if (already_exists === undefined)
         {
             var tmp = {};
             tmp.server = servers[i];
@@ -304,6 +304,7 @@ function sweep_clients_and_init(servers)
                 swamp:          true,
                 lmao_count:     0
             });
+            delete servers[i];
         }
     }
     setTimeout(function()
