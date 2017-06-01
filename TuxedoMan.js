@@ -115,6 +115,12 @@ bot.Dispatcher.on("GUILD_CREATE", e =>
     sweep_clients_and_init(servers);
 });
 
+bot.Dispatcher.on("GUILD_DELETE", e =>
+{
+    var index = s.findIndex(s => s.server.id === e.guild.id);
+    s.splice(index, 1);
+});
+
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
     s = [];
