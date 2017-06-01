@@ -117,8 +117,15 @@ bot.Dispatcher.on("GUILD_CREATE", e =>
 
 bot.Dispatcher.on("GUILD_DELETE", e =>
 {
-    var index = s.findIndex(s => s.server.id === e.guild.id);
+    var index = s.findIndex(s => s.server.id === e.guildId);
+    var client = get_client(e);
+    client.paused = true;
+    if (client.is_playing)
+    {
+        client.encoder.destroy();
+    }
     s.splice(index, 1);
+    write_changes();
 });
 
 bot.Dispatcher.on("GATEWAY_READY", () =>
@@ -304,7 +311,6 @@ function sweep_clients_and_init(servers)
                 swamp:          true,
                 lmao_count:     0
             });
-            delete servers[i];
         }
     }
     setTimeout(function()
