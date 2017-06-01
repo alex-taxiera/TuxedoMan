@@ -108,6 +108,13 @@ bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
     }
 });
 
+bot.Dispatcher.on("GUILD_CREATE", e =>
+{
+    servers = [];
+    servers.push(e.guild);
+    sweep_clients_and_init(servers);
+});
+
 bot.Dispatcher.on("GATEWAY_READY", () =>
 {
     s = [];
@@ -243,11 +250,11 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 function sweep_clients_and_init(servers)
 {
     var i;
+    var j;
     for (i = 0; i < servers.length; i++)
     {
         if (servers[i] !== undefined)
         {
-            var j;
             var tmp = {};
             tmp.server = servers[i];
 
@@ -295,18 +302,19 @@ function sweep_clients_and_init(servers)
     }
     setTimeout(function()
     {
-        for (i = 0; i < s.length; i++)
+        for (i = 0; i < servers.length; i++)
         {
-            if (s[i].autoplay && bot.User.getVoiceChannel(s[i].server.id).members.length !== 1)
+            for (j = 0; j < s.length; j++)
             {
-                console.log(`BZZT START AUTOPLAY FOR ${s[i].server.name.toUpperCase()} BZZT`);
-                auto_queue(s[i]);
+                if (servers[i].id === s[j].server.id && s[j].autoplay && bot.User.getVoiceChannel(s[j].server.id).members.length !== 1)
+                {
+                    console.log(`BZZT START AUTOPLAY FOR ${s[j].server.name.toUpperCase()} BZZT`);
+                    auto_queue(s[j]);
+                }
             }
         }
     }, 2000);
-
     write_changes();
-    console.log("BZZT READY TO KILL BZZT");
 }
 
 function write_changes()
@@ -327,6 +335,7 @@ function write_changes()
         });
     }
     fs.writeFileSync(serverdata, JSON.stringify(tmp, null, 2), "utf-8");
+    console.log("BZZT WROTE TO FILE BZZT");
 }
 
 function get_client(e)
