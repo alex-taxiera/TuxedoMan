@@ -210,9 +210,10 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
             if (old_servers.length === 0)
             {
                 console.log("BZZT EMPTY SERVER FILE BZZT");
-                return sweep_clients_and_init(servers);
+                return sweep_clients(servers);
             }
-            for (var i = 0; i < servers.length; i++)
+            var i;
+            for (i = 0; i < servers.length; i++)
             {
                 var j;
                 tmp = undefined;
@@ -290,12 +291,26 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     }
                 }
             }
-            sweep_clients_and_init(servers);
+            for (i = 0; i < s.length; i++)
+            {
+                var index = servers.findIndex(servers => servers.id === s[i].server.id);
+                if (index !== -1)
+                {
+                    servers.splice(index, 1);
+                }
+            }
+            console.log(servers);
+            var tmp_s = s;
+            setTimeout(function()
+            {
+                init(tmp_s);
+            }, 2000);
+            sweep_clients(servers);
         }
         else
         {
             console.log("BZZT NO SERVER FILE BZZT");
-            sweep_clients_and_init(servers);
+            sweep_clients(servers);
         }
     });
 });
@@ -326,15 +341,12 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
     }
 });
 
-function sweep_clients_and_init(servers)
+function sweep_clients(servers)
 {
     var i;
     var j;
     for (i = 0; i < servers.length; i++)
     {
-        var already_exists = s.find(s => s.server.id === servers[i].id);
-        if (already_exists === undefined)
-        {
             var tmp = {};
             tmp.server = servers[i];
 
@@ -386,21 +398,25 @@ function sweep_clients_and_init(servers)
                 swamp:          true,
                 lmao_count:     0
             });
-        }
     }
     setTimeout(function()
     {
-        for (i = 0; i < servers.length; i++)
+        init(servers);
+    }, 2000);
+}
+
+function init(servers)
+{
+    for (var i = 0; i < servers.length; i++)
+    {
+        for (var j = 0; j < s.length; j++)
         {
-            for (j = 0; j < s.length; j++)
+            if (servers[i].id === s[j].server.id && s[j].autoplay && bot.User.getVoiceChannel(s[j].server.id).members.length !== 1)
             {
-                if (servers[i].id === s[j].server.id && s[j].autoplay && bot.User.getVoiceChannel(s[j].server.id).members.length !== 1)
-                {
-                    auto_queue(s[j]);
-                }
+                auto_queue(s[j]);
             }
         }
-    }, 2000);
+    }
     write_changes();
 }
 
