@@ -124,7 +124,7 @@ bot.Dispatcher.on("GUILD_DELETE", e =>
     {
         client.encoder.destroy();
     }
-    //s.splice(index, 1);
+    s.splice(index, 1);
     write_changes();
 });
 
@@ -140,7 +140,8 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
         {
             var tmp;
             var old_servers = JSON.parse(fs.readFileSync(serverdata, "utf-8"));
-            if (old_servers === [])
+            console.log(old_servers);
+            if (old_servers.length === 0)
             {
                 console.log("BZZT EMPTY SERVER FILE BZZT");
                 return sweep_clients_and_init(servers);
