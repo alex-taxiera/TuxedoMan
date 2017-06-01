@@ -374,7 +374,7 @@ function sweep_clients_and_init(servers)
                 announce_auto:  true,
                 encoder:        {},
                 volume:         10,
-                meme:           true,
+                meme:           false,
                 swamp:          true,
                 lmao_count:     0
             });
