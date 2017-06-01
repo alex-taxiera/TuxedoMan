@@ -299,12 +299,8 @@ bot.Dispatcher.on("GATEWAY_READY", () =>
                     servers.splice(index, 1);
                 }
             }
-            console.log(servers);
             var tmp_s = s;
-            setTimeout(function()
-            {
-                init(tmp_s);
-            }, 2000);
+            setTimeout(function(){init(tmp_s);}, 2000);
             sweep_clients(servers);
         }
         else
@@ -343,6 +339,10 @@ bot.Dispatcher.on("MESSAGE_CREATE", e =>
 
 function sweep_clients(servers)
 {
+    if (servers.length === 0)
+    {
+        return;
+    }
     var i;
     var j;
     for (i = 0; i < servers.length; i++)
@@ -399,10 +399,7 @@ function sweep_clients(servers)
                 lmao_count:     0
             });
     }
-    setTimeout(function()
-    {
-        init(servers);
-    }, 2000);
+    setTimeout(function(){init(servers);}, 2000);
 }
 
 function init(servers)
