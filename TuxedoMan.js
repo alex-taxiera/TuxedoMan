@@ -1,62 +1,21 @@
 const Discordie = require("discordie");
-
 const fs = require("fs");
 const token = "token.txt";
 const ytkey = "ytkey.txt";
+
+// global variables
 global.yt_api_key = "";
-global.serverdata = "data\\servers.json";
-global.playlist = ".\\playlist";
-
+global.serverdata = "data/servers.json";
+global.playlist = "./playlist";
 global.s; //s = servers (list of servers with all info)
+global.bot = new Discordie({autoReconnect: true});
 
+// project modules
 var cmd = require("./commands.js");
 var music = require("./music.js");
 var func = require("./common.js");
 
-global.bot = new Discordie({autoReconnect: true});
-function start()
-{
-    fs.open(token, "a+", () =>
-    {
-        var tok = fs.readFileSync(token, "utf-8");
-        if (tok !== "")
-        {
-            fs.open(ytkey, "a+", () =>
-            {
-                global.yt_api_key = fs.readFileSync(ytkey, "utf-8");
-                if (global.yt_api_key !== "")
-                {
-                    fs.stat(global.playlist, (err) =>
-                    {
-                        if (err)
-                        {
-                            console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
-                            fs.mkdirSync("playlist");
-                        }
-                    });
-                    fs.stat(".\\data", (err) =>
-                    {
-                        if (err)
-                        {
-                            console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
-                            fs.mkdirSync("data");
-                        }
-                    });
-                    global.bot.connect({token: tok});
-                }
-                else
-                {
-                    console.log("BZZT YOUTUBE API KEY EMPTY BZZT");
-                }
-            });
-        }
-        else
-        {
-            console.log("BZZT TOKEN EMPTY BZZT");
-        }
-    });
-}
-
+// connect bot
 start();
 
 global.bot.Dispatcher.on("DISCONNECTED", e =>
@@ -324,7 +283,50 @@ global.bot.Dispatcher.on("MESSAGE_CREATE", e =>
         }
     }
 });
-//join
+
+function start()
+{
+    fs.open(token, "a+", () =>
+    {
+        var tok = fs.readFileSync(token, "utf-8");
+        if (tok !== "")
+        {
+            fs.open(ytkey, "a+", () =>
+            {
+                global.yt_api_key = fs.readFileSync(ytkey, "utf-8");
+                if (global.yt_api_key !== "")
+                {
+                    fs.stat(global.playlist, (err) =>
+                    {
+                        if (err)
+                        {
+                            console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
+                            fs.mkdirSync("playlist");
+                        }
+                    });
+                    fs.stat(".\\data", (err) =>
+                    {
+                        if (err)
+                        {
+                            console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
+                            fs.mkdirSync("data");
+                        }
+                    });
+                    global.bot.connect({token: tok});
+                }
+                else
+                {
+                    console.log("BZZT YOUTUBE API KEY EMPTY BZZT");
+                }
+            });
+        }
+        else
+        {
+            console.log("BZZT TOKEN EMPTY BZZT");
+        }
+    });
+}
+
 function sweep_clients(servers)
 {
     if (servers.length === 0)
@@ -378,7 +380,7 @@ function sweep_clients(servers)
     }
     setTimeout(function(){init(servers);}, 2000);
 }
-//join
+
 function init(servers)
 {
     for (var i = 0; i < servers.length; i++)

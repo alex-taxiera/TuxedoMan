@@ -43,7 +43,6 @@ module.exports =
     }
 };
 
-//commands
 function search_command(command_name)
 {
     for (var i = 0; i < commands.length; i++)
@@ -56,7 +55,6 @@ function search_command(command_name)
     return false;
 }
 
-//commands
 function deny_rank(msg, rank)
 {
     var str = "";
@@ -71,7 +69,7 @@ function deny_rank(msg, rank)
         return {promise: msg.reply(str), content: str};
     }
 }
-//commands
+
 function rank(msg)
 {
     var client = func.get_client(msg.guild.id);
@@ -88,7 +86,7 @@ function rank(msg)
         return 1;
     }
 }
-//commands
+
 var commands =
 [
     // volume
