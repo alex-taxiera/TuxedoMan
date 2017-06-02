@@ -18,8 +18,9 @@ module.exports =
             client.autoplay = false;
             return console.log("BZZT NO PLAYLISTS IN PLAYLIST FOLDER");
         }
-        var autoplaylist = JSON.parse(fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, "utf-8"));
-        var video = autoplaylist[Math.floor(rng() * autoplaylist.length)].link;
+        var tmp = fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, "utf-8");
+        var autoplaylist = tmp.split("\n");
+        var video = autoplaylist[Math.floor(rng() * autoplaylist.length)];
 
         ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
         {
