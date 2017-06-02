@@ -5,7 +5,7 @@ const ytkey = "ytkey.txt";
 
 // global variables
 global.yt_api_key = "";
-global.serverdata = "data/servers.json";
+global.serverdata = "./data/servers.json";
 global.playlist = "./playlist";
 global.s; //s = servers (list of servers with all info)
 global.bot = new Discordie({autoReconnect: true});

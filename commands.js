@@ -58,7 +58,12 @@ function search_command(command_name)
 function deny_rank(msg, rank)
 {
     var str = "";
-    if (rank === 2)
+    if (rank === 1)
+    {
+        str = `Must be in voice chat with ${global.bot.User.username}`;
+        return {promise: msg.reply(str), content: str};
+    }
+    else if (rank === 2)
     {
         str = "Must be VIP!";
         return {promise: msg.reply(str), content: str};
@@ -81,9 +86,13 @@ function rank(msg)
     {
         return 2;
     }
-    else
+    else if (global.bot.User.getVoiceChannel(client.server.id).members.findIndex(m => m.id === msg.author.id) !== -1)
     {
         return 1;
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -277,7 +286,7 @@ var commands =
         command: "np",
         description: "Displays the current song",
         parameters: [],
-        rank: 1,
+        rank: 0,
         execute: function(msg)
         {
             var client = func.get_client(msg.guild.id);
@@ -298,7 +307,7 @@ var commands =
         command: "queue",
         description: "Displays the queue",
         parameters: [],
-        rank: 1,
+        rank: 0,
         execute: function(msg) {
             var client = func.get_client(msg.guild.id);
             var str = "";
@@ -326,7 +335,7 @@ var commands =
         command: "commands",
         description: "Displays this message, duh!",
         parameters: [],
-        rank: 1,
+        rank: 0,
         execute: function(msg)
         {
             var str = "Available commands:";
@@ -688,7 +697,7 @@ var commands =
             //DVA EXAMPLE
             if (text.includes(" dva ") || text === "dva")
             {
-                msg.channel.uploadFile("images\\kek.png");
+                msg.channel.uploadFile("./images/kek.png");
             }
             //ayya
             if (text.includes(" ayya ") || text === "ayya")
@@ -708,12 +717,12 @@ var commands =
             //baby
             if (text.includes(" baby ") || text === "baby")
             {
-                msg.channel.uploadFile("images\\baby.gif", "images\\baby.gif");
+                msg.channel.uploadFile("./images/baby.gif", "./images/baby.gif");
             }
             //ban
             if (text.includes(" ban ") || text === "ban")
             {
-                msg.channel.uploadFile("images\\ban.jpg");
+                msg.channel.uploadFile("./images/ban.jpg");
             }
             //bb
             if (text.includes(" bb ") || text === "bb")
@@ -733,17 +742,17 @@ var commands =
             //boob
             if (text.includes(" boob ") || text === "boob")
             {
-                msg.channel.uploadFile("images\\underboob.jpg");
+                msg.channel.uploadFile("./images/underboob.jpg");
             }
             //bruh
             if (text === "bruh")
             {
-                msg.channel.uploadFile("images\\bruh.jpg");
+                msg.channel.uploadFile("./images/bruh.jpg");
             }
             //bye
             if (text.includes(" bye ") || text === "bye")
             {
-                msg.channel.uploadFile("images\\bye.gif", "images\\bye.gif");
+                msg.channel.uploadFile("./images/bye.gif", "./images/bye.gif");
             }
             //daddy
             if (text.includes(" daddy ") || text === "daddy")
@@ -763,12 +772,12 @@ var commands =
             //dilligaf
             if (text.includes("dilligaf"))
             {
-                msg.channel.uploadFile("images\\dilligaf.png");
+                msg.channel.uploadFile("./images/dilligaf.png");
             }
             //doyoueven
             if (text.includes(" doyoueven ") || text === "doyoueven" || text.includes("do you even ") || text === "do you even")
             {
-                msg.channel.uploadFile("images\\doyoueven.jpg");
+                msg.channel.uploadFile("./images/doyoueven.jpg");
             }
             //dozicus
             if (text.includes("dozicus"))
@@ -799,7 +808,7 @@ var commands =
             //highfive
             if (text.includes("highfive") || text.includes("high five"))
             {
-                msg.channel.uploadFile("images\\highfive.jpg");
+                msg.channel.uploadFile("./images/highfive.jpg");
             }
             //hue
             if (text.includes("hue"))
@@ -809,22 +818,22 @@ var commands =
             //ignis
             if (text.includes("ignis"))
             {
-                msg.channel.uploadFile("images\\ignis.gif", "images\\ignis.gif");
+                msg.channel.uploadFile("./images/ignis.gif", "./images/ignis.gif");
             }
             //iwata
             if (text.includes("iwata"))
             {
-                msg.channel.uploadFile("images\\iwata.jpg");
+                msg.channel.uploadFile("./images/iwata.jpg");
             }
             //jon
             if (text.includes(" jon ") || text === "jon")
             {
-                msg.channel.uploadFile("images\\jon.gif", "images\\jon.gif");
+                msg.channel.uploadFile("./images/jon.gif", "./images/jon.gif");
             }
             //left
             if (text.includes(" left ") || text === "left")
             {
-                msg.channel.uploadFile("images\\left.jpg");
+                msg.channel.uploadFile("./images/left.jpg");
             }
             //lmao
             if (text.includes("lmao"))
@@ -839,7 +848,7 @@ var commands =
             //mao
             if (text.includes(" mao ") || text === "mao")
             {
-                msg.channel.uploadFile("images\\mao.jpg");
+                msg.channel.uploadFile("./images/mao.jpg");
             }
             //minarah
             if (text.includes("minarah"))
@@ -849,7 +858,7 @@ var commands =
             //miyamoto
             if (text.includes("miyamoto"))
             {
-                msg.channel.uploadFile("images\\miyamoto.gif", "images\\miyamoto.gif");
+                msg.channel.uploadFile("./images/miyamoto.gif", "./images/miyamoto.gif");
             }
             //myswamp
             if (text.includes("swamp"))
@@ -857,23 +866,23 @@ var commands =
                 if (client.swamp)
                 {
                     client.swamp = false;
-                    msg.channel.uploadFile("images\\swamp1.png");
+                    msg.channel.uploadFile("./images/swamp1.png");
                 }
                 else
                 {
                     client.swamp = true;
-                    msg.channel.uploadFile("images\\swamp2.png");
+                    msg.channel.uploadFile("./images/swamp2.png");
                 }
             }
             //nebby
             if (text.includes("nebby"))
             {
-                msg.channel.uploadFile("images\\nebby.gif", "images\\nebby.gif");
+                msg.channel.uploadFile("./images/nebby.gif", "./images/nebby.gif");
             }
             //pedo
             if (text.includes("pedo"))
             {
-                msg.channel.uploadFile("images\\pedo.png");
+                msg.channel.uploadFile("./images/pedo.png");
             }
             //pepe
             if (text.includes(" pepe ") || text === "pepe")
@@ -883,12 +892,12 @@ var commands =
             //petyr
             if (text.includes("petyr"))
             {
-                msg.channel.uploadFile("images\\petyr.jpeg");
+                msg.channel.uploadFile("./images/petyr.jpeg");
             }
             //pls
             if (text.includes("please the team") || text.includes("pleasetheteam") || text === "pls")
             {
-                msg.channel.uploadFile("images\\pls.gif", "images\\pls.gif").then((m) =>
+                msg.channel.uploadFile("./images/pls.gif", "./images/pls.gif").then((m) =>
                 {
                     setTimeout(function(){m.delete();}, 30000);
                 });
@@ -901,17 +910,17 @@ var commands =
             //pushthepayload
             if (text.includes("payload"))
             {
-                msg.channel.uploadFile("images\\payload.gif", "images\\payload.gif");
+                msg.channel.uploadFile("./images/payload.gif", "./images/payload.gif");
             }
             //snorlax
             if (text.includes("snorlax"))
             {
-                msg.channel.uploadFile("images\\snorlax.gif", "images\\snorlax.gif");
+                msg.channel.uploadFile("./images/snorlax.gif", "./images/snorlax.gif");
             }
             //sonicno
             if (text.includes("sonicno") || text.includes("sonic no"))
             {
-                msg.channel.uploadFile("images\\sonicno.jpg");
+                msg.channel.uploadFile("./images/sonicno.jpg");
             }
             //spookyshit
             if (text.includes("spookyshit") || text.includes("spooky shit"))
@@ -921,22 +930,22 @@ var commands =
             //tbc
             if (text.includes("tbc") || text.includes("tobecontinued") || text.includes("to be continued"))
             {
-                msg.channel.uploadFile("images\\tbc.png");
+                msg.channel.uploadFile("./images/tbc.png");
             }
             //valor
             if (text.includes("valor"))
             {
-                msg.channel.uploadFile("images\\valor.png");
+                msg.channel.uploadFile("./images/valor.png");
             }
             //who
             if (text.includes("who are th") || text === "who")
             {
-                msg.channel.uploadFile("images\\people.gif", "images\\people.gif");
+                msg.channel.uploadFile("./images/people.gif", "./images/people.gif");
             }
             //womb
             if (text.includes("womb"))
             {
-                msg.channel.uploadFile("images\\womb.gif", "images\\womb.gif");
+                msg.channel.uploadFile("./images/womb.gif", "./images/womb.gif");
             }
         }
     }

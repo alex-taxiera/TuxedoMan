@@ -18,7 +18,7 @@ module.exports =
             client.autoplay = false;
             return console.log("BZZT NO PLAYLISTS IN PLAYLIST FOLDER");
         }
-        var autoplaylist = JSON.parse(fs.readFileSync(`playlist\\${files[Math.floor((rng() * files.length))]}`, "utf-8"));
+        var autoplaylist = JSON.parse(fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, "utf-8"));
         var video = autoplaylist[Math.floor(rng() * autoplaylist.length)].link;
 
         ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
@@ -158,7 +158,7 @@ function play_next_song(client, msg)
     client.now_playing = {title: title, user: user};
 
     var video = ytdl(video_url,["--format=bestaudio/worstaudio", "--no-playlist"], {maxBuffer: Infinity});
-    video.pipe(fs.createWriteStream(`data\\${client.server.id}.mp3`));
+    video.pipe(fs.createWriteStream(`./data/${client.server.id}.mp3`));
     video.once("end", () =>
     {
         if (client.inform_np && client.announce_auto || client.inform_np && user.id !== global.bot.User.id)
@@ -176,7 +176,7 @@ function play_next_song(client, msg)
         var info = global.bot.VoiceConnections.getForGuild(client.server.id);
         client.encoder = info.voiceConnection.createExternalEncoder({
             type: "ffmpeg",
-            source: `data\\${client.server.id}.mp3`,
+            source: `./data/${client.server.id}.mp3`,
             format: "pcm"
         });
 
