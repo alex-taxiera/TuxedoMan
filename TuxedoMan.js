@@ -1,7 +1,7 @@
 const Discordie = require("discordie");
 const fs = require("fs");
-const token = "token.txt";
-const ytkey = "ytkey.txt";
+const token = "./token.txt";
+const ytkey = "./ytkey.txt";
 
 // global variables
 global.yt_api_key = "";
