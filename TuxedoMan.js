@@ -288,12 +288,12 @@ function start()
 {
     fs.open(token, "a+", () =>
     {
-        var tok = fs.readFileSync(token, "utf-8");
+        var tok = fs.readFileSync(token, "utf-8").split("\n")[0];
         if (tok !== "")
         {
             fs.open(ytkey, "a+", () =>
             {
-                global.yt_api_key = fs.readFileSync(ytkey, "utf-8");
+                global.yt_api_key = fs.readFileSync(ytkey, "utf-8").split("\n")[0];
                 if (global.yt_api_key !== "")
                 {
                     fs.stat(global.playlist, (err) =>
