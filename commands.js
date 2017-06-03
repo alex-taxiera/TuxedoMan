@@ -259,7 +259,7 @@ var commands =
     // search
     {
         command: "search",
-        description: "Searches for a video on YouTube and adds it to the queue",
+        description: "Searches for a video or playlist on YouTube and adds it to the queue",
         parameters: ["query"],
         rank: 1,
         execute: function(msg, params)
