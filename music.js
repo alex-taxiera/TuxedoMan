@@ -2,11 +2,9 @@ const ytdl = require("youtube-dl");
 const ytpl = require("ytpl");
 const ytsr = require("ytsr");
 const fs = require("fs");
-const request = require("request");
 const seedrandom = require("seedrandom");
 const rng = seedrandom();
 
-var cmd = require("./commands.js");
 var func = require("./common.js");
 
 module.exports =
@@ -107,39 +105,6 @@ module.exports =
             str = `${playlist.title} is being queued.`;
             return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
         });
-        // var str = "";
-        // request(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${global.yt_api_key}&pageToken=${pageToken}`, (error, response, body) =>
-        // {
-        //     var json = JSON.parse(body);
-        //     if ("error" in json)
-        //     {
-        //         str = `An error has occurred: ${json.error.errors[0].e} - ${json.error.errors[0].reason}`;
-        //         return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
-        //     }
-        //     else if (json.items.length === 0)
-        //     {
-        //         str = "No videos found within playlist.";
-        //         return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
-        //     }
-        //     else
-        //     {
-        //         console.log(`BZZT QUEUE PLAYLIST ON ${func.get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
-        //         for (var i = 0; i < json.items.length; i++)
-        //         {
-        //             module.exports.add_to_queue(json.items[i].snippet.resourceId.videoId, msg, true);
-        //         }
-        //         if (json.nextPageToken == null)
-        //         {
-        //             request(`https://www.googleapis.com/youtube/v3/playlists?part=snippet%2Clocalizations&id=${playlistId}&fields=items(localizations%2Csnippet%2Flocalized%2Ftitle)&key=${global.yt_api_key}`, (e, r, body) =>
-        //             {
-        //                 var json = JSON.parse(body);
-        //                 str = `${json.items[0].snippet.localized.title} has been queued.`;
-        //                 return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
-        //             });
-        //         }
-        //         return module.exports.queue_playlist(playlistId, msg, json.nextPageToken);
-        //     }
-        // });
     },
 };
 
