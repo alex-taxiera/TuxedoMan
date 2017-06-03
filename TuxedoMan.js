@@ -1,10 +1,8 @@
 const Discordie = require("discordie");
 const fs = require("fs");
 const token = "./token.txt";
-const ytkey = "./ytkey.txt";
 
 // global variables
-global.yt_api_key = "";
 global.serverdata = "./data/servers.json";
 global.playlist = "./playlist";
 global.s; //s = servers (list of servers with all info)
@@ -291,34 +289,23 @@ function start()
         var tok = fs.readFileSync(token, "utf-8").split("\n")[0];
         if (tok !== "")
         {
-            fs.open(ytkey, "a+", () =>
+            fs.stat(global.playlist, (err) =>
             {
-                global.yt_api_key = fs.readFileSync(ytkey, "utf-8").split("\n")[0];
-                if (global.yt_api_key !== "")
+                if (err)
                 {
-                    fs.stat(global.playlist, (err) =>
-                    {
-                        if (err)
-                        {
-                            console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
-                            fs.mkdirSync("playlist");
-                        }
-                    });
-                    fs.stat(".\\data", (err) =>
-                    {
-                        if (err)
-                        {
-                            console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
-                            fs.mkdirSync("data");
-                        }
-                    });
-                    global.bot.connect({token: tok});
-                }
-                else
-                {
-                    console.log("BZZT YOUTUBE API KEY EMPTY BZZT");
+                    console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
+                    fs.mkdirSync("playlist");
                 }
             });
+            fs.stat(".\\data", (err) =>
+            {
+                if (err)
+                {
+                    console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
+                    fs.mkdirSync("data");
+                }
+            });
+            global.bot.connect({token: tok});
         }
         else
         {
