@@ -37,11 +37,16 @@ module.exports =
             }
         });
     },
-    add_to_queue : function(video, msg, mute = false)
+    add_to_queue : function(video, msg, mute = false, done = false)
     {
         ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
         {
             var str = "";
+            if (done)
+            {
+                str = "Playlist is queued.";
+                func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
+            }
             if (error)
             {
                 console.log(`Error (${video}): ${error}`);
@@ -82,25 +87,28 @@ module.exports =
             if(err) throw err;
             if (data.items[0].type === "playlist")
             {
-                module.exports.queue_playlist(data.items[0].link, msg);
+                return module.exports.queue_playlist(data.items[0].link, msg);
             }
             else if (data.items[0].type === "video")
             {
-                module.exports.add_to_queue(data.items[0].link, msg, true);
+                return module.exports.add_to_queue(data.items[0].link, msg);
             }
-            var str = "Searching...";
-            return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
         });
     },
     queue_playlist : function(playlistId, msg)
     {
         var str = "";
+        var done = false;
         ytpl(playlistId, function(err, playlist)
         {
             if (err) throw err;
             for (var i = 0; i < playlist.items.length; i++)
             {
-                module.exports.add_to_queue(playlist.items[i].url_simple, msg, false);
+                if (i === playlist.items.length - 1)
+                {
+                    done = true;
+                }
+                module.exports.add_to_queue(playlist.items[i].url_simple, msg, true, done);
             }
             str = `${playlist.title} is being queued.`;
             return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
