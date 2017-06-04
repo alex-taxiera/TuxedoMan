@@ -86,7 +86,7 @@ module.exports =
             }
             else if (data.items[0].type === "video")
             {
-                module.exports.add_to_queue(data.items[0].link, msg);
+                module.exports.add_to_queue(data.items[0].link, msg, true);
             }
             var str = "Searching...";
             return func.message_handler({promise: msg.reply(str), content: str}, func.get_client(msg.guild.id));
