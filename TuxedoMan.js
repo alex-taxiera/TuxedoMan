@@ -18,9 +18,7 @@ start();
 
 global.bot.Dispatcher.on("DISCONNECTED", e =>
 {
-    console.log(e.error);
-    console.log(`auto reconnect ${e.autoReconnect}`);
-    console.log(e.delay);
+    console.log(`ERROR: ${e.error}\nAUTORECONNECT: ${e.autoReconnect}\n DELAY: ${e.delay}`);
 });
 
 global.bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
