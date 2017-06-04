@@ -107,11 +107,20 @@ var commands =
         execute: function(msg, params)
         {
             var str = "";
-            if (params[1] > 0 && params[1] < 201)
+            if (params[1]/2 > 0 && params[1]/2 <= 100)
             {
-                music.volume(func.get_client(msg.guild.id), params[1]/2);
-                str = "Volume set!";
-                return {promise: msg.reply(str), content: str};
+                var client = func.get_client(msg.guild.id);
+                if (params[1]/2 === client.volume)
+                {
+                    str = "Volume is already at that level!";
+                    return {promise: msg.reply(str), content: str};
+                }
+                else
+                {
+                    music.volume(client, params[1]/2);
+                    str = "Volume set!";
+                    return {promise: msg.reply(str), content: str};
+                }
             }
             else
             {

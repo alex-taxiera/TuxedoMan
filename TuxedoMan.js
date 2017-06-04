@@ -150,7 +150,12 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
     fs.open(global.serverdata, "r", (err) =>
     {
         var servers = global.bot.Guilds.toArray();
-        if(!err)
+        if (err)
+        {
+            console.log("BZZT NO SERVER FILE BZZT");
+            sweep_clients(servers);
+        }
+        else
         {
             var tmp;
             var old_servers = JSON.parse(fs.readFileSync(global.serverdata, "utf-8"));
@@ -160,79 +165,55 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
                 return sweep_clients(servers);
             }
             var i;
-            for (i = 0; i < servers.length; i++)
+            for (i = 0; i < old_servers.length; i++)
             {
-                var j;
                 tmp = undefined;
-                for (j = 0; j < old_servers.length; j++)
-                {
-                    if (servers[i].id === old_servers[j].server.id)
-                    {
-                        tmp = {};
-                        tmp.server = {id: servers[i].id, name: servers[i].name};
-                    }
-                    if (tmp !== undefined)
-                    {
-                        var k;
-                        var old_tc = global.bot.Channels.textForGuild(tmp.server.id)
-                        .find(c => c.id == old_servers[j].tc.id);
-                        if (func._can(["SEND_MESSAGES"], old_tc))
-                        {
-                            tmp.tc = {id: old_tc.id, name: old_tc.name};
-                        }
-                        if (tmp.tc === undefined)
-                        {
-                            var tc = global.bot.Channels.textForGuild(tmp.server.id);
-                            for (k = 0; k < tc.length; k++)
-                            {
-                                if (func._can(["SEND_MESSAGES"], tc[k]))
-                                {
-                                    tmp.tc = {id: tc[k].id, name: tc[k].name};
-                                    break;
-                                }
-                            }
-                        }
 
-                        var old_vc = global.bot.Channels.voiceForGuild(tmp.server.id)
-                        .find(c => c.id == old_servers[j].vc.id);
-                        if (func._can(["SPEAK", "CONNECT"], old_vc))
-                        {
-                            old_vc.join();
-                            tmp.vc = {id: old_vc.id, name: old_vc.name};
-                        }
-                        if (tmp.vc === undefined)
-                        {
-                            var vc = global.bot.Channels.voiceForGuild(tmp.server.id);
-                            for (k = 0; k < vc.length; k++)
-                            {
-                                if (func._can(["SPEAK", "CONNECT"], vc[k]))
-                                {
-                                    vc[k].join();
-                                    tmp.vc = {id: vc[k].id, name: vc[k].name};
-                                    break;
-                                }
-                            }
-                        }
-                        global.s.push({
-                            server:         tmp.server,
-                            tc:             tmp.tc,
-                            vc:             tmp.vc,
-                            vip:            old_servers[j].vip,
-                            queue:          [],
-                            now_playing:    {},
-                            is_playing:     false,
-                            paused:         false,
-                            autoplay:       old_servers[j].autoplay,
-                            inform_np:      old_servers[j].inform_np,
-                            announce_auto:  old_servers[j].announce_auto,
-                            encoder:        {},
-                            volume:         old_servers[j].volume,
-                            meme:           old_servers[j].meme,
-                            swamp:          true,
-                            lmao_count:     0
-                        });
-                        break;
+                var server = servers.find(s => s.id === old_servers[i].server.id);
+                if (server !== undefined)
+                {
+                    tmp = {};
+                    tmp.server = {id: server.id, name: server.name};
+                    var old_tc = global.bot.Channels.textForGuild(tmp.server.id)
+                    .find(c => c.id == old_servers[i].tc.id);
+                    if (old_tc !== undefined && func._can(["SEND_MESSAGES"], old_tc))
+                    {
+                        tmp.tc = {id: old_tc.id, name: old_tc.name};
                     }
+                    else
+                    {
+                        tmp.tc = func.find_channel("text", tmp.server.id);
+                    }
+
+                    var old_vc = global.bot.Channels.voiceForGuild(tmp.server.id)
+                    .find(c => c.id == old_servers[i].vc.id);
+                    if (old_vc !== undefined && func._can(["SPEAK", "CONNECT"], old_vc))
+                    {
+                        old_vc.join();
+                        tmp.vc = {id: old_vc.id, name: old_vc.name};
+                    }
+                    else
+                    {
+                        tmp.vc = func.find_channel("voice", tmp.server.id);
+                    }
+                    global.s.push({
+                        server:         tmp.server,
+                        tc:             tmp.tc,
+                        vc:             tmp.vc,
+                        vip:            old_servers[i].vip,
+                        queue:          [],
+                        now_playing:    {},
+                        is_playing:     false,
+                        paused:         false,
+                        autoplay:       old_servers[i].autoplay,
+                        inform_np:      old_servers[i].inform_np,
+                        announce_auto:  old_servers[i].announce_auto,
+                        encoder:        {},
+                        volume:         old_servers[i].volume,
+                        meme:           old_servers[i].meme,
+                        swamp:          true,
+                        lmao_count:     0
+                    });
                 }
             }
             var init_servers = [];
@@ -246,11 +227,6 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
                 }
             }
             setTimeout(function(){init(init_servers);}, 2000);
-            sweep_clients(servers);
-        }
-        else
-        {
-            console.log("BZZT NO SERVER FILE BZZT");
             sweep_clients(servers);
         }
     });
@@ -316,36 +292,14 @@ function start()
 
 function sweep_clients(servers)
 {
-    if (servers.length === 0)
+    if (servers.length !== 0)
     {
-        return;
-    }
-    var i;
-    var j;
-    for (i = 0; i < servers.length; i++)
-    {
+        for (var i = 0; i < servers.length; i++)
+        {
             var tmp = {};
             tmp.server = {id: servers[i].id, name: servers[i].name};
-
-            var tc = global.bot.Channels.textForGuild(tmp.server.id);
-            for (j = 0; j < tc.length; j++)
-            {
-                if (func._can(["SEND_MESSAGES"], tc[j]))
-                {
-                    tmp.tc = {id: tc[j].id, name: tc[j].name};
-                    break;
-                }
-            }
-            var vc = global.bot.Channels.voiceForGuild(tmp.server.id);
-            for (j = 0; j < vc.length; j++)
-            {
-                if (func._can(["SPEAK", "CONNECT"], vc[j]))
-                {
-                    vc[j].join();
-                    tmp.vc = {id: vc[j].id, name: vc[j].name};
-                    break;
-                }
-            }
+            tmp.tc = func.find_channel("text", tmp.server.id);
+            tmp.vc = func.find_channel("voice", tmp.server.id);
             global.s.push({
                 server:         tmp.server,
                 tc:             tmp.tc,
@@ -359,13 +313,14 @@ function sweep_clients(servers)
                 inform_np:      true,
                 announce_auto:  true,
                 encoder:        {},
-                volume:         10,
+                volume:         5,
                 meme:           false,
                 swamp:          true,
                 lmao_count:     0
             });
+        }
+        setTimeout(function(){init(servers);}, 2000);
     }
-    setTimeout(function(){init(servers);}, 2000);
 }
 
 function init(servers)
