@@ -36,16 +36,7 @@ module.exports =
         var text = global.bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
         if (text === undefined || !module.exports._can(["SEND_MESSAGES"], text))
         {
-            var tc = global.bot.Channels.textForGuild(client.server.id);
-            for (var i = 0; i < tc.length; i++)
-            {
-                if (module.exports._can(["SEND_MESSAGES"], tc[i]))
-                {
-                    text = client.tc = tc[i];
-                    return text;
-                }
-            }
-            return undefined;
+            return module.exports.find_channel("text", client.server.id);
         }
         else
         {

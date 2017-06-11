@@ -144,7 +144,9 @@ var commands =
                 if (client.autoplay)
                 {
                     client.paused = false;
-                    return music.auto_queue(client);
+                    music.auto_queue(client);
+                    str = "Starting!";
+                    return {promise: msg.reply(str), content: str};
                 }
                 else
                 {
