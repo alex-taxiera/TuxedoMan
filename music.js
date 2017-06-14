@@ -124,7 +124,7 @@ function play_next_song(client, msg)
         {
             return module.exports.auto_queue(client);
         }
-        else if (msg !== null)
+        else if (msg)
         {
             return msg.reply("Nothing in the queue!").then((m) =>
             {
@@ -146,7 +146,7 @@ function play_next_song(client, msg)
         if (client.inform_np && client.announce_auto || client.inform_np && user.id !== global.bot.User.id)
         {
             var tc = func.get_tc(client);
-            if (tc !== undefined)
+            if (tc)
             {
                 tc.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) =>
                 {

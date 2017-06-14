@@ -34,7 +34,7 @@ module.exports =
     get_tc : function(client)
     {
         var text = global.bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
-        if (text === undefined || !module.exports._can(["SEND_MESSAGES"], text))
+        if (!text || !module.exports._can(["SEND_MESSAGES"], text))
         {
             return module.exports.find_channel("text", client.server.id);
         }
@@ -45,7 +45,7 @@ module.exports =
     },
     message_handler : function(message, client)
     {
-        if (message !== undefined)
+        if (message)
         {
             message.promise.then((m) =>
             {
@@ -54,7 +54,7 @@ module.exports =
             .catch(() =>
             {
                 var tc = module.exports.get_tc(client);
-                if (tc !== undefined)
+                if (tc)
                 {
                     tc.sendMessage(message.content)
                     .then((m) =>
@@ -73,7 +73,7 @@ module.exports =
     {
         for (var i = 0; i < permissions.length; i++)
         {
-            if (context === undefined)
+            if (!context)
             {
                 return false;
             }

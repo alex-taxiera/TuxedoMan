@@ -27,13 +27,13 @@ global.bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
     if (e.user.id === global.bot.User.id)
     {
         console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
-        if (e.newChannelId === null)
+        if (!e.newChannelId)
         {
             var vc = global.bot.Channels.find(c => c.id == e.channelId);
             vc.join(vc).catch((e) => {console.log(e);});
         }
     }
-    else if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    else if (client.is_playing && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
     {
         client.paused = true;
         client.encoder.voiceConnection.getEncoderStream().cork();
@@ -43,7 +43,7 @@ global.bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
 global.bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 {
     var client = func.get_client(e.guildId);
-    if (client.is_playing && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
+    if (client.is_playing && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
     {
         client.paused = true;
         client.encoder.voiceConnection.getEncoderStream().cork();
@@ -52,7 +52,7 @@ global.bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
 
 global.bot.Dispatcher.on("CHANNEL_CREATE", e =>
 {
-    if (client.tc !== undefined && client.vc !== undefined)
+    if (client.tc && client.vc)
     {
         return;
     }
@@ -61,11 +61,11 @@ global.bot.Dispatcher.on("CHANNEL_CREATE", e =>
         var ch = e.channel;
         var client = func.get_client(ch.guild_id);
 
-        if (ch.type === 0 && client.tc === undefined && func._can(["SEND_MESSAGES"], ch))
+        if (ch.type === 0 && !client.tc && func._can(["SEND_MESSAGES"], ch))
         {
             client.tc = {id: ch.id, name: ch.name};
         }
-        else if (ch.type === 2 && client.vc === undefined && func._can(["SPEAK", "CONNECT"], ch))
+        else if (ch.type === 2 && !client.vc && func._can(["SPEAK", "CONNECT"], ch))
         {
             ch.join();
             client.vc = {id: ch.id, name: ch.name};
@@ -168,13 +168,13 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
                 tmp = undefined;
 
                 var server = servers.find(s => s.id === old_servers[i].server.id);
-                if (server !== undefined)
+                if (server)
                 {
                     tmp = {};
                     tmp.server = {id: server.id, name: server.name};
                     var old_tc = global.bot.Channels.textForGuild(tmp.server.id)
                     .find(c => c.id == old_servers[i].tc.id);
-                    if (old_tc !== undefined && func._can(["SEND_MESSAGES"], old_tc))
+                    if (old_tc && func._can(["SEND_MESSAGES"], old_tc))
                     {
                         tmp.tc = {id: old_tc.id, name: old_tc.name};
                     }
@@ -185,7 +185,7 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
 
                     var old_vc = global.bot.Channels.voiceForGuild(tmp.server.id)
                     .find(c => c.id == old_servers[i].vc.id);
-                    if (old_vc !== undefined && func._can(["SPEAK", "CONNECT"], old_vc))
+                    if (old_vc && func._can(["SPEAK", "CONNECT"], old_vc))
                     {
                         old_vc.join();
                         tmp.vc = {id: old_vc.id, name: old_vc.name};
