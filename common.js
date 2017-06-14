@@ -34,18 +34,9 @@ module.exports =
     get_tc : function(client)
     {
         var text = global.bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
-        if (text === undefined || !module.exports._can(["SEND_MESSAGES"], text))
+        if (!text || !module.exports._can(["SEND_MESSAGES"], text))
         {
-            var tc = global.bot.Channels.textForGuild(client.server.id);
-            for (var i = 0; i < tc.length; i++)
-            {
-                if (module.exports._can(["SEND_MESSAGES"], tc[i]))
-                {
-                    text = client.tc = tc[i];
-                    return text;
-                }
-            }
-            return undefined;
+            return module.exports.find_channel("text", client.server.id);
         }
         else
         {
@@ -54,22 +45,42 @@ module.exports =
     },
     message_handler : function(message, client)
     {
-        if (message !== undefined)
+        var delay;
+        if (!message.delay)
+        {
+            delay = 10000;
+        }
+        else
+        {
+            delay = message.delay;
+        }
+        if (message)
         {
             message.promise.then((m) =>
             {
-                setTimeout(function(){m.delete();}, 10000);
+                setTimeout(function(){m.delete();}, delay);
             })
             .catch(() =>
             {
                 var tc = module.exports.get_tc(client);
-                if (tc !== undefined)
+                if (tc)
                 {
-                    tc.sendMessage(message.content)
-                    .then((m) =>
+                    if (message.embed)
                     {
-                        setTimeout(function(){m.delete();}, 10000);
-                    });
+                        tc.sendMessage(message.content, false, message.embed)
+                        .then((m) =>
+                        {
+                            setTimeout(function(){m.delete();}, delay);
+                        });
+                    }
+                    else
+                    {
+                        tc.sendMessage(message.content)
+                        .then((m) =>
+                        {
+                            setTimeout(function(){m.delete();}, delay);
+                        });
+                    }
                 }
             });
         }
@@ -82,7 +93,7 @@ module.exports =
     {
         for (var i = 0; i < permissions.length; i++)
         {
-            if (context === undefined)
+            if (!context)
             {
                 return false;
             }

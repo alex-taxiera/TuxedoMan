@@ -82,7 +82,7 @@ function rank(msg)
     {
         return 3;
     }
-    else if (client.vip !== null && msg.member.hasRole(client.vip))
+    else if (client.vip && msg.member.hasRole(client.vip))
     {
         return 2;
     }
@@ -144,7 +144,9 @@ var commands =
                 if (client.autoplay)
                 {
                     client.paused = false;
-                    return music.auto_queue(client);
+                    music.auto_queue(client);
+                    str = "Starting!";
+                    return {promise: msg.reply(str), content: str};
                 }
                 else
                 {
@@ -273,21 +275,13 @@ var commands =
         rank: 1,
         execute: function(msg, params)
         {
-            var str = "You need a YouTube API key in order to use the !search command. Please see https://github.com/agubelu/discord-music-bot#obtaining-a-youtube-api-key";
-            if (global.yt_api_key === null)
+            var q = "";
+            for (var i = 1; i < params.length; i++)
             {
-                return {promise: msg.reply(str), content: str};
+                q += params[i] + " ";
             }
-            else
-            {
-                var q = "";
-                for (var i = 1; i < params.length; i++)
-                {
-                    q += params[i] + " ";
-                }
-                console.log(`BZZT SEARCH VIDEO ON ${func.get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
-                return music.search_video(msg, q);
-            }
+            console.log(`BZZT SEARCH VIDEO ON ${func.get_client(msg.guild.id).server.name.toUpperCase()} BZZT`);
+            return music.search_video(msg, q);
         }
     },
     // np
@@ -608,7 +602,7 @@ var commands =
             var client = func.get_client(msg.guild.id);
             var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
             var vip_role = "";
-            if (client.vip !== null)
+            if (client.vip)
             {
                 var role = guild.roles.find(r => r.id === client.vip);
                 vip_role = role.name;
@@ -617,7 +611,9 @@ var commands =
             {
                 vip_role = "None";
             }
-            msg.reply("Preferences", false, {
+            var str = "Preferences";
+            var embed =
+            {
                 color: 0x3498db,
                 fields: [{name: "Default Text Channel", value: client.tc.name},
                 {name: "Default Voice Channel", value: client.vc.name},
@@ -627,11 +623,8 @@ var commands =
                 {name: "Announce Now Playing from Autoplay", value: client.announce_auto},
                 {name: "Memes", value: client.meme},
                 {name: "Music Volume", value: `${client.volume}%`}]
-            })
-            .then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+            };
+            return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed};
         }
     },
     // vip
