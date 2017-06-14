@@ -611,7 +611,9 @@ var commands =
             {
                 vip_role = "None";
             }
-            msg.reply("Preferences", false, {
+            var str = "Preferences";
+            var embed =
+            {
                 color: 0x3498db,
                 fields: [{name: "Default Text Channel", value: client.tc.name},
                 {name: "Default Voice Channel", value: client.vc.name},
@@ -621,11 +623,8 @@ var commands =
                 {name: "Announce Now Playing from Autoplay", value: client.announce_auto},
                 {name: "Memes", value: client.meme},
                 {name: "Music Volume", value: `${client.volume}%`}]
-            })
-            .then((m) =>
-            {
-                setTimeout(function(){m.delete();}, 25000);
-            });
+            };
+            return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed};
         }
     },
     // vip

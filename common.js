@@ -45,22 +45,42 @@ module.exports =
     },
     message_handler : function(message, client)
     {
+        var delay;
+        if (!message.delay)
+        {
+            delay = 10000;
+        }
+        else
+        {
+            delay = message.delay;
+        }
         if (message)
         {
             message.promise.then((m) =>
             {
-                setTimeout(function(){m.delete();}, 10000);
+                setTimeout(function(){m.delete();}, delay);
             })
             .catch(() =>
             {
                 var tc = module.exports.get_tc(client);
                 if (tc)
                 {
-                    tc.sendMessage(message.content)
-                    .then((m) =>
+                    if (message.embed)
                     {
-                        setTimeout(function(){m.delete();}, 10000);
-                    });
+                        tc.sendMessage(message.content, false, message.embed)
+                        .then((m) =>
+                        {
+                            setTimeout(function(){m.delete();}, delay);
+                        });
+                    }
+                    else
+                    {
+                        tc.sendMessage(message.content)
+                        .then((m) =>
+                        {
+                            setTimeout(function(){m.delete();}, delay);
+                        });
+                    }
                 }
             });
         }
