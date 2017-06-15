@@ -271,7 +271,7 @@ function start()
                     fs.mkdirSync("playlist");
                 }
             });
-            fs.stat("./data", (err) =>
+            fs.stat(".\\data", (err) =>
             {
                 if (err)
                 {
