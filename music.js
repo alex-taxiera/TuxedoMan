@@ -56,7 +56,7 @@ module.exports =
             else
             {
                 var client = func.get_client(msg.guild.id);
-                client.queue.push({title: info.title, url: video, user: msg.author});
+                client.queue.push({title: info.title, url: video, user: msg.member});
 
                 if (!mute)
                 {

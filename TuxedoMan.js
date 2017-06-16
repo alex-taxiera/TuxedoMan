@@ -16,6 +16,28 @@ var func = require("./common.js");
 // connect bot
 start();
 
+global.bot.Dispatcher.on("PRESENCE_UPDATE", e =>
+{
+    console.log(`PRESCENCE FOR ${e.member.name}`);
+    var client = func.get_client(e.guild.id);
+    if (e.member.guild_id && client.game_roles.active)
+    {
+        var u = e.member;
+        var roles = e.guild.roles;
+        console.log(u.gameName);
+        var role = roles.find(r => r.name === u.previousGameName);
+        if (role && client.game_roles.roles.find(r => r === role.id) && u.hasRole(role))
+        {
+            u.unassignRole(role);
+        }
+        role = roles.find(r => r.name === u.gameName);
+        if (role && client.game_roles.roles.find(r => r === role.id) && !u.hasRole(role))
+        {
+            u.assignRole(role);
+        }
+    }
+});
+
 global.bot.Dispatcher.on("DISCONNECTED", e =>
 {
     console.log(`${e.error}\nRECONNECT DELAY: ${e.delay}`);
@@ -210,7 +232,8 @@ global.bot.Dispatcher.on("GATEWAY_READY", () =>
                         volume:         old_servers[i].volume,
                         meme:           old_servers[i].meme,
                         swamp:          true,
-                        lmao_count:     0
+                        lmao_count:     0,
+                        game_roles:     old_servers[i].game_roles
                     });
                 }
             }
@@ -234,7 +257,7 @@ global.bot.Dispatcher.on("MESSAGE_CREATE", e =>
 {
     var msg = e.message;
     var text = msg.content;
-    if (msg.author.id !== global.bot.User.id)
+    if (msg.member.id !== global.bot.User.id)
     {
         if (text[0] == "*")
         {
@@ -314,7 +337,8 @@ function sweep_clients(servers)
                 volume:         5,
                 meme:           false,
                 swamp:          true,
-                lmao_count:     0
+                lmao_count:     0,
+                game_roles:     {active: false, roles: []}
             });
         }
         setTimeout(function(){init(servers);}, 2000);
@@ -323,14 +347,12 @@ function sweep_clients(servers)
 
 function init(servers)
 {
-    for (var i = 0; i < servers.length; i++)
+    for (var i = 0; i < global.s.length; i++)
     {
-        for (var j = 0; j < global.s.length; j++)
+        func.sweep_games(global.s[i]);
+        if (servers.find(s => s.id === global.s[i].server.id) && global.s[i].autoplay && global.bot.User.getVoiceChannel(global.s[i].server.id).members.length !== 1)
         {
-            if (servers[i].id === global.s[j].server.id && global.s[j].autoplay && global.bot.User.getVoiceChannel(global.s[j].server.id).members.length !== 1)
-            {
-                music.auto_queue(global.s[j]);
-            }
+            music.auto_queue(global.s[i]);
         }
     }
     func.write_changes();

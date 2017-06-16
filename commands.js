@@ -78,7 +78,7 @@ function deny_rank(msg, rank)
 function rank(msg)
 {
     var client = func.get_client(msg.guild.id);
-    if (msg.guild.isOwner(msg.author))
+    if (msg.guild.isOwner(msg.member))
     {
         return 3;
     }
@@ -86,13 +86,39 @@ function rank(msg)
     {
         return 2;
     }
-    else if (global.bot.User.getVoiceChannel(client.server.id).members.findIndex(m => m.id === msg.author.id) !== -1)
+    else if (global.bot.User.getVoiceChannel(client.server.id).members.findIndex(m => m.id === msg.member.id) !== -1)
     {
         return 1;
     }
     else
     {
         return 0;
+    }
+}
+
+function check_game(client, role)
+{
+    var i;
+    var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
+    if (client.game_roles.roles.find(r => r.id === role.id))
+    {
+        for (i = 0; i < guild.member_count; i++)
+        {
+            if (guild.members[i].gameName === role.name)
+            {
+                guild.members[i].assignRole(role);
+            }
+        }
+    }
+    else
+    {
+        for (i = 0; i < guild.member_count; i++)
+        {
+            if (guild.members[i].hasRole(role))
+            {
+                guild.members[i].unassignRole(role);
+            }
+        }
     }
 }
 
@@ -371,7 +397,7 @@ var commands =
                 }
                 str += `: ${c.description}`;
             }
-            msg.author.openDM()
+            msg.member.openDM()
             .then(dm =>
             {
                 dm.sendMessage(str);
@@ -499,6 +525,110 @@ var commands =
             return {promise: msg.reply(str), content: str};
         }
     },
+    //toggle game roles
+    {
+        command: "gameroletoggle",
+        description: "Toggle game roles",
+        parameters: [],
+        rank: 2,
+        execute: function(msg)
+        {
+            var client = func.get_client(msg.guild.id);
+            var str = "";
+            client.game_roles.active = !client.game_roles.active;
+            str = `Game roles set to ${client.game_roles.active}!`;
+            func.write_changes();
+            func.sweep_games(client);
+            return {promise: msg.reply(str), content: str};
+        }
+    },
+    //add game roles
+    {
+        command: "addgamerole",
+        description: "Add game roles",
+        parameters: ["existing role name, role should be the same as the name of the game as it appears on discord"],
+        rank: 2,
+        execute: function(msg, params)
+        {
+            var full_param = "";
+            for (var i = 1; i < params.length; i++)
+            {
+                if (i !== 1)
+                {
+                    full_param += " ";
+                }
+                full_param += params[i];
+            }
+            var client = func.get_client(msg.guild.id);
+            var str = "";
+            var role = msg.guild.roles.find(r => r.name === full_param);
+            if (role)
+            {
+                if (!client.game_roles.roles.find(r => r === role.id))
+                {
+                    client.game_roles.roles.push(role.id);
+                    str = `Added ${full_param} to game roles!`;
+                    check_game(client, role);
+                    func.write_changes();
+                    return {promise: msg.reply(str), content: str};
+                }
+                else
+                {
+                    str = "Role already in list!";
+                    return {promise: msg.reply(str), content: str};
+                }
+            }
+            else
+            {
+                str = `"${full_param}" does not exist in this server!`;
+                return {promise: msg.reply(str), content: str};
+            }
+        }
+    },
+    //delete game roles
+    {
+        command: "delgamerole",
+        description: "Add game roles",
+        parameters: ["role name"],
+        rank: 2,
+        execute: function(msg, params)
+        {
+            var full_param = "";
+            for (var i = 1; i < params.length; i++)
+            {
+                if (i !== 1)
+                {
+                    full_param += " ";
+                }
+                full_param += params[i];
+            }
+            var client = func.get_client(msg.guild.id);
+            var str = "";
+            var role = msg.guild.roles.find(r => r.name === full_param);
+            if (role)
+            {
+                var index = client.game_roles.roles.findIndex(r => r === role.id);
+                if (index !== -1)
+                {
+                    client.game_roles.roles.splice(index, 1);
+                    str = `Deleted ${role.name} from game roles!`;
+                    check_game(client, role);
+                    func.write_changes();
+                    return {promise: msg.reply(str), content: str};
+                }
+                else
+                {
+                    str = "Role not in list!";
+                    return {promise: msg.reply(str), content: str};
+                }
+            }
+            else
+            {
+                str = `"${role.name}" does not exist in this server!`;
+                return {promise: msg.reply(str), content: str};
+            }
+        }
+    },
     // setvoice
     {
         command: "voice",
@@ -622,7 +752,8 @@ var commands =
                 {name: "Announce Now Playing", value: client.inform_np},
                 {name: "Announce Now Playing from Autoplay", value: client.announce_auto},
                 {name: "Memes", value: client.meme},
-                {name: "Music Volume", value: `${client.volume}%`}]
+                {name: "Music Volume", value: `${client.volume}%`},
+                {name: "Game Roles", value: client.game_roles.active + client.game_roles.roles}]
             };
             return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed};
         }
@@ -677,7 +808,7 @@ var commands =
         execute: function(msg)
         {
             var client = get_client(msg.guild.id);
-            if (client.server.isOwner(msg.author))
+            if (client.server.isOwner(msg.member))
             {
                 bot.disconnect();
             }

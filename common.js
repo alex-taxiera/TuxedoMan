@@ -156,6 +156,7 @@ module.exports =
                 inform_np:      global.s[i].inform_np,
                 announce_auto:  global.s[i].announce_auto,
                 meme:           global.s[i].meme,
+                game_roles:     global.s[i].game_roles,
                 volume:         global.s[i].volume
             });
         }
@@ -164,5 +165,26 @@ module.exports =
             fs.writeFileSync(global.serverdata, JSON.stringify(tmp, null, 2), "utf-8");
         });
         console.log("BZZT WROTE TO FILE BZZT");
+    },
+    sweep_games: function(client)
+    {
+        var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
+        var members = guild.members;
+        var roles = client.game_roles.roles;
+        for (var i = 0; i < guild.member_count; i++)
+        {
+            for (var j = 0; j < roles.length; j++)
+            {
+                var role = guild.roles.find(r => r.id === roles[j]);
+                if (!client.game_roles.active && members[i].hasRole(roles[j]) || members[i].hasRole(roles[j]) && role.name !== members[i].gameName)
+                {
+                    members[i].unassignRole(roles[j]);
+                }
+                else if (!members[i].hasRole(roles[j]) && role.name === members[i].gameName)
+                {
+                    members[i].assignRole(roles[j]);
+                }
+            }
+        }
     }
 };
