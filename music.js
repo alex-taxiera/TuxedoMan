@@ -9,7 +9,7 @@ var func = require("./common.js");
 
 module.exports =
 {
-    auto_queue : function(client)
+    auto_queue: function(client)
     {
         // get a random video
         var files = fs.readdirSync(global.playlist);
@@ -37,7 +37,7 @@ module.exports =
             }
         });
     },
-    add_to_queue : function(video, msg, mute = false, done = false)
+    add_to_queue: function(video, msg, mute = false, done = false)
     {
         ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) =>
         {
@@ -71,7 +71,7 @@ module.exports =
             }
         });
     },
-    volume : function(client, vol)
+    volume: function(client, vol)
     {
         client.volume = vol;
         if (client.is_playing)
@@ -80,7 +80,7 @@ module.exports =
         }
         func.write_changes();
     },
-    search_video : function(msg, query)
+    search_video: function(msg, query)
     {
         ytsr.search(query, {limit: 1}, function(err, data)
         {
@@ -95,7 +95,7 @@ module.exports =
             }
         });
     },
-    queue_playlist : function(playlistId, msg)
+    queue_playlist: function(playlistId, msg)
     {
         var str = "";
         var done = false;

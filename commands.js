@@ -3,7 +3,7 @@ var func = require("./common.js");
 
 module.exports =
 {
-    handle_command : function(msg, text, meme)
+    handle_command: function(msg, text, meme)
     {
         var command = "";
         if (!meme)

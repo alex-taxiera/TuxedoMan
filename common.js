@@ -2,7 +2,7 @@ const fs = require("fs");
 
 module.exports =
 {
-    find_channel : function(type, guildId)
+    find_channel: function(type, guildId)
     {
         var i;
         if (type === "text")
@@ -31,7 +31,7 @@ module.exports =
             return undefined;
         }
     },
-    get_tc : function(client)
+    get_tc: function(client)
     {
         var text = global.bot.Channels.textForGuild(client.server.id).find(c => c.id == client.tc.id);
         if (!text || !module.exports._can(["SEND_MESSAGES"], text))
@@ -43,7 +43,7 @@ module.exports =
             return text;
         }
     },
-    message_handler : function(message, client)
+    message_handler: function(message, client)
     {
         var delay;
         if (!message.delay)
@@ -85,11 +85,11 @@ module.exports =
             });
         }
     },
-    get_client : function(guildId)
+    get_client: function(guildId)
     {
         return global.s.find(c => c.server.id === guildId);
     },
-    _can : function(permissions, context)
+    _can: function(permissions, context)
     {
         for (var i = 0; i < permissions.length; i++)
         {
@@ -142,7 +142,7 @@ module.exports =
         }
         return true;
     },
-    write_changes : function()
+    write_changes: function()
     {
         var tmp = [];
         for (var i = 0; i < global.s.length; i++)
