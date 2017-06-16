@@ -178,11 +178,13 @@ module.exports =
                 var role = guild.roles.find(r => r.id === roles[j]);
                 if (!client.game_roles.active && members[i].hasRole(roles[j]) || members[i].hasRole(roles[j]) && role.name !== members[i].gameName)
                 {
-                    members[i].unassignRole(roles[j]);
+                    console.log(`BZZT UNASSIGNING ${members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+                    members[i].unassignRole(roles[j]).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
                 }
                 else if (!members[i].hasRole(roles[j]) && role.name === members[i].gameName)
                 {
-                    members[i].assignRole(roles[j]);
+                    console.log(`BZZT ASSIGNING ${members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+                    members[i].assignRole(roles[j]).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
                 }
             }
         }

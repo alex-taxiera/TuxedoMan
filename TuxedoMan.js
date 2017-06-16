@@ -18,22 +18,22 @@ start();
 
 global.bot.Dispatcher.on("PRESENCE_UPDATE", e =>
 {
-    console.log(`PRESCENCE FOR ${e.member.name}`);
     var client = func.get_client(e.guild.id);
     if (e.member.guild_id && client.game_roles.active)
     {
         var u = e.member;
         var roles = e.guild.roles;
-        console.log(u.gameName);
         var role = roles.find(r => r.name === u.previousGameName);
         if (role && client.game_roles.roles.find(r => r === role.id) && u.hasRole(role))
         {
-            u.unassignRole(role);
+            console.log(`BZZT UNASSIGNING ${u.name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+            u.unassignRole(role).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
         }
         role = roles.find(r => r.name === u.gameName);
         if (role && client.game_roles.roles.find(r => r === role.id) && !u.hasRole(role))
         {
-            u.assignRole(role);
+            console.log(`BZZT ASSIGNING ${u.name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+            u.assignRole(role).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
         }
     }
 });

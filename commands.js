@@ -106,7 +106,8 @@ function check_game(client, role)
         {
             if (guild.members[i].gameName === role.name)
             {
-                guild.members[i].assignRole(role);
+                console.log(`BZZT ASSIGNING ${guild.members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+                guild.members[i].assignRole(role).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
             }
         }
     }
@@ -116,7 +117,8 @@ function check_game(client, role)
         {
             if (guild.members[i].hasRole(role))
             {
-                guild.members[i].unassignRole(role);
+                console.log(`BZZT UNASSIGNING ${guild.members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
+                guild.members[i].unassignRole(role).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
             }
         }
     }
