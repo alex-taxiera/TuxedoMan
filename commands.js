@@ -567,14 +567,14 @@ var commands =
                 if (!client.game_roles.roles.find(r => r === role.id))
                 {
                     client.game_roles.roles.push(role.id);
-                    str = `Added ${full_param} to game roles!`;
+                    str = `Added "${full_param}" to game roles!`;
                     check_game(client, role);
                     func.write_changes();
                     return {promise: msg.reply(str), content: str};
                 }
                 else
                 {
-                    str = "Role already in list!";
+                    str = `"${full_param}" not in list!`;
                     return {promise: msg.reply(str), content: str};
                 }
             }
@@ -611,20 +611,20 @@ var commands =
                 if (index !== -1)
                 {
                     client.game_roles.roles.splice(index, 1);
-                    str = `Deleted ${role.name} from game roles!`;
+                    str = `Deleted "${full_param}" from game roles!`;
                     check_game(client, role);
                     func.write_changes();
                     return {promise: msg.reply(str), content: str};
                 }
                 else
                 {
-                    str = "Role not in list!";
+                    str = `"${full_param}" not in list!`;
                     return {promise: msg.reply(str), content: str};
                 }
             }
             else
             {
-                str = `"${role.name}" does not exist in this server!`;
+                str = `"${full_param}" does not exist in this server!`;
                 return {promise: msg.reply(str), content: str};
             }
         }
@@ -732,14 +732,36 @@ var commands =
             var client = func.get_client(msg.guild.id);
             var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
             var vip_role = "";
+            var game_roles = "";
+            var role;
             if (client.vip)
             {
-                var role = guild.roles.find(r => r.id === client.vip);
+                role = guild.roles.find(r => r.id === client.vip);
                 vip_role = role.name;
             }
             else
             {
                 vip_role = "None";
+            }
+            if (client.game_roles.active)
+            {
+                game_roles += "True\n";
+            }
+            else
+            {
+                game_roles += "False\n";
+            }
+            for (var i = 0; i < client.game_roles.roles.length; i++)
+            {
+                role = guild.roles.find(r => r.id === client.game_roles.roles[i]);
+                if (role)
+                {
+                    if (i)
+                    {
+                        game_roles += " ";
+                    }
+                    game_roles += `"${role.name}"`;
+                }
             }
             var str = "Preferences";
             var embed =
@@ -753,7 +775,7 @@ var commands =
                 {name: "Announce Now Playing from Autoplay", value: client.announce_auto},
                 {name: "Memes", value: client.meme},
                 {name: "Music Volume", value: `${client.volume}%`},
-                {name: "Game Roles", value: client.game_roles.active + client.game_roles.roles}]
+                {name: "Game Roles", value: game_roles}]
             };
             return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed};
         }
