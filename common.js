@@ -170,23 +170,31 @@ module.exports =
     {
         var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
         var members = guild.members;
-        var roles = client.game_roles.roles;
+        var tracked_roles = client.game_roles.roles;
         for (var i = 0; i < guild.member_count; i++)
         {
-            for (var j = 0; j < roles.length; j++)
+            for (var j = 0; j < tracked_roles.length; j++)
             {
-                var role = guild.roles.find(r => r.id === roles[j]);
-                if (!client.game_roles.active && members[i].hasRole(roles[j]) || members[i].hasRole(roles[j]) && role.name !== members[i].gameName)
+                var role = guild.roles.find(r => r.id === tracked_roles[j]);
+                if (!client.game_roles.active && members[i].hasRole(tracked_roles[j]) || members[i].hasRole(tracked_roles[j]) && role.name !== members[i].gameName)
                 {
-                    console.log(`BZZT UNASSIGNING ${members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
-                    members[i].unassignRole(roles[j]).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
+                    module.exports.unassign_role(members[i], role[j]);
                 }
-                else if (!members[i].hasRole(roles[j]) && role.name === members[i].gameName)
+                else if (!members[i].hasRole(tracked_roles[j]) && role.name === members[i].gameName)
                 {
-                    console.log(`BZZT ASSIGNING ${members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
-                    members[i].assignRole(roles[j]).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
+                    module.exports.assign_role(members[i], role[j]);
                 }
             }
         }
+    },
+    assign_role: function(user, role)
+    {
+        console.log(`BZZT ASSIGNING ${user.name.toUpperCase()} "${role.name.toUpperCase()}" ON ${user.guild.name.toUpperCase()} BZZT`);
+        user.assignRole(role).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
+    },
+    unassign_role: function(user, role)
+    {
+        console.log(`BZZT UNASSIGNING ${user.name.toUpperCase()} "${role.name.toUpperCase()}" ON ${user.guild.name.toUpperCase()} BZZT`);
+        user.unassignRole(role).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
     }
 };

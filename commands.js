@@ -124,6 +124,43 @@ function check_game(client, role)
     }
 }
 
+function get_clean_vip_role(client, guild)
+{
+    if (client.vip)
+    {
+        return guild.roles.find(r => r.id === client.vip).name;
+    }
+    else
+    {
+        return "None";
+    }
+}
+
+function get_clean_game_roles(client, guild)
+{
+    var game_roles = "";
+    if (client.game_roles.active)
+    {
+        game_roles += "True\n";
+    }
+    else
+    {
+        game_roles += "False\n";
+    }
+    for (var i = 0; i < client.game_roles.roles.length; i++)
+    {
+        var role = guild.roles.find(r => r.id === client.game_roles.roles[i]);
+        if (role)
+        {
+            if (i)
+            {
+                game_roles += " ";
+            }
+            game_roles += `"${role.name}"`;
+        }
+    }
+}
+
 var commands =
 [
     // volume
@@ -733,38 +770,9 @@ var commands =
         {
             var client = func.get_client(msg.guild.id);
             var guild = global.bot.Guilds.toArray().find(g => g.id === client.server.id);
-            var vip_role = "";
-            var game_roles = "";
-            var role;
-            if (client.vip)
-            {
-                role = guild.roles.find(r => r.id === client.vip);
-                vip_role = role.name;
-            }
-            else
-            {
-                vip_role = "None";
-            }
-            if (client.game_roles.active)
-            {
-                game_roles += "True\n";
-            }
-            else
-            {
-                game_roles += "False\n";
-            }
-            for (var i = 0; i < client.game_roles.roles.length; i++)
-            {
-                role = guild.roles.find(r => r.id === client.game_roles.roles[i]);
-                if (role)
-                {
-                    if (i)
-                    {
-                        game_roles += " ";
-                    }
-                    game_roles += `"${role.name}"`;
-                }
-            }
+            var vip_role = get_clean_vip_role(client, guild);
+            var game_roles = get_clean_game_roles(client, guild);
+
             var str = "Preferences";
             var embed =
             {

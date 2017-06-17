@@ -21,19 +21,17 @@ global.bot.Dispatcher.on("PRESENCE_UPDATE", e =>
     var client = func.get_client(e.guild.id);
     if (e.member.guild_id && client.game_roles.active)
     {
-        var u = e.member;
-        var roles = e.guild.roles;
-        var role = roles.find(r => r.name === u.previousGameName);
-        if (role && client.game_roles.roles.find(r => r === role.id) && u.hasRole(role))
+        var user = e.member;
+
+        var role = e.guild.roles.find(r => r.name === user.previousGameName);
+        if (role && client.game_roles.roles.find(r => r === role.id) && user.hasRole(role))
         {
-            console.log(`BZZT UNASSIGNING ${u.name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
-            u.unassignRole(role).catch(function(e){console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`);});
+            func.unassign_role(user, role);
         }
-        role = roles.find(r => r.name === u.gameName);
-        if (role && client.game_roles.roles.find(r => r === role.id) && !u.hasRole(role))
+        role = e.guild.roles.find(r => r.name === user.gameName);
+        if (role && client.game_roles.roles.find(r => r === role.id) && !user.hasRole(role))
         {
-            console.log(`BZZT ASSIGNING ${u.name.toUpperCase()} ${role.name.toUpperCase()} BZZT`);
-            u.assignRole(role).catch(function(e){console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`);});
+            func.assign_role(user, role);
         }
     }
 });
