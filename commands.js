@@ -114,7 +114,7 @@ function getCleanGameRoles (client, guild) {
   return gameRoles
 }
 
-function getFullParams (params) {
+function getFullParam (params) {
   var fullParam = ''
   for (var i = 1; i < params.length; i++) {
     if (i !== 1) {
@@ -395,84 +395,50 @@ var commands =
         return {promise: msg.reply(str), content: str}
       }
     },
-    // toggle np
+    // toggle
     {
-      command: 'nptoggle',
-      description: 'Toggle announcing when a song starts playing',
-      parameters: [],
+      command: 'toggle',
+      description: 'Toggle various settings',
+      parameters: [`Alias: auto|np|autonp|gameroles|memes`],
       rank: 2,
-      execute: function (msg) {
+      execute: function (msg, params) {
         var client = func.getClient(msg.guild.id)
         var str = ''
-        client.informNowPlaying = !client.informNowPlaying
-        func.writeChanges()
-        str = `Now Playing announcements set to ${client.informNowPlaying}!`
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // toggle auto np
-    {
-      command: 'autonptoggle',
-      description: 'Toggle announcing when an autoplay song starts playing',
-      parameters: [],
-      rank: 2,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-        client.informAutoPlaying = !client.informAutoPlaying
-        func.writeChanges()
-        str = `Now Playing (autoplay) announcements set to ${client.informAutoPlaying}!`
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // toggle autoplay
-    {
-      command: 'autotoggle',
-      description: 'Toggle music autoplay',
-      parameters: [],
-      rank: 2,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-        client.autoplay = !client.autoplay
-        if (client.autoplay && global.bot.User.getVoiceChannel(msg.guild).members.length !== 1) {
-          client.paused = false
-          music.autoQueue(client)
+        switch (params[1]) {
+          case 'auto':
+            client.autoplay = !client.autoplay
+            if (client.autoplay && global.bot.User.getVoiceChannel(msg.guild).members.length !== 1) {
+              client.paused = false
+              music.autoQueue(client)
+            }
+            func.writeChanges()
+            str = `Autoplay set to ${client.autoplay}!`
+            return {promise: msg.reply(str), content: str}
+          case 'np':
+            client.informNowPlaying = !client.informNowPlaying
+            func.writeChanges()
+            str = `Now Playing announcements set to ${client.informNowPlaying}!`
+            return {promise: msg.reply(str), content: str}
+          case 'autonp':
+            client.informAutoPlaying = !client.informAutoPlaying
+            func.writeChanges()
+            str = `Now Playing (autoplay) announcements set to ${client.informAutoPlaying}!`
+            return {promise: msg.reply(str), content: str}
+          case 'gameroles':
+            client.gameRoles.active = !client.gameRoles.active
+            str = `Game roles set to ${client.gameRoles.active}!`
+            func.writeChanges()
+            func.sweepGames(client)
+            return {promise: msg.reply(str), content: str}
+          case 'memes':
+            client.meme = !client.meme
+            func.writeChanges()
+            str = `Meme posting set to ${client.meme}!`
+            return {promise: msg.reply(str), content: str}
+          default:
+            str = 'Specify option to toggle!'
+            return {promise: msg.reply(str), content: str}
         }
-        func.writeChanges()
-        str = `Autoplay set to ${client.autoplay}!`
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // toggle meme
-    {
-      command: 'memetoggle',
-      description: 'Toggle meme posting',
-      parameters: [],
-      rank: 2,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-        client.meme = !client.meme
-        func.writeChanges()
-        str = `Meme posting set to ${client.meme}!`
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // toggle game roles
-    {
-      command: 'gameroletoggle',
-      description: 'Toggle game roles',
-      parameters: [],
-      rank: 2,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-        client.gameRoles.active = !client.gameRoles.active
-        str = `Game roles set to ${client.gameRoles.active}!`
-        func.writeChanges()
-        func.sweepGames(client)
-        return {promise: msg.reply(str), content: str}
       }
     },
     // add game roles
@@ -482,7 +448,7 @@ var commands =
       parameters: ['existing role name, role should be the same as the name of the game as it appears on discord'],
       rank: 2,
       execute: function (msg, params) {
-        var fullParam = getFullParams(params)
+        var fullParam = getFullParam(params)
 
         var client = func.getClient(msg.guild.id)
         var str = ''
@@ -511,7 +477,7 @@ var commands =
       parameters: ['role name'],
       rank: 2,
       execute: function (msg, params) {
-        var fullParam = getFullParams(params)
+        var fullParam = getFullParam(params)
         var client = func.getClient(msg.guild.id)
         var str = ''
         var role = msg.guild.roles.find(r => r.name === fullParam)
@@ -533,64 +499,57 @@ var commands =
         }
       }
     },
-    // setvoice
+    // set
     {
-      command: 'voice',
-      description: 'Set voice channel to start up in.',
-      parameters: ['voice channel name'],
+      command: 'set',
+      description: 'Set default voice or text channel',
+      parameters: [`"voice/text"`, 'channel name'],
       rank: 2,
       execute: function (msg, params) {
         var client = func.getClient(msg.guild.id)
         var str = ''
-        var voiceChannel = global.bot.Channels.voiceForGuild(msg.guild).find(vc => vc.name === params[1])
-        if (voiceChannel) {
-          if (client.voiceChannel.id !== voiceChannel.id) {
-            if (func.can(['CONNECT'], voiceChannel)) {
-              if (func.can(['SPEAK'], voiceChannel)) {
-                client.voiceChannel = {id: voiceChannel.id, name: voiceChannel.name}
+        var type = params[1]
+        params.splice(0, 1)
+        var fullParam = getFullParam(params)
+        var channel = {}
+        if (type === `text`) {
+          channel = global.bot.Channels.textForGuild(msg.guild).find(tc => tc.name === fullParam)
+          type = 0 // false for text
+        } else if (type === 'voice') {
+          channel = global.bot.Channels.voiceForGuild(msg.guild).find(vc => vc.name === fullParam)
+          type = 1 // true for voice
+        } else {
+          str = 'Specify text or voice with first param!'
+          return {promise: msg.reply(str), content: str}
+        }
+        if (channel) {
+          if (client.textChannel.id !== channel.id && client.voiceChannel.id !== channel.id) {
+            if (!type) {
+              if (func.can(['SEND_MESSAGES'], channel)) {
+                client.textChannel = {id: channel.id, name: channel.name}
                 func.writeChanges()
-                voiceChannel.join()
                 str = 'Default set!'
                 return {promise: msg.reply(str), content: str}
               } else {
-                str = 'Cannot speak in that channel!'
+                str = 'Cannot send messages there!'
                 return {promise: msg.reply(str), content: str}
               }
-            } else {
-              str = 'Cannot connect to that channel!'
-              return {promise: msg.reply(str), content: str}
-            }
-          } else {
-            str = 'Already default channel!'
-            return {promise: msg.reply(str), content: str}
-          }
-        } else {
-          str = `Could not find ${params[1]} channel!`
-          return {promise: msg.reply(str), content: str}
-        }
-      }
-    },
-    // settext
-    {
-      command: 'text',
-      description: 'Set text channel to announce things in.',
-      parameters: ['text channel name'],
-      rank: 2,
-      execute: function (msg, params) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-
-        var textChannel = global.bot.Channels.textForGuild(msg.guild).find(tc => tc.name === params[1])
-        if (textChannel) {
-          if (client.textChannel.id !== textChannel.id) {
-            if (func.can(['SEND_MESSAGES'], textChannel)) {
-              client.textChannel = {id: textChannel.id, name: textChannel.name}
-              func.writeChanges()
-              str = 'Default set!'
-              return {promise: msg.reply(str), content: str}
-            } else {
-              str = 'Cannot send messages there!'
-              return {promise: msg.reply(str), content: str}
+            } else if (type) {
+              if (func.can(['CONNECT'], channel)) {
+                if (func.can(['SPEAK'], channel)) {
+                  client.voiceChannel = {id: channel.id, name: channel.name}
+                  func.writeChanges()
+                  channel.join()
+                  str = 'Default set!'
+                  return {promise: msg.reply(str), content: str}
+                } else {
+                  str = 'Cannot speak in that channel!'
+                  return {promise: msg.reply(str), content: str}
+                }
+              } else {
+                str = 'Cannot connect to that channel!'
+                return {promise: msg.reply(str), content: str}
+              }
             }
           } else {
             str = 'Already default channel!'
@@ -638,8 +597,7 @@ var commands =
       parameters: ['role name'],
       rank: 3,
       execute: function (msg, params) {
-        var fullParam = getFullParams(params)
-
+        var fullParam = getFullParam(params)
         var client = func.getClient(msg.guild.id)
         var str = ''
         for (var j = 0; j < msg.guild.roles.length; j++) {
