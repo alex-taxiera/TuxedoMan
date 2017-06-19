@@ -65,7 +65,7 @@ function rank (msg) {
 function checkGame (client, role) {
   var i
   var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
-  if (client.gameRoles.roles.find(r => r.id === role.id)) {
+  if (client.gameRoles.roles.find(r => r === role.id)) {
     for (i = 0; i < guild.member_count; i++) {
       if (guild.members[i].gameName === role.name) {
         console.log(`BZZT ASSIGNING ${guild.members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`)
