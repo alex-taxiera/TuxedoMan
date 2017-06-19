@@ -11,7 +11,6 @@ module.exports =
           return {id: textChannels[i].id, name: textChannels[i].name}
         }
       }
-      return undefined
     } else if (type === 'voice') {
       var voiceChannels = global.bot.Channels.voiceForGuild(guildId)
       for (i = 0; i < voiceChannels.length; i++) {
@@ -20,8 +19,8 @@ module.exports =
           return {id: voiceChannels[i].id, name: voiceChannels[i].name}
         }
       }
-      return undefined
     }
+    return undefined
   },
   getTextChannel: function (client) {
     var text = global.bot.Channels.textForGuild(client.guild.id).find(c => c.id === client.textChannel.id)

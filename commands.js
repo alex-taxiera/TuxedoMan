@@ -9,7 +9,6 @@ module.exports =
       var client = func.getClient(msg.guild.id)
       var params = text.split(' ')
       command = searchCommand(params[0])
-
       if (command) {
         if (params.length - 1 < command.parameters.length) {
           return msg.reply('Insufficient parameters!').then((m) => {
@@ -32,12 +31,7 @@ module.exports =
 }
 
 function searchCommand (commandName) {
-  for (var i = 0; i < commands.length; i++) {
-    if (commands[i].command === commandName.toLowerCase()) {
-      return commands[i]
-    }
-  }
-  return false
+  return (commands.find(cmd => cmd.command === commandName.toLowerCase()))
 }
 
 function denyRank (msg, rank) {
@@ -127,6 +121,81 @@ function getFullParam (params) {
 
 var commands =
   [
+    // commands
+    {
+      command: 'commands',
+      description: 'Displays this message, duh!',
+      parameters: [],
+      rank: 0,
+      execute: function (msg) {
+        var str = 'Available commands:'
+        for (var i = 0; i < commands.length; i++) {
+          var c = commands[i]
+          var rank = ''
+          if (c.rank === 2) {
+            rank = 'VIP'
+          } else if (c.rank === 3) {
+            rank = 'Owner'
+          } else {
+            rank = 'Anyone'
+          }
+          str += `\n* ${c.command} (${rank})`
+          for (var j = 0; j < c.parameters.length; j++) {
+            str += ` <${c.parameters[j]}>`
+          }
+          str += `: ${c.description}`
+        }
+        msg.member.openDM()
+            .then(dm => {
+              dm.sendMessage(str)
+            })
+        var retStr = 'Command list sent!'
+        return {promise: msg.reply(retStr), content: retStr}
+      }
+    },
+    // np
+    {
+      command: 'np',
+      description: 'Displays the current song',
+      parameters: [],
+      rank: 0,
+      execute: function (msg) {
+        var client = func.getClient(msg.guild.id)
+        var str = 'Now playing: '
+        if (client.isPlaying) {
+          str += `"${client.nowPlaying.title}" (requested by ${client.nowPlaying.user.username})`
+        } else {
+          str += 'nothing!'
+        }
+        return {promise: msg.reply(str), content: str}
+      }
+    },
+    // queue
+    {
+      command: 'queue',
+      description: 'Displays the queue',
+      parameters: [],
+      rank: 0,
+      execute: function (msg) {
+        var client = func.getClient(msg.guild.id)
+        var str = ''
+        if (client.queue.length === 0) {
+          str = 'the queue is empty.'
+        } else {
+          for (var i = 0; i < client.queue.length; i++) {
+                    // 17 because the "and more" string is 17 characters long before the number is added
+                    // the remaining videos in queue can never be more than max queue, so compare against max queue to be safe
+            if (str.length + 17 + client.queue.length.toString().length + client.queue[i].title.length + client.queue[i].user.username.length < 2000) {
+              str += `"${client.queue[i].title}" (requested by ${client.queue[i].user.username}) `
+            } else {
+              str += `\n**...and ${(client.queue.length - i - 1)} more.**`
+              break
+            }
+          }
+        }
+        return {promise: msg.reply(str), content: str}
+      }
+    },
     // volume
     {
       command: 'volume',
@@ -270,87 +339,9 @@ var commands =
       parameters: ['query'],
       rank: 1,
       execute: function (msg, params) {
-        var q = ''
-        for (var i = 1; i < params.length; i++) {
-          q += params[i] + ' '
-        }
+        var fullParam = getFullParam(params)
         console.log(`BZZT SEARCH VIDEO ON ${func.getClient(msg.guild.id).guild.name.toUpperCase()} BZZT`)
-        return music.searchVideo(msg, q)
-      }
-    },
-    // np
-    {
-      command: 'np',
-      description: 'Displays the current song',
-      parameters: [],
-      rank: 0,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = 'Now playing: '
-        if (client.isPlaying) {
-          str += `"${client.nowPlaying.title}" (requested by ${client.nowPlaying.user.username})`
-        } else {
-          str += 'nothing!'
-        }
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // queue
-    {
-      command: 'queue',
-      description: 'Displays the queue',
-      parameters: [],
-      rank: 0,
-      execute: function (msg) {
-        var client = func.getClient(msg.guild.id)
-        var str = ''
-        if (client.queue.length === 0) {
-          str = 'the queue is empty.'
-        } else {
-          for (var i = 0; i < client.queue.length; i++) {
-                    // 17 because the "and more" string is 17 characters long before the number is added
-                    // the remaining videos in queue can never be more than max queue, so compare against max queue to be safe
-            if (str.length + 17 + client.queue.length.toString().length + client.queue[i].title.length + client.queue[i].user.username.length < 2000) {
-              str += `"${client.queue[i].title}" (requested by ${client.queue[i].user.username}) `
-            } else {
-              str += `\n**...and ${(client.queue.length - i - 1)} more.**`
-              break
-            }
-          }
-        }
-        return {promise: msg.reply(str), content: str}
-      }
-    },
-    // commands
-    {
-      command: 'commands',
-      description: 'Displays this message, duh!',
-      parameters: [],
-      rank: 0,
-      execute: function (msg) {
-        var str = 'Available commands:'
-        for (var i = 0; i < commands.length; i++) {
-          var c = commands[i]
-          var rank = ''
-          if (c.rank === 2) {
-            rank = 'VIP'
-          } else if (c.rank === 3) {
-            rank = 'Owner'
-          } else {
-            rank = 'Anyone'
-          }
-          str += `\n* ${c.command} (${rank})`
-          for (var j = 0; j < c.parameters.length; j++) {
-            str += ` <${c.parameters[j]}>`
-          }
-          str += `: ${c.description}`
-        }
-        msg.member.openDM()
-            .then(dm => {
-              dm.sendMessage(str)
-            })
-        var retStr = 'Command list sent!'
-        return {promise: msg.reply(retStr), content: retStr}
+        return music.searchVideo(msg, fullParam)
       }
     },
     // clearqueue
@@ -602,21 +593,21 @@ var commands =
         var fullParam = getFullParam(params)
         var client = func.getClient(msg.guild.id)
         var str = ''
-        for (var j = 0; j < msg.guild.roles.length; j++) {
-          if (fullParam === msg.guild.roles[j].name) {
-            if (msg.guild.roles[j].id !== client.vip) {
-              client.vip = msg.guild.roles[j].id
-              func.writeChanges()
-              str = 'VIP set!'
-              return {promise: msg.reply(str), content: str}
-            } else {
-              str = 'VIP is already set to that role!'
-              return {promise: msg.reply(str), content: str}
-            }
+        var role = msg.guild.roles.find(r => r.name === fullParam)
+        if (role) {
+          if (role !== client.vip) {
+            client.vip = role.id
+            func.writeChanges()
+            str = 'VIP set!'
+            return {promise: msg.reply(str), content: str}
+          } else {
+            str = 'VIP is already set to that role!'
+            return {promise: msg.reply(str), content: str}
           }
+        } else {
+          str = `Could not find role "${fullParam}"`
+          return {promise: msg.reply(str), content: str}
         }
-        str = `Could not find role "${fullParam}"`
-        return {promise: msg.reply(str), content: str}
       }
     },
     // meme hell
