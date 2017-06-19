@@ -20,7 +20,6 @@ global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
   var client = func.getClient(e.guild.id)
   if (e.member.guild_id && client.gameRoles.active) {
     var user = e.member
-
     var role = e.guild.roles.find(r => r.name === user.previousGameName)
     if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
       func.unassignRole(user, role)
@@ -61,9 +60,7 @@ global.bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
 global.bot.Dispatcher.on('CHANNEL_CREATE', e => {
   var ch = e.channel
   var client = func.getClient(ch.guild_id)
-  if (client.textChannel && client.voiceChannel) {
-
-  } else {
+  if (!client.textChannel || !client.voiceChannel) {
     if (ch.type === 0 && !client.textChannel && func.can(['SEND_MESSAGES'], ch)) {
       client.textChannel = {id: ch.id, name: ch.name}
     } else if (ch.type === 2 && !client.voiceChannel && func.can(['SPEAK', 'CONNECT'], ch)) {

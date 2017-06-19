@@ -36,15 +36,16 @@ function searchCommand (commandName) {
 
 function denyRank (msg, rank) {
   var str = ''
-  if (rank === 1) {
-    str = `Must be in voice chat with ${global.bot.User.username}`
-    return {promise: msg.reply(str), content: str}
-  } else if (rank === 2) {
-    str = 'Must be VIP!'
-    return {promise: msg.reply(str), content: str}
-  } else if (rank === 3) {
-    str = 'Must be guild owner!'
-    return {promise: msg.reply(str), content: str}
+  switch (rank) {
+    case 1:
+      str = `Must be in voice chat with ${global.bot.User.username}`
+      return {promise: msg.reply(str), content: str}
+    case 2:
+      str = 'Must be VIP!'
+      return {promise: msg.reply(str), content: str}
+    case 3:
+      str = 'Must be guild owner!'
+      return {promise: msg.reply(str), content: str}
   }
 }
 
