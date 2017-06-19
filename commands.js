@@ -586,7 +586,7 @@ var commands =
                 {name: 'Announce Now Playing', value: client.informNowPlaying},
                 {name: 'Announce Now Playing from Autoplay', value: client.informAutoPlaying},
                 {name: 'Memes', value: client.meme},
-                {name: 'Music Volume', value: `${client.volume}%`},
+                {name: 'Music Volume', value: `${client.volume * 2}`},
                 {name: 'Game Roles', value: gameRoles}]
           }
         return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed}
