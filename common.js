@@ -127,10 +127,10 @@ module.exports =
     for (var i = 0; i < guild.member_count; i++) {
       for (var j = 0; j < trackedRoles.length; j++) {
         var role = guild.roles.find(r => r.id === trackedRoles[j])
-        if ((!client.gameRoles.active && members[i].hasRole(trackedRoles[j])) || (members[i].hasRole(trackedRoles[j]) && role.name !== members[i].gameName)) {
-          module.exports.unassignRole(members[i], role[j])
-        } else if (!members[i].hasRole(trackedRoles[j]) && role.name === members[i].gameName) {
-          module.exports.assignRole(members[i], role[j])
+        if ((!client.gameRoles.active && members[i].hasRole(role)) || (members[i].hasRole(role) && role.name !== members[i].gameName)) {
+          module.exports.unassignRole(members[i], role)
+        } else if (!members[i].hasRole(role) && role.name === members[i].gameName) {
+          module.exports.assignRole(members[i], role)
         }
       }
     }
