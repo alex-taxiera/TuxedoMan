@@ -349,6 +349,8 @@ var commands =
             .then(dm => {
               dm.sendMessage(str)
             })
+        var retStr = 'Command list sent!'
+        return {promise: msg.reply(retStr), content: retStr}
       }
     },
     // clearqueue
