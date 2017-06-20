@@ -31,13 +31,13 @@ module.exports =
     }
   },
   messageHandler: function (message, client) {
-    var delay
-    if (!message.delay) {
-      delay = 10000
-    } else {
-      delay = message.delay
-    }
     if (message) {
+      var delay
+      if (!message.delay) {
+        delay = 10000
+      } else {
+        delay = message.delay
+      }
       message.promise.then((m) => {
         setTimeout(function () { m.delete() }, delay)
       })
