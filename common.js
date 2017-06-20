@@ -111,8 +111,8 @@ module.exports =
         informNowPlaying: global.g[i].informNowPlaying,
         informAutoPlaying: global.g[i].informAutoPlaying,
         meme: global.g[i].meme,
-        gameRoles: global.g[i].gameRoles,
-        volume: global.g[i].volume
+        volume: global.g[i].volume,
+        gameRoles: global.g[i].gameRoles
       })
     }
     fs.open(global.guildData, 'w+', () => {
