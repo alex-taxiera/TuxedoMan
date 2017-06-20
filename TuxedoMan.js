@@ -1,337 +1,321 @@
-const Discordie = require("discordie");
-const fs = require("fs");
-const token = "./token.txt";
+const Discordie = require('discordie')
+const fs = require('fs')
+const token = './token.txt'
 
 // global variables
-global.serverdata = "./data/servers.json";
-global.playlist = "./playlist";
-global.s; //s = servers (list of servers with all info)
-global.bot = new Discordie({autoReconnect: true});
+global.guildData = './data/guilds.json'
+global.playlist = './playlist'
+global.g = [] //  g = guilds (list of guilds with all info)
+global.bot = new Discordie({autoReconnect: true})
 
 // project modules
-var cmd = require("./commands.js");
-var music = require("./music.js");
-var func = require("./common.js");
+var cmd = require('./commands.js')
+var music = require('./music.js')
+var func = require('./common.js')
 
 // connect bot
-start();
+start()
 
-global.bot.Dispatcher.on("DISCONNECTED", e =>
-{
-    console.log(`${e.error}\nRECONNECT DELAY: ${e.delay}`);
-});
-
-global.bot.Dispatcher.on("VOICE_CHANNEL_LEAVE", e =>
-{
-    var client = func.get_client(e.guildId);
-    if (e.user.id === global.bot.User.id)
-    {
-        console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`);
-        if (!e.newChannelId)
-        {
-            var vc = global.bot.Channels.find(c => c.id == e.channelId);
-            vc.join(vc).catch((e) => {console.log(e);});
-        }
+global.bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
+  if (e.member.id === global.bot.User.id) {
+    var client = e.member.guild.id
+    if (client.textChannel && !func.can(['SEND_MESSAGES'], client.textChannel)) {
+      client.textChannel = func.findChannel('text', client.guild.id)
+    } else if (client.voiceChannel && !func.can(['SPEAK', 'CONNECT'], client.voiceChannel)) {
+      client.voiceChannel = func.findChannel('voice', client.guild.id)
+    } else if (!client.textChannel) {
+      client.textChannel = func.findChannel('text', client.guild.id)
+    } else if (!client.voiceChannel) {
+      client.voiceChannel = func.findChannel('voice', client.guild.id)
     }
-    else if (client.is_playing && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-    {
-        client.paused = true;
-        client.encoder.voiceConnection.getEncoderStream().cork();
+  }
+})
+
+global.bot.Dispatcher.on('CHANNEL_UPDATE', e => {
+  var ch = e.channel
+  var client = func.getClient(ch.guild.id)
+  if (client.textChannel && client.textChannel.id === ch.id && !func.can(['SEND_MESSAGES'], client.textChannel)) {
+    client.textChannel = func.findChannel('text', client.guild.id)
+  } else if (client.voiceChannel && client.voiceChannel.id === ch.id && !func.can(['SPEAK', 'CONNECT'], client.voiceChannel)) {
+    client.voiceChannel = func.findChannel('voice', client.guild.id)
+  } else if (!client.textChannel && ch.type === 0 && func.can(['SEND_MESSAGES'], ch)) {
+    client.textChannel = {id: ch.id, name: ch.name}
+  } else if (!client.voiceChannel && ch.type === 2 && func.can(['SPEAK', 'CONNECT'], ch)) {
+    ch.join()
+    client.voiceChannel = {id: ch.id, name: ch.name}
+  }
+})
+
+global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
+  var client = func.getClient(e.guild.id)
+  if (e.roleId === client.vip) {
+    client.vip = null
+    return func.writeChanges()
+  } else if (client.gameRoles.roles.find(r => r === e.roleId)) {
+    client.gameRoles.roles.splice(client.gameRoles.roles.findIndex(r => r === e.roleId), 1)
+    func.writeChanges()
+  }
+})
+
+global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
+  var client = func.getClient(e.guild.id)
+  if (e.member.guild_id && client.gameRoles.active) {
+    var user = e.member
+    var role = e.guild.roles.find(r => r.name === user.previousGameName)
+    if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
+      func.unassignRole(user, role)
     }
-});
-
-global.bot.Dispatcher.on("VOICE_CHANNEL_JOIN", e =>
-{
-    var client = func.get_client(e.guildId);
-    if (client.is_playing && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused)
-    {
-        client.paused = true;
-        client.encoder.voiceConnection.getEncoderStream().cork();
+    role = e.guild.roles.find(r => r.name === user.gameName)
+    if (role && client.gameRoles.roles.find(r => r === role.id) && !user.hasRole(role)) {
+      func.assignRole(user, role)
     }
-});
+  }
+})
 
-global.bot.Dispatcher.on("CHANNEL_CREATE", e =>
-{
-    if (client.tc && client.vc)
-    {
-        return;
+global.bot.Dispatcher.on('DISCONNECTED', e => {
+  console.log(`${e.error}\nRECONNECT DELAY: ${e.delay}`)
+})
+
+global.bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
+  var client = func.getClient(e.guildId)
+  if (e.user.id === global.bot.User.id) {
+    console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`)
+    if (!e.newChannelId) {
+      var voiceChannel = global.bot.Channels.find(c => c.id === e.channelId)
+      voiceChannel.join(voiceChannel).catch((e) => { console.log(e) })
     }
-    else
-    {
-        var ch = e.channel;
-        var client = func.get_client(ch.guild_id);
+  } else if (client.isPlaying && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
+    client.paused = true
+    client.encoder.voiceConnection.getEncoderStream().cork()
+  }
+})
 
-        if (ch.type === 0 && !client.tc && func._can(["SEND_MESSAGES"], ch))
-        {
-            client.tc = {id: ch.id, name: ch.name};
-        }
-        else if (ch.type === 2 && !client.vc && func._can(["SPEAK", "CONNECT"], ch))
-        {
-            ch.join();
-            client.vc = {id: ch.id, name: ch.name};
-        }
-        func.write_changes();
+global.bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
+  var client = func.getClient(e.guildId)
+  if (client.isPlaying && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
+    client.paused = true
+    client.encoder.voiceConnection.getEncoderStream().cork()
+  }
+})
+
+global.bot.Dispatcher.on('CHANNEL_CREATE', e => {
+  var ch = e.channel
+  var client = func.getClient(ch.guild_id)
+  if (!client.textChannel || !client.voiceChannel) {
+    if (ch.type === 0 && !client.textChannel && func.can(['SEND_MESSAGES'], ch)) {
+      client.textChannel = {id: ch.id, name: ch.name}
+    } else if (ch.type === 2 && !client.voiceChannel && func.can(['SPEAK', 'CONNECT'], ch)) {
+      ch.join()
+      client.voiceChannel = {id: ch.id, name: ch.name}
     }
-});
+    func.writeChanges()
+  }
+})
 
-global.bot.Dispatcher.on("CHANNEL_DELETE", e =>
-{
-    var client = func.get_client(e.data.guild_id);
-    var i;
-    if (e.channelId === client.tc.id)
-    {
-        var tc = global.bot.Channels.textForGuild(client.server.id);
-        for (i = 0; i < tc.length; i++)
-        {
-            if (func._can(["SEND_MESSAGES"], tc[i]))
-            {
-                client.tc = {id: tc[i].id, name: tc[i].name};
-                break;
-            }
-        }
-        if (e.channelId === client.tc.id)
-        {
-            client.tc = undefined;
-        }
+global.bot.Dispatcher.on('CHANNEL_DELETE', e => {
+  var client = func.getClient(e.data.guild_id)
+  var i
+  if (e.channelId === client.textChannel.id) {
+    var textChannels = global.bot.Channels.textForGuild(client.guild.id)
+    for (i = 0; i < textChannels.length; i++) {
+      if (func.can(['SEND_MESSAGES'], textChannels[i])) {
+        client.textChannel = {id: textChannels[i].id, name: textChannels[i].name}
+        break
+      }
     }
-    else if (e.channelId === client.vc.id)
-    {
-        var vc = global.bot.Channels.voiceForGuild(client.server.id);
-        for (i = 0; i < vc.length; i++)
-        {
-            if (func._can(["SPEAK", "CONNECT"], vc[i]))
-            {
-                vc[i].join();
-                client.vc = {id: vc[i].id, name: vc[i].name};
-                break;
-            }
-        }
-        if (e.channelId === client.vc.id)
-        {
-            client.vc = undefined;
-        }
+    if (e.channelId === client.textChannel.id) {
+      client.textChannel = undefined
     }
-    else
-    {
-        return;
+  } else if (e.channelId === client.voiceChannel.id) {
+    var voiceChannels = global.bot.Channels.voiceForGuild(client.guild.id)
+    for (i = 0; i < voiceChannels.length; i++) {
+      if (func.can(['SPEAK', 'CONNECT'], voiceChannels[i])) {
+        voiceChannels[i].join()
+        client.voiceChannel = {id: voiceChannels[i].id, name: voiceChannels[i].name}
+        break
+      }
     }
-    func.write_changes();
-});
-
-global.bot.Dispatcher.on("GUILD_CREATE", e =>
-{
-    var servers = [];
-    servers.push(e.guild);
-    console.log(`BZZT JOINED ${e.guild.name} GUILD BZZT`);
-    sweep_clients(servers);
-});
-
-global.bot.Dispatcher.on("GUILD_DELETE", e =>
-{
-    var index = global.s.findIndex(s => s.server.id === e.guildId);
-    var client = func.get_client(e.guildId);
-    console.log(`BZZT LEFT ${client.server.name} GUILD BZZT`);
-    client.paused = true;
-    if (client.is_playing)
-    {
-        client.encoder.destroy();
+    if (e.channelId === client.voiceChannel.id) {
+      client.voiceChannel = undefined
     }
-    global.s.splice(index, 1);
-    func.write_changes();
-});
+  } else {
+    return
+  }
+  func.writeChanges()
+})
 
-global.bot.Dispatcher.on("GATEWAY_READY", () =>
-{
-    global.s = [];
-    console.log("BZZT ONLINE BZZT");
-    global.bot.User.setGame("BZZT KILLING BZZT");
-    fs.open(global.serverdata, "r", (err) =>
-    {
-        var servers = global.bot.Guilds.toArray();
-        if (err)
-        {
-            console.log("BZZT NO SERVER FILE BZZT");
-            sweep_clients(servers);
-        }
-        else
-        {
-            var tmp;
-            var old_servers = JSON.parse(fs.readFileSync(global.serverdata, "utf-8"));
-            if (old_servers.length === 0)
-            {
-                console.log("BZZT EMPTY SERVER FILE BZZT");
-                return sweep_clients(servers);
-            }
-            var i;
-            for (i = 0; i < old_servers.length; i++)
-            {
-                tmp = undefined;
+global.bot.Dispatcher.on('GUILD_CREATE', e => {
+  var guilds = []
+  guilds.push(e.guild)
+  console.log(`BZZT JOINED ${e.guild.name} GUILD BZZT`)
+  sweepClients(guilds)
+})
 
-                var server = servers.find(s => s.id === old_servers[i].server.id);
-                if (server)
-                {
-                    tmp = {};
-                    tmp.server = {id: server.id, name: server.name};
-                    var old_tc = global.bot.Channels.textForGuild(tmp.server.id)
-                    .find(c => c.id == old_servers[i].tc.id);
-                    if (old_tc && func._can(["SEND_MESSAGES"], old_tc))
-                    {
-                        tmp.tc = {id: old_tc.id, name: old_tc.name};
-                    }
-                    else
-                    {
-                        tmp.tc = func.find_channel("text", tmp.server.id);
-                    }
+global.bot.Dispatcher.on('GUILD_DELETE', e => {
+  var index = global.g.findIndex(s => s.guild.id === e.guildId)
+  var client = func.getClient(e.guildId)
+  console.log(`BZZT LEFT ${client.guild.name} GUILD BZZT`)
+  client.paused = true
+  if (client.isPlaying) {
+    client.encoder.destroy()
+  }
+  global.g.splice(index, 1)
+  func.writeChanges()
+})
 
-                    var old_vc = global.bot.Channels.voiceForGuild(tmp.server.id)
-                    .find(c => c.id == old_servers[i].vc.id);
-                    if (old_vc && func._can(["SPEAK", "CONNECT"], old_vc))
-                    {
-                        old_vc.join();
-                        tmp.vc = {id: old_vc.id, name: old_vc.name};
-                    }
-                    else
-                    {
-                        tmp.vc = func.find_channel("voice", tmp.server.id);
-                    }
-                    global.s.push({
-                        server:         tmp.server,
-                        tc:             tmp.tc,
-                        vc:             tmp.vc,
-                        vip:            old_servers[i].vip,
-                        queue:          [],
-                        now_playing:    {},
-                        is_playing:     false,
-                        paused:         false,
-                        autoplay:       old_servers[i].autoplay,
-                        inform_np:      old_servers[i].inform_np,
-                        announce_auto:  old_servers[i].announce_auto,
-                        encoder:        {},
-                        volume:         old_servers[i].volume,
-                        meme:           old_servers[i].meme,
-                        swamp:          true,
-                        lmao_count:     0
-                    });
-                }
-            }
-            var init_servers = [];
-            for (i = 0; i < global.s.length; i++)
-            {
-                init_servers.push(global.s[i].server);
-                var index = servers.findIndex(servers => servers.id === global.s[i].server.id);
-                if (index !== -1)
-                {
-                    servers.splice(index, 1);
-                }
-            }
-            setTimeout(function(){init(init_servers);}, 2000);
-            sweep_clients(servers);
-        }
-    });
-});
+global.bot.Dispatcher.on('GATEWAY_READY', () => {
+  global.g = []
+  console.log('BZZT ONLINE BZZT')
+  global.bot.User.setGame('BZZT KILLING BZZT')
+  fs.open(global.guildData, 'r', (err) => {
+    var guilds = global.bot.Guilds.toArray()
+    if (err) {
+      console.log('BZZT NO GUILD FILE BZZT')
+      sweepClients(guilds)
+    } else {
+      var tmp
+      var oldGuilds = JSON.parse(fs.readFileSync(global.guildData, 'utf-8'))
+      if (oldGuilds.length === 0) {
+        console.log('BZZT EMPTY GUILD FILE BZZT')
+        return sweepClients(guilds)
+      }
+      var i
+      for (i = 0; i < oldGuilds.length; i++) {
+        tmp = undefined
 
-global.bot.Dispatcher.on("MESSAGE_CREATE", e =>
-{
-    var msg = e.message;
-    var text = msg.content;
-    if (msg.author.id !== global.bot.User.id)
-    {
-        if (text[0] == "*")
-        {
-            if (cmd.handle_command(msg, text.substring(1), false))
-            {
-                if (func._can(["MANAGE_MESSAGES"], msg.channel))
-                {
-                    setTimeout(function(){msg.delete();}, 5000);
-                }
-            }
+        var guild = guilds.find(s => s.id === oldGuilds[i].guild.id)
+        if (guild) {
+          tmp = {}
+          tmp.guild = {id: guild.id, name: guild.name}
+          var oldTextChannel = global.bot.Channels.textForGuild(tmp.guild.id)
+                    .find(c => c.id === oldGuilds[i].textChannel.id)
+          if (oldTextChannel && func.can(['SEND_MESSAGES'], oldTextChannel)) {
+            tmp.textChannel = {id: oldTextChannel.id, name: oldTextChannel.name}
+          } else {
+            tmp.textChannel = func.findChannel('text', tmp.guild.id)
+          }
+
+          var oldVoiceChannel = global.bot.Channels.voiceForGuild(tmp.guild.id)
+                    .find(c => c.id === oldGuilds[i].voiceChannel.id)
+          if (oldVoiceChannel && func.can(['SPEAK', 'CONNECT'], oldVoiceChannel)) {
+            oldVoiceChannel.join()
+            tmp.voiceChannel = {id: oldVoiceChannel.id, name: oldVoiceChannel.name}
+          } else {
+            tmp.voiceChannel = func.findChannel('voice', tmp.guild.id)
+          }
+          global.g.push({
+            guild: tmp.guild,
+            textChannel: tmp.textChannel,
+            voiceChannel: tmp.voiceChannel,
+            vip: oldGuilds[i].vip,
+            queue: [],
+            nowPlaying: {},
+            isPlaying: false,
+            paused: false,
+            autoplay: oldGuilds[i].autoplay,
+            informNowPlaying: oldGuilds[i].informNowPlaying,
+            informAutoPlaying: oldGuilds[i].informAutoPlaying,
+            encoder: {},
+            volume: oldGuilds[i].volume,
+            meme: oldGuilds[i].meme,
+            swamp: true,
+            lmaoCount: 0,
+            gameRoles: oldGuilds[i].gameRoles
+          })
         }
-        else if (func.get_client(msg.guild.id).meme)
-        {
-            if (func._can(["SEND_MESSAGES"], msg.channel))
-            {
-                cmd.handle_command(msg, text, true);
-            }
+      }
+      var initGuilds = []
+      for (i = 0; i < global.g.length; i++) {
+        initGuilds.push(global.g[i].guild)
+        var index = guilds.findIndex(guilds => guilds.id === global.g[i].guild.id)
+        if (index !== -1) {
+          guilds.splice(index, 1)
         }
+      }
+      setTimeout(function () { init(initGuilds) }, 2000)
+      sweepClients(guilds)
     }
-});
+  })
+})
 
-function start()
-{
-    fs.open(token, "a+", () =>
-    {
-        var tok = fs.readFileSync(token, "utf-8").split("\n")[0];
-        if (tok !== "")
-        {
-            fs.stat(global.playlist, (err) =>
-            {
-                if (err)
-                {
-                    console.log("BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT");
-                    fs.mkdirSync("playlist");
-                }
-            });
-            fs.stat("./data", (err) =>
-            {
-                if (err)
-                {
-                    console.log("BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT");
-                    fs.mkdirSync("data");
-                }
-            });
-            global.bot.connect({token: tok});
+global.bot.Dispatcher.on('MESSAGE_CREATE', e => {
+  var msg = e.message
+  var text = msg.content
+  if (msg.member.id !== global.bot.User.id) {
+    if (text[0] === '*') {
+      if (cmd.handleCommand(msg, text.substring(1), false)) {
+        if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
+          setTimeout(function () { msg.delete() }, 5000)
         }
-        else
-        {
-            console.log("BZZT TOKEN EMPTY BZZT");
+      }
+    } else if (func.getClient(msg.guild.id).meme) {
+      if (func.can(['SEND_MESSAGES'], msg.channel)) {
+        cmd.handleCommand(msg, text, true)
+      }
+    }
+  }
+})
+
+function start () {
+  fs.open(token, 'a+', () => {
+    var tok = fs.readFileSync(token, 'utf-8').split('\n')[0]
+    if (tok !== '') {
+      fs.stat(global.playlist, (err) => {
+        if (err) {
+          console.log('BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT')
+          fs.mkdirSync('playlist')
         }
-    });
+      })
+      fs.stat('./data', (err) => {
+        if (err) {
+          console.log('BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT')
+          fs.mkdirSync('data')
+        }
+      })
+      global.bot.connect({token: tok})
+    } else {
+      console.log('BZZT TOKEN EMPTY BZZT')
+    }
+  })
 }
 
-function sweep_clients(servers)
-{
-    if (servers.length !== 0)
-    {
-        for (var i = 0; i < servers.length; i++)
-        {
-            var tmp = {};
-            tmp.server = {id: servers[i].id, name: servers[i].name};
-            tmp.tc = func.find_channel("text", tmp.server.id);
-            tmp.vc = func.find_channel("voice", tmp.server.id);
-            global.s.push({
-                server:         tmp.server,
-                tc:             tmp.tc,
-                vc:             tmp.vc,
-                vip:            null,
-                queue:          [],
-                now_playing:    {},
-                is_playing:     false,
-                paused:         false,
-                autoplay:       false,
-                inform_np:      true,
-                announce_auto:  true,
-                encoder:        {},
-                volume:         5,
-                meme:           false,
-                swamp:          true,
-                lmao_count:     0
-            });
-        }
-        setTimeout(function(){init(servers);}, 2000);
+function sweepClients (guilds) {
+  if (guilds.length !== 0) {
+    for (var i = 0; i < guilds.length; i++) {
+      var tmp = {}
+      tmp.guild = {id: guilds[i].id, name: guilds[i].name}
+      tmp.textChannel = func.findChannel('text', tmp.guild.id)
+      tmp.voiceChannel = func.findChannel('voice', tmp.guild.id)
+      global.g.push({
+        guild: tmp.guild,
+        textChannel: tmp.textChannel,
+        voiceChannel: tmp.voiceChannel,
+        vip: null,
+        queue: [],
+        nowPlaying: {},
+        isPlaying: false,
+        paused: false,
+        autoplay: false,
+        informNowPlaying: true,
+        informAutoPlaying: true,
+        encoder: {},
+        volume: 5,
+        meme: false,
+        swamp: true,
+        lmaoCount: 0,
+        gameRoles: {active: false, roles: []}
+      })
     }
+    setTimeout(function () { init(guilds) }, 2000)
+  }
 }
 
-function init(servers)
-{
-    for (var i = 0; i < servers.length; i++)
-    {
-        for (var j = 0; j < global.s.length; j++)
-        {
-            if (servers[i].id === global.s[j].server.id && global.s[j].autoplay && global.bot.User.getVoiceChannel(global.s[j].server.id).members.length !== 1)
-            {
-                music.auto_queue(global.s[j]);
-            }
-        }
+function init (guilds) {
+  for (var i = 0; i < global.g.length; i++) {
+    func.sweepGames(global.g[i])
+    if (guilds.find(s => s.id === global.g[i].guild.id) && global.g[i].autoplay && global.bot.User.getVoiceChannel(global.g[i].guild.id).members.length !== 1) {
+      music.autoQueue(global.g[i])
     }
-    func.write_changes();
+  }
+  func.writeChanges()
 }
