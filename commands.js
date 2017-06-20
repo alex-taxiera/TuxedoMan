@@ -62,9 +62,10 @@ function rank (msg) {
   }
 }
 
-function checkGame (client, role) {
+function checkGame (client, roleId) {
   var i
   var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
+  var role = guild.roles.find(r => r.id === roleId)
   if (client.gameRoles.roles.find(r => r === role.id)) {
     for (i = 0; i < guild.member_count; i++) {
       if (guild.members[i].gameName === role.name) {
@@ -439,28 +440,41 @@ var commands =
     {
       command: 'addgamerole',
       description: 'Add game roles',
-      parameters: ['existing role name, role should be the same as the name of the game as it appears on discord'],
+      parameters: ['role name, should be as game appears on discord statuses'],
       rank: 2,
       execute: function (msg, params) {
         var fullParam = getFullParam(params)
-
         var client = func.getClient(msg.guild.id)
         var str = ''
-        var role = msg.guild.roles.find(r => r.name === fullParam)
-        if (role) {
-          if (!client.gameRoles.roles.find(r => r === role.id)) {
-            client.gameRoles.roles.push(role.id)
-            str = `Added "${fullParam}" to game roles!`
-            checkGame(client, role)
+        var exists = msg.guild.roles.find(r => r.name === fullParam)
+        if (exists) {
+          if (!client.gameRoles.roles.find(r => r === exists.id)) {
+            client.gameRoles.roles.push(exists.id)
+            checkGame(client, exists.id)
             func.writeChanges()
+            str = `Added "${fullParam}" to game roles!`
             return {promise: msg.reply(str), content: str}
           } else {
-            str = `"${fullParam}" not in list!`
+            str = `"${fullParam}" already in list!`
             return {promise: msg.reply(str), content: str}
           }
         } else {
-          str = `"${fullParam}" does not exist in this guild!`
-          return {promise: msg.reply(str), content: str}
+          str = msg.guild.createRole()
+          .then((role) => {
+            role.commit(fullParam, 0, true)
+            .then(() => {
+              client.gameRoles.roles.push(role.id)
+              checkGame(client, role.id)
+              func.writeChanges()
+              str = `"${fullParam}" created and added to game roles!`
+              func.messageHandler({promise: msg.reply(str), content: str}, client)
+            })
+          })
+          .catch((e) => {
+            console.log(`BZZT CANNOT CREATE ROLE BZZT\n${e}`)
+            str = `Could not create role "${fullParam}"`
+            func.messageHandler({promise: msg.reply(str), content: str}, client)
+          })
         }
       }
     },
@@ -480,7 +494,7 @@ var commands =
           if (index !== -1) {
             client.gameRoles.roles.splice(index, 1)
             str = `Deleted "${fullParam}" from game roles!`
-            checkGame(client, role)
+            checkGame(client, role.id)
             func.writeChanges()
             return {promise: msg.reply(str), content: str}
           } else {
