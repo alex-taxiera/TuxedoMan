@@ -16,6 +16,11 @@ var func = require('./common.js')
 // connect bot
 start()
 
+global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
+  var client = func.getClient(e.guild.id)
+  client.gameRoles.roles.splice(client.gameRoles.roles.findIndex(r => r === e.roleId), 1)
+})
+
 global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
   var client = func.getClient(e.guild.id)
   if (e.member.guild_id && client.gameRoles.active) {
