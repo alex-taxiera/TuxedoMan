@@ -16,6 +16,36 @@ var func = require('./common.js')
 // connect bot
 start()
 
+global.bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
+  if (e.member.id === global.bot.User.id) {
+    var client = e.member.guild.id
+    if (client.textChannel && !func.can(['SEND_MESSAGES'], client.textChannel)) {
+      client.textChannel = func.findChannel('text', client.guild.id)
+    } else if (client.voiceChannel && !func.can(['SPEAK', 'CONNECT'], client.voiceChannel)) {
+      client.voiceChannel = func.findChannel('voice', client.guild.id)
+    } else if (!client.textChannel) {
+      client.textChannel = func.findChannel('text', client.guild.id)
+    } else if (!client.voiceChannel) {
+      client.voiceChannel = func.findChannel('voice', client.guild.id)
+    }
+  }
+})
+
+global.bot.Dispatcher.on('CHANNEL_UPDATE', e => {
+  var ch = e.channel
+  var client = func.getClient(ch.guild.id)
+  if (client.textChannel && client.textChannel.id === ch.id && !func.can(['SEND_MESSAGES'], client.textChannel)) {
+    client.textChannel = func.findChannel('text', client.guild.id)
+  } else if (client.voiceChannel && client.voiceChannel.id === ch.id && !func.can(['SPEAK', 'CONNECT'], client.voiceChannel)) {
+    client.voiceChannel = func.findChannel('voice', client.guild.id)
+  } else if (!client.textChannel && ch.type === 0 && func.can(['SEND_MESSAGES'], ch)) {
+    client.textChannel = {id: ch.id, name: ch.name}
+  } else if (!client.voiceChannel && ch.type === 2 && func.can(['SPEAK', 'CONNECT'], ch)) {
+    ch.join()
+    client.voiceChannel = {id: ch.id, name: ch.name}
+  }
+})
+
 global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
   var client = func.getClient(e.guild.id)
   if (e.roleId === client.vip) {
