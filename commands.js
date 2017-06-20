@@ -67,17 +67,15 @@ function checkGame (client, roleId) {
   var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
   var role = guild.roles.find(r => r.id === roleId)
   if (client.gameRoles.roles.find(r => r === role.id)) {
-    for (i = 0; i < guild.member_count; i++) {
+    for (i = 0; i < guild.members.count; i++) {
       if (guild.members[i].gameName === role.name) {
-        console.log(`BZZT ASSIGNING ${guild.members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`)
-        guild.members[i].assignRole(role).catch(function (e) { console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`) })
+        func.assignRole(guild.members[i], role)
       }
     }
   } else {
-    for (i = 0; i < guild.member_count; i++) {
+    for (i = 0; i < guild.members.count; i++) {
       if (guild.members[i].hasRole(role)) {
-        console.log(`BZZT UNASSIGNING ${guild.members[i].name.toUpperCase()} ${role.name.toUpperCase()} BZZT`)
-        guild.members[i].unassignRole(role).catch(function (e) { console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`) })
+        func.unassignRole(guild.members[i], role)
       }
     }
   }
@@ -329,7 +327,7 @@ var commands =
         if (match && match[2]) {
           return music.queuePlaylist(match[2], msg)
         } else {
-          console.log(`BZZT REQUEST VIDEO ON ${func.getClient(msg.guild.id).guild.name.toUpperCase()} BZZT`)
+          func.log(`request video on ${func.getClient(msg.guild.id).guild.name}`)
           return music.addToQueue(params[1], msg)
         }
       }
@@ -342,7 +340,7 @@ var commands =
       rank: 1,
       execute: function (msg, params) {
         var fullParam = getFullParam(params)
-        console.log(`BZZT SEARCH VIDEO ON ${func.getClient(msg.guild.id).guild.name.toUpperCase()} BZZT`)
+        func.log(`search video on${func.getClient(msg.guild.id).guild.name}`)
         return music.searchVideo(msg, fullParam)
       }
     },
@@ -471,7 +469,7 @@ var commands =
             })
           })
           .catch((e) => {
-            console.log(`BZZT CANNOT CREATE ROLE BZZT\n${e}`)
+            func.log(`cannot create role`, e)
             str = `Could not create role "${fullParam}"`
             func.messageHandler({promise: msg.reply(str), content: str}, client)
           })

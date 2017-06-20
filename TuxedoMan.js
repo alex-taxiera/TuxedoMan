@@ -73,16 +73,16 @@ global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
 })
 
 global.bot.Dispatcher.on('DISCONNECTED', e => {
-  console.log(`${e.error}\nRECONNECT DELAY: ${e.delay}`)
+  func.log(null, `${e.error}\nRECONNECT DELAY: ${e.delay}`)
 })
 
 global.bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
   var client = func.getClient(e.guildId)
   if (e.user.id === global.bot.User.id) {
-    console.log(`BZZT LEFT CHANNEL ${e.channel.name.toUpperCase()} BZZT`)
+    func.log(`left channel ${e.channel.name}`)
     if (!e.newChannelId) {
       var voiceChannel = global.bot.Channels.find(c => c.id === e.channelId)
-      voiceChannel.join(voiceChannel).catch((e) => { console.log(e) })
+      voiceChannel.join(voiceChannel).catch((e) => { func.log(null, e) })
     }
   } else if (client.isPlaying && client.encoder.voiceConnection && client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
     client.paused = true
@@ -147,14 +147,14 @@ global.bot.Dispatcher.on('CHANNEL_DELETE', e => {
 global.bot.Dispatcher.on('GUILD_CREATE', e => {
   var guilds = []
   guilds.push(e.guild)
-  console.log(`BZZT JOINED ${e.guild.name} GUILD BZZT`)
+  func.log(`joined ${e.guild.name} guild`)
   sweepClients(guilds)
 })
 
 global.bot.Dispatcher.on('GUILD_DELETE', e => {
   var index = global.g.findIndex(s => s.guild.id === e.guildId)
   var client = func.getClient(e.guildId)
-  console.log(`BZZT LEFT ${client.guild.name} GUILD BZZT`)
+  func.log(`left ${client.guild.name} guild`)
   client.paused = true
   if (client.isPlaying) {
     client.encoder.destroy()
@@ -165,18 +165,18 @@ global.bot.Dispatcher.on('GUILD_DELETE', e => {
 
 global.bot.Dispatcher.on('GATEWAY_READY', () => {
   global.g = []
-  console.log('BZZT ONLINE BZZT')
+  func.log('online')
   global.bot.User.setGame('BZZT KILLING BZZT')
   fs.open(global.guildData, 'r', (err) => {
     var guilds = global.bot.Guilds.toArray()
     if (err) {
-      console.log('BZZT NO GUILD FILE BZZT')
+      func.log('no guild file')
       sweepClients(guilds)
     } else {
       var tmp
       var oldGuilds = JSON.parse(fs.readFileSync(global.guildData, 'utf-8'))
       if (oldGuilds.length === 0) {
-        console.log('BZZT EMPTY GUILD FILE BZZT')
+        func.log('empty guild file')
         return sweepClients(guilds)
       }
       var i
@@ -262,19 +262,19 @@ function start () {
     if (tok !== '') {
       fs.stat(global.playlist, (err) => {
         if (err) {
-          console.log('BZZT NO PLAYLIST FOLDER BZZT\nBZZT MAKING PLAYLIST FOLDER BZZT')
+          func.log('making playlist folder')
           fs.mkdirSync('playlist')
         }
       })
       fs.stat('./data', (err) => {
         if (err) {
-          console.log('BZZT NO DATA FOLDER BZZT\nBZZT MAKING DATA FOLDER BZZT')
+          func.log('making data folder')
           fs.mkdirSync('data')
         }
       })
       global.bot.connect({token: tok})
     } else {
-      console.log('BZZT TOKEN EMPTY BZZT')
+      func.log('no token')
     }
   })
 }

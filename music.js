@@ -14,7 +14,7 @@ module.exports =
     var files = fs.readdirSync(global.playlist)
     if (files.length === 0) {
       client.autoplay = false
-      return console.log('BZZT NO PLAYLISTS IN PLAYLIST FOLDER')
+      return func.log('no playlists')
     }
     var tmp = fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
     var autoplaylist = tmp.split('\n')
@@ -22,10 +22,10 @@ module.exports =
 
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
       if (error) {
-        console.log(`ERROR: ${video} ${error}`)
+        func.log(null, `${video} ${error}`)
         module.exports.autoQueue(client)
       } else {
-        console.log(`BZZT AUTO QUEUE ON ${client.guild.name.toUpperCase()} BZZT`)
+        func.log(`auto queue on ${client.guild.name}`)
         client.queue.push({title: info.title, link: video, user: global.bot.User})
         playNextSong(client, null)
       }
@@ -39,7 +39,7 @@ module.exports =
         func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
       }
       if (error) {
-        console.log(`Error (${video}): ${error}`)
+        func.log(null, `${video}: ${error}`)
         str = `The requested video (${video}) does not exist or cannot be played.`
         func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
       } else {
@@ -127,7 +127,7 @@ function playNextSong (client, msg) {
       format: 'pcm'
     })
 
-    console.log(`BZZT SONG START ON ${client.guild.name.toUpperCase()} BZZT`)
+    func.log(`song start on ${client.guild.name}`)
     client.encoder.play()
     client.encoder.voiceConnection.getEncoder().setVolume(client.volume)
 
@@ -139,7 +139,7 @@ function playNextSong (client, msg) {
     client.encoder.once('end', () => {
       client.isPlaying = false
       if (!client.paused && client.queue.length !== 0) {
-        console.log(`BZZT NEXT IN QUEUE ON ${client.guild.name.toUpperCase()} BZZT`)
+        func.log(`next in queue on ${client.guild.name}`)
         playNextSong(client, null)
       } else if (!client.paused && client.autoplay) {
         module.exports.autoQueue(client)

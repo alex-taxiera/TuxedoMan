@@ -2,6 +2,15 @@ const fs = require('fs')
 
 module.exports =
 {
+  log: function (str, err) {
+    var currentDate = new Date()
+    var dateTime = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()} \
+${currentDate.getHours()}:${currentDate.getMinutes()}`
+    console.log(`${dateTime} | BZZT ${str.toUpperCase()} BZZT`)
+    if (err) {
+      console.log(err)
+    }
+  },
   findChannel: function (type, guildId) {
     var i
     if (type === 'text') {
@@ -118,7 +127,7 @@ module.exports =
     fs.open(global.guildData, 'w+', () => {
       fs.writeFileSync(global.guildData, JSON.stringify(tmp, null, 2), 'utf-8')
     })
-    console.log('BZZT WROTE TO FILE BZZT')
+    module.exports.log('wrote to file')
   },
   sweepGames: function (client) {
     var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
@@ -143,11 +152,11 @@ module.exports =
     }
   },
   assignRole: function (user, role) {
-    console.log(`BZZT ASSIGNING ${user.name.toUpperCase()} "${role.name.toUpperCase()}" ON ${user.guild.name.toUpperCase()} BZZT`)
-    user.assignRole(role).catch(function (e) { console.log(`BZZT CANNOT ASSIGN ROLE BZZT\n${e}`) })
+    module.exports.log(`assigning "${user.name}" ${role.name}`)
+    user.assignRole(role).catch(function (e) { module.exports.log('cannot assign role', e) })
   },
   unassignRole: function (user, role) {
-    console.log(`BZZT UNASSIGNING ${user.name.toUpperCase()} "${role.name.toUpperCase()}" ON ${user.guild.name.toUpperCase()} BZZT`)
-    user.unassignRole(role).catch(function (e) { console.log(`BZZT CANNOT UNASSIGN ROLE BZZT\n${e}`) })
+    module.exports.log(`assigning "${user.name}" ${role.name}`)
+    user.unassignRole(role).catch(function (e) { module.exports.log('cannot unassign role', e) })
   }
 }
