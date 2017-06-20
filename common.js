@@ -1,12 +1,10 @@
 const fs = require('fs')
+const moment = require('moment')
 
 module.exports =
 {
   log: function (str, err) {
-    var currentDate = new Date()
-    var dateTime = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()} \
-${currentDate.getHours()}:${currentDate.getMinutes()}`
-    console.log(`${dateTime} | BZZT ${str.toUpperCase()} BZZT`)
+    console.log(`${moment().format('MM/DD HH:mm:ss')} | BZZT ${str.toUpperCase()} BZZT`)
     if (err) {
       console.log(err)
     }
@@ -152,7 +150,7 @@ ${currentDate.getHours()}:${currentDate.getMinutes()}`
     }
   },
   assignRole: function (user, role) {
-    module.exports.log(`assigning "${user.name}" ${role.name}`)
+    module.exports.log(`assigning   "${user.name}" ${role.name}`)
     user.assignRole(role).catch(function (e) { module.exports.log('cannot assign role', e) })
   },
   unassignRole: function (user, role) {

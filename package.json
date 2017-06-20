@@ -5,8 +5,9 @@
   "main": "TuxedoMan.js",
   "dependencies": {
     "discordie": "^0.11.0",
-    "seedrandom": "^2.4.3",
+    "moment": "^2.18.1",
     "node-opus": "^0.2.6",
+    "seedrandom": "^2.4.3",
     "youtube-dl": "^1.11.1",
     "ytpl": "^0.1.5",
     "ytsr": "^0.1.3"
