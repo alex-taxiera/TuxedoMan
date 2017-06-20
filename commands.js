@@ -422,8 +422,8 @@ var commands =
           case 'gameroles':
             client.gameRoles.active = !client.gameRoles.active
             str = `Game roles set to ${client.gameRoles.active}!`
-            func.writeChanges()
             func.sweepGames(client)
+            func.writeChanges()
             return {promise: msg.reply(str), content: str}
           case 'memes':
             client.meme = !client.meme

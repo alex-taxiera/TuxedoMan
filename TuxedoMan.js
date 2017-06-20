@@ -19,6 +19,7 @@ start()
 global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
   var client = func.getClient(e.guild.id)
   client.gameRoles.roles.splice(client.gameRoles.roles.findIndex(r => r === e.roleId), 1)
+  func.writeChanges()
 })
 
 global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
