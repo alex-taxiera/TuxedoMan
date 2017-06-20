@@ -124,13 +124,20 @@ module.exports =
     var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
     var members = guild.members
     var trackedRoles = client.gameRoles.roles
+
     for (var i = 0; i < guild.member_count; i++) {
       for (var j = 0; j < trackedRoles.length; j++) {
         var role = guild.roles.find(r => r.id === trackedRoles[j])
-        if ((!client.gameRoles.active && members[i].hasRole(role)) || (members[i].hasRole(role) && role.name !== members[i].gameName)) {
-          module.exports.unassignRole(members[i], role)
-        } else if (!members[i].hasRole(role) && role.name === members[i].gameName) {
-          module.exports.assignRole(members[i], role)
+        if (role) {
+          if ((!client.gameRoles.active && members[i].hasRole(role)) || (members[i].hasRole(role) && role.name !== members[i].gameName)) {
+            module.exports.unassignRole(members[i], role)
+          } else if (!members[i].hasRole(role) && role.name === members[i].gameName) {
+            module.exports.assignRole(members[i], role)
+          }
+        } else {
+          if (client.gameRoles.roles.find(r => r === trackedRoles[j])) {
+            client.gameRoles.roles.splice(j, 1)
+          }
         }
       }
     }
