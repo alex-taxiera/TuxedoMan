@@ -46,12 +46,17 @@ function denyRank (msg, rank) {
     case 3:
       str = 'Must be guild owner!'
       return {promise: msg.reply(str), content: str}
+    case 4:
+      str = 'Must be a boss!'
+      return {promise: msg.reply(str), content: str}
   }
 }
 
 function rank (msg) {
   var client = func.getClient(msg.guild.id)
-  if (msg.guild.isOwner(msg.member)) {
+  if (msg.member.id === global.master) {
+    return 4
+  } else if (msg.guild.isOwner(msg.member)) {
     return 3
   } else if (client.vip && msg.member.hasRole(client.vip)) {
     return 2
@@ -621,6 +626,18 @@ var commands =
           str = `Could not find role "${fullParam}"`
           return {promise: msg.reply(str), content: str}
         }
+      }
+    },
+    // eval
+    {
+      command: 'eval',
+      description: 'dev',
+      parameters: ['stuff'],
+      rank: 4,
+      execute: function (msg, params) {
+        var fullParam = getFullParam(params)
+        func.log(fullParam)
+        // eval(fullParam)
       }
     },
     // meme hell

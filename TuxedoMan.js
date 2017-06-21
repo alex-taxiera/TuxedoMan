@@ -5,6 +5,7 @@ const token = './token.txt'
 // global variables
 global.guildData = './data/guilds.json'
 global.playlist = './playlist'
+global.master = '162674484828962816'
 global.g = [] //  g = guilds (list of guilds with all info)
 global.bot = new Discordie({autoReconnect: true})
 
