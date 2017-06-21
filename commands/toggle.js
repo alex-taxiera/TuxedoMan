@@ -8,7 +8,7 @@ module.exports = {
   execute: function (msg, params) {
     var client = func.getClient(msg.guild.id)
     var str = ''
-    switch (params[1]) {
+    switch (params[0]) {
       case 'auto':
         client.autoplay = !client.autoplay
         if (client.autoplay && global.bot.User.getVoiceChannel(msg.guild).members.length !== 1) {

@@ -7,9 +7,9 @@ module.exports = {
   execute: function (msg, params) {
     var client = func.getClient(msg.guild.id)
     var str = ''
-    var type = params[1]
+    var type = params[0]
     params.splice(0, 1)
-    var fullParam = func.getFullParam(params)
+    var fullParam = params.join(' ')
     var channel = {}
     if (type === `text`) {
       channel = global.bot.Channels.textForGuild(msg.guild).find(tc => tc.name === fullParam)
@@ -55,7 +55,7 @@ module.exports = {
         return {promise: msg.reply(str), content: str}
       }
     } else {
-      str = `Could not find ${params[1]} channel!`
+      str = `Could not find ${params[0]} channel!`
       return {promise: msg.reply(str), content: str}
     }
   }

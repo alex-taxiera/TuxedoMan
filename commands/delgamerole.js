@@ -5,7 +5,7 @@ module.exports = {
   parameters: ['role name'],
   rank: 2,
   execute: function (msg, params) {
-    var fullParam = func.getFullParam(params)
+    var fullParam = params.join(' ')
     var client = func.getClient(msg.guild.id)
     var str = ''
     var role = msg.guild.roles.find(r => r.name === fullParam)

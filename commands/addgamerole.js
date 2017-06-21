@@ -5,7 +5,7 @@ module.exports = {
   parameters: ['role name, should be as game appears on discord statuses'],
   rank: 2,
   execute: function (msg, params) {
-    var fullParam = func.getFullParam(params)
+    var fullParam = params.join(' ')
     var client = func.getClient(msg.guild.id)
     var str = ''
     var exists = msg.guild.roles.find(r => r.name === fullParam)

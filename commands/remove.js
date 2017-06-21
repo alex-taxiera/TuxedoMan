@@ -5,7 +5,7 @@ module.exports = {
   parameters: ["Request index or 'last'"],
   rank: 2,
   execute: function (msg, params) {
-    var index = params[1]
+    var index = params[0]
     var client = func.getClient(msg.guild.id)
     var str = ''
     if (client.queue.length === 0) {

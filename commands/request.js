@@ -7,13 +7,13 @@ module.exports = {
   rank: 1,
   execute: function (msg, params) {
     var regExp = /^.*(youtu.be\/|list=)([^#&?]*).*/
-    var match = params[1].match(regExp)
+    var match = params[0].match(regExp)
 
     if (match && match[2]) {
       return music.queuePlaylist(match[2], msg)
     } else {
       func.log(`request video on ${func.getClient(msg.guild.id).guild.name}`)
-      return music.addToQueue(params[1], msg)
+      return music.addToQueue(params[0], msg)
     }
   }
 }

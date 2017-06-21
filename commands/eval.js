@@ -7,7 +7,7 @@ module.exports = {
   rank: 4,
   execute: function (msg, params) {
     var client = func.getClient(msg.guild.id)
-    var fullParam = func.getFullParam(params)
+    var fullParam = params.join(' ')
     eval(fullParam)
   }
 }

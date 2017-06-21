@@ -15,6 +15,7 @@ module.exports =
           })
         } else {
           if (rank(msg) >= command.rank) {
+            params.splice(0, 1)
             if (params[0] === 'help') {
               params = commands
             }
