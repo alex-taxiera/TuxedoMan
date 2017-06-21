@@ -241,7 +241,7 @@ global.bot.Dispatcher.on('GATEWAY_READY', () => {
 global.bot.Dispatcher.on('MESSAGE_CREATE', e => {
   var msg = e.message
   var text = msg.content
-  if (msg.member.id !== global.bot.User.id) {
+  if (msg.type && msg.member.id !== global.bot.User.id) {
     if (text[0] === '*') {
       if (cmd.handleCommand(msg, text.substring(1), false)) {
         if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
