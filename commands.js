@@ -128,7 +128,7 @@ var commands =
   [
     // commands
     {
-      command: 'commands',
+      command: 'help',
       description: 'Displays this message, duh!',
       parameters: [],
       rank: 0,
