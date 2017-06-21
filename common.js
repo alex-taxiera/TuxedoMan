@@ -156,5 +156,58 @@ module.exports =
   unassignRole: function (user, role) {
     module.exports.log(`assigning "${user.name}" ${role.name}`)
     user.unassignRole(role).catch(function (e) { module.exports.log('cannot unassign role', e) })
+  },
+  getFullParam: function (params) {
+    var fullParam = ''
+    for (var i = 1; i < params.length; i++) {
+      if (i !== 1) {
+        fullParam += ' '
+      }
+      fullParam += params[i]
+    }
+    return fullParam
+  },
+  checkGame: function (client, roleId) {
+    var i
+    var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
+    var role = guild.roles.find(r => r.id === roleId)
+    if (client.gameRoles.roles.find(r => r === role.id)) {
+      for (i = 0; i < guild.members.count; i++) {
+        if (guild.members[i].gameName === role.name) {
+          module.exports.assignRole(guild.members[i], role)
+        }
+      }
+    } else {
+      for (i = 0; i < guild.members.count; i++) {
+        if (guild.members[i].hasRole(role)) {
+          module.exports.unassignRole(guild.members[i], role)
+        }
+      }
+    }
+  },
+  getCleanVipRole: function (client, guild) {
+    if (client.vip) {
+      return guild.roles.find(r => r.id === client.vip).name
+    } else {
+      return 'None'
+    }
+  },
+  getCleanGameRoles: function (client, guild) {
+    var gameRoles = ''
+    if (client.gameRoles.active) {
+      gameRoles += 'True\n'
+    } else {
+      gameRoles += 'False\n'
+    }
+    for (var i = 0; i < client.gameRoles.roles.length; i++) {
+      var role = guild.roles.find(r => r.id === client.gameRoles.roles[i])
+      if (role) {
+        if (i) {
+          gameRoles += ' '
+        }
+        gameRoles += `"${role.name}"`
+      }
+    }
+    return gameRoles
   }
 }
