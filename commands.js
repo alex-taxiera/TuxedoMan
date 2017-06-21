@@ -141,6 +141,8 @@ var commands =
             rank = 'VIP'
           } else if (c.rank === 3) {
             rank = 'Owner'
+          } else if (c.rank === 4) {
+            rank = 'Admin'
           } else {
             rank = 'Anyone'
           }
@@ -635,9 +637,9 @@ var commands =
       parameters: ['stuff'],
       rank: 4,
       execute: function (msg, params) {
+        var client = func.getClient(msg.guild.id)
         var fullParam = getFullParam(params)
-        func.log(fullParam)
-        // eval(fullParam)
+        eval(fullParam)
       }
     },
     // meme hell
@@ -716,7 +718,7 @@ var commands =
           msg.channel.uploadFile('./images/dilligaf.png')
         }
             // doyoueven
-        if (text.includes(' doyoueven ') || text === 'doyoueven' || text.includes('do you even ') || text === 'do you even') {
+        if (text.includes(' doyoueven') || text === 'doyoueven' || text.includes('do you even ') || text === 'do you even') {
           msg.channel.uploadFile('./images/doyoueven.jpg')
         }
             // dozicus
