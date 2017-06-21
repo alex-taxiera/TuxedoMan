@@ -1,1 +1,1 @@
-{"ignore": "data/*"}
+{"ignore": ["data/*", "playlist/*", "node_modules/*"]}
