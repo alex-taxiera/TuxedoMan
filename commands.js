@@ -479,7 +479,7 @@ var commands =
     // delete game roles
     {
       command: 'delgamerole',
-      description: 'Add game roles',
+      description: 'Delete game roles',
       parameters: ['role name'],
       rank: 2,
       execute: function (msg, params) {
