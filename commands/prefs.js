@@ -7,8 +7,8 @@ module.exports = {
   execute: function (msg) {
     var client = func.getClient(msg.guild.id)
     var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
-    var vipRole = func.getCleanVipRole(client, guild)
-    var gameRoles = func.getCleanGameRoles(client, guild)
+    var vipRole = getCleanVipRole(client, guild)
+    var gameRoles = getCleanGameRoles(client, guild)
 
     var str = 'Preferences'
     var embed =
@@ -26,4 +26,30 @@ module.exports = {
       }
     return {promise: msg.reply(str, false, embed), content: str, delay: 25000, embed: embed}
   }
+}
+function getCleanVipRole (client, guild) {
+  if (client.vip) {
+    return guild.roles.find(r => r.id === client.vip).name
+  } else {
+    return 'None'
+  }
+}
+
+function getCleanGameRoles (client, guild) {
+  var gameRoles = ''
+  if (client.gameRoles.active) {
+    gameRoles += 'True\n'
+  } else {
+    gameRoles += 'False\n'
+  }
+  for (var i = 0; i < client.gameRoles.roles.length; i++) {
+    var role = guild.roles.find(r => r.id === client.gameRoles.roles[i])
+    if (role) {
+      if (i) {
+        gameRoles += ' '
+      }
+      gameRoles += `"${role.name}"`
+    }
+  }
+  return gameRoles
 }

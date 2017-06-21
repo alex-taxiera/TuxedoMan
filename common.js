@@ -184,30 +184,5 @@ module.exports =
         }
       }
     }
-  },
-  getCleanVipRole: function (client, guild) {
-    if (client.vip) {
-      return guild.roles.find(r => r.id === client.vip).name
-    } else {
-      return 'None'
-    }
-  },
-  getCleanGameRoles: function (client, guild) {
-    var gameRoles = ''
-    if (client.gameRoles.active) {
-      gameRoles += 'True\n'
-    } else {
-      gameRoles += 'False\n'
-    }
-    for (var i = 0; i < client.gameRoles.roles.length; i++) {
-      var role = guild.roles.find(r => r.id === client.gameRoles.roles[i])
-      if (role) {
-        if (i) {
-          gameRoles += ' '
-        }
-        gameRoles += `"${role.name}"`
-      }
-    }
-    return gameRoles
   }
 }
