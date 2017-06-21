@@ -10,9 +10,10 @@ global.g = [] //  g = guilds (list of guilds with all info)
 global.bot = new Discordie({autoReconnect: true})
 
 // project modules
-var cmd = require('./commands.js')
-var music = require('./music.js')
-var func = require('./common.js')
+const cmd = require('./commands.js')
+const music = require('./music.js')
+const gameRoles = require('./gameRoles.js')
+const func = require('./common.js')
 
 // connect bot
 start()
@@ -64,11 +65,11 @@ global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
     var user = e.member
     var role = e.guild.roles.find(r => r.name === user.previousGameName)
     if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
-      func.unassignRole(user, role)
+      gameRoles.unassignRole(user, role)
     }
     role = e.guild.roles.find(r => r.name === user.gameName)
     if (role && client.gameRoles.roles.find(r => r === role.id) && !user.hasRole(role)) {
-      func.assignRole(user, role)
+      gameRoles.assignRole(user, role)
     }
   }
 })
@@ -313,7 +314,7 @@ function sweepClients (guilds) {
 
 function init (guilds) {
   for (var i = 0; i < global.g.length; i++) {
-    func.sweepGames(global.g[i])
+    gameRoles.sweepGames(global.g[i])
     if (guilds.find(s => s.id === global.g[i].guild.id) && global.g[i].autoplay && global.bot.User.getVoiceChannel(global.g[i].guild.id).members.length !== 1) {
       music.autoQueue(global.g[i])
     }

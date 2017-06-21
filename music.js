@@ -7,8 +7,7 @@ const rng = seedrandom()
 
 var func = require('./common.js')
 
-module.exports =
-{
+module.exports = {
   autoQueue: function (client) {
         // get a random video
     var files = fs.readdirSync(global.playlist)

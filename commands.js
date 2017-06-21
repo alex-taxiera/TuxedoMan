@@ -1,7 +1,6 @@
 const func = require('./common.js')
 const commands = require('./commands/')
-module.exports =
-{
+module.exports = {
   handleCommand: function (msg, text, meme) {
     var command = ''
     if (!meme) {

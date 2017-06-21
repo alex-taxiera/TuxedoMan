@@ -1,8 +1,7 @@
 const fs = require('fs')
 const moment = require('moment')
 
-module.exports =
-{
+module.exports = {
   log: function (str, err) {
     console.log(`${moment().format('MM/DD HH:mm:ss')} | BZZT ${str.toUpperCase()} BZZT`)
     if (err) {
@@ -126,53 +125,5 @@ module.exports =
       fs.writeFileSync(global.guildData, JSON.stringify(tmp, null, 2), 'utf-8')
     })
     module.exports.log('wrote to file')
-  },
-  sweepGames: function (client) {
-    var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
-    var members = guild.members
-    var trackedRoles = client.gameRoles.roles
-
-    for (var i = 0; i < guild.member_count; i++) {
-      for (var j = 0; j < trackedRoles.length; j++) {
-        var role = guild.roles.find(r => r.id === trackedRoles[j])
-        if (role) {
-          if ((!client.gameRoles.active && members[i].hasRole(role)) || (members[i].hasRole(role) && role.name !== members[i].gameName)) {
-            module.exports.unassignRole(members[i], role)
-          } else if (!members[i].hasRole(role) && role.name === members[i].gameName) {
-            module.exports.assignRole(members[i], role)
-          }
-        } else {
-          if (client.gameRoles.roles.find(r => r === trackedRoles[j])) {
-            client.gameRoles.roles.splice(j, 1)
-          }
-        }
-      }
-    }
-  },
-  assignRole: function (user, role) {
-    module.exports.log(`assigning   "${user.name}" ${role.name}`)
-    user.assignRole(role).catch(function (e) { module.exports.log('cannot assign role', e) })
-  },
-  unassignRole: function (user, role) {
-    module.exports.log(`assigning "${user.name}" ${role.name}`)
-    user.unassignRole(role).catch(function (e) { module.exports.log('cannot unassign role', e) })
-  },
-  checkGame: function (client, roleId) {
-    var i
-    var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
-    var role = guild.roles.find(r => r.id === roleId)
-    if (client.gameRoles.roles.find(r => r === role.id)) {
-      for (i = 0; i < guild.members.count; i++) {
-        if (guild.members[i].gameName === role.name) {
-          module.exports.assignRole(guild.members[i], role)
-        }
-      }
-    } else {
-      for (i = 0; i < guild.members.count; i++) {
-        if (guild.members[i].hasRole(role)) {
-          module.exports.unassignRole(guild.members[i], role)
-        }
-      }
-    }
   }
 }

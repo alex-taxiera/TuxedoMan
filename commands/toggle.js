@@ -1,5 +1,6 @@
 const func = require('../common.js')
 const music = require('../music.js')
+const gameRoles = require('../gameRoles.js')
 module.exports = {
   command: 'toggle',
   description: 'Toggle various settings',
@@ -31,7 +32,7 @@ module.exports = {
       case 'gameroles':
         client.gameRoles.active = !client.gameRoles.active
         str = `Game roles set to ${client.gameRoles.active}!`
-        func.sweepGames(client)
+        gameRoles.sweepGames(client)
         func.writeChanges()
         return {promise: msg.reply(str), content: str}
       case 'memes':
