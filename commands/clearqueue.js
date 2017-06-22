@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'clearqueue',
   description: 'Removes all songs from the queue',

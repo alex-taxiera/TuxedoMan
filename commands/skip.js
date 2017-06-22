@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'skip',
   description: 'Skips the current song',

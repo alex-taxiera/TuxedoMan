@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'vip',
   description: 'Set VIP role',

@@ -5,7 +5,8 @@ const fs = require('fs')
 const seedrandom = require('seedrandom')
 const rng = seedrandom()
 
-var func = require('./common.js')
+const func = require('./common.js')
+const bot = require('./TuxedoMan.js')
 
 module.exports = {
   autoQueue: function (client) {
@@ -25,7 +26,7 @@ module.exports = {
         module.exports.autoQueue(client)
       } else {
         func.log(`auto queue on ${client.guild.name}`)
-        client.queue.push({title: info.title, link: video, user: global.bot.User})
+        client.queue.push({title: info.title, link: video, user: bot.get().User})
         playNextSong(client, null)
       }
     })
@@ -112,7 +113,7 @@ function playNextSong (client, msg) {
   video.pipe(fs.createWriteStream(`./data/${client.guild.id}.mp3`))
   video.once('end', () => {
     if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying &&
-      user.id !== global.bot.User.id)) {
+      user.id !== bot.get().User.id)) {
       var textChannel = func.getTextChannel(client)
       if (textChannel) {
         textChannel.sendMessage(`Now playing: "${title}" (requested by ${user.username})`)
@@ -122,7 +123,7 @@ function playNextSong (client, msg) {
       }
     }
 
-    var info = global.bot.VoiceConnections.getForGuild(client.guild.id)
+    var info = bot.get().VoiceConnections.getForGuild(client.guild.id)
     client.encoder = info.voiceConnection.createExternalEncoder({
       type: 'ffmpeg',
       source: `./data/${client.guild.id}.mp3`,

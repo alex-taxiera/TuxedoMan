@@ -1,5 +1,6 @@
 const func = require('../common.js')
 const music = require('../music.js')
+
 module.exports = {
   command: 'play',
   description: 'Resumes paused/stopped playback',

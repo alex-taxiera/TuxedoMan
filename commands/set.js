@@ -1,4 +1,6 @@
 const func = require('../common.js')
+const bot = require('../TuxedoMan.js')
+
 module.exports = {
   command: 'set',
   description: 'Set default voice or text channel',
@@ -12,10 +14,10 @@ module.exports = {
     var fullParam = params.join(' ')
     var channel = {}
     if (type === `text`) {
-      channel = global.bot.Channels.textForGuild(msg.guild).find(tc => tc.name === fullParam)
+      channel = bot.get().Channels.textForGuild(msg.guild).find(tc => tc.name === fullParam)
       type = 0 // false for text
     } else if (type === 'voice') {
-      channel = global.bot.Channels.voiceForGuild(msg.guild).find(vc => vc.name === fullParam)
+      channel = bot.get().Channels.voiceForGuild(msg.guild).find(vc => vc.name === fullParam)
       type = 1 // true for voice
     } else {
       str = 'Specify text or voice with first param!'

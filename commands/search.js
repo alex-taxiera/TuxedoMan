@@ -1,5 +1,6 @@
 const func = require('../common.js')
 const music = require('../music.js')
+
 module.exports = {
   command: 'search',
   description: 'Searches for a video or playlist on YouTube and adds it to the queue',

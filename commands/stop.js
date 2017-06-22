@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'stop',
   description: 'Delete current song and prevent further playback',

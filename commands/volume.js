@@ -1,5 +1,6 @@
 const func = require('../common.js')
 const music = require('../music.js')
+
 module.exports = {
   command: 'volume',
   description: 'Set music volume.',

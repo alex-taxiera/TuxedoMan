@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'queue',
   description: 'Displays the queue',

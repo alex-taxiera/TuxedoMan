@@ -1,4 +1,5 @@
 const func = require('../common.js')
+
 module.exports = {
   command: 'remove',
   description: 'Removes a song from the queue',

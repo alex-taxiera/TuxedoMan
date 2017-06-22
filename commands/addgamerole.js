@@ -1,4 +1,5 @@
 const gameRoles = require('../gameRoles.js')
+
 module.exports = {
   command: 'addgamerole',
   description: 'Add game roles',

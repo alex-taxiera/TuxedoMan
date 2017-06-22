@@ -1,5 +1,7 @@
 const func = require('../common.js')
+const bot = require('../TuxedoMan.js')
 const moment = require('moment')
+
 module.exports = {
   command: 'prefs',
   description: 'Display current bot preferences',
@@ -7,14 +9,14 @@ module.exports = {
   rank: 2,
   execute: function (msg) {
     var client = func.getClient(msg.guild.id)
-    var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
+    var guild = bot.get().Guilds.toArray().find(g => g.id === client.guild.id)
     var vipRole = getCleanVipRole(client, guild)
     var gameRoles = getCleanGameRoles(client, guild)
-    var member = guild.members.find(m => m.id === global.bot.User.id)
+    var member = guild.members.find(m => m.id === bot.get().User.id)
     var embed =
       {
         title: ':heartbeat: **Preferences**',
-        thumbnail: {url: '../images/tuxedoman.png'},
+        thumbnail: {url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png'},
         'timestamp': moment(),
         color: 0x3498db,
         'footer': {

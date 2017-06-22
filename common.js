@@ -1,5 +1,6 @@
 const fs = require('fs')
 const moment = require('moment')
+var bot = require('./TuxedoMan.js')
 
 module.exports = {
   log: function (str, err) {
@@ -14,14 +15,14 @@ module.exports = {
   findChannel: function (type, guildId) {
     var i
     if (type === 'text') {
-      var textChannels = global.bot.Channels.textForGuild(guildId)
+      var textChannels = bot.get().Channels.textForGuild(guildId)
       for (i = 0; i < textChannels.length; i++) {
         if (module.exports.can(['SEND_MESSAGES'], textChannels[i])) {
           return {id: textChannels[i].id, name: textChannels[i].name}
         }
       }
     } else if (type === 'voice') {
-      var voiceChannels = global.bot.Channels.voiceForGuild(guildId)
+      var voiceChannels = bot.get().Channels.voiceForGuild(guildId)
       for (i = 0; i < voiceChannels.length; i++) {
         if (module.exports.can(['SPEAK', 'CONNECT'], voiceChannels[i])) {
           voiceChannels[i].join()
@@ -32,7 +33,7 @@ module.exports = {
     return null
   },
   getTextChannel: function (client) {
-    var text = global.bot.Channels.textForGuild(client.guild.id)
+    var text = bot.get().Channels.textForGuild(client.guild.id)
     .find(c => c.id === client.textChannel.id)
     if (!text || !module.exports.can(['SEND_MESSAGES'], text)) {
       return module.exports.findChannel('text', client.guild.id)
@@ -83,7 +84,7 @@ module.exports = {
       if (!context) {
         return false
       }
-      var perm = global.bot.User.permissionsFor(context)
+      var perm = bot.get().User.permissionsFor(context)
       var p
       if (context.isGuildText) {
         var text = perm.Text

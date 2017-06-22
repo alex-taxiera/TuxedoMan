@@ -7,7 +7,7 @@ global.guildData = './data/guilds.json'
 global.playlist = './playlist'
 global.master = '162674484828962816'
 global.g = [] //  g = guilds (list of guilds with all info)
-global.bot = new Discordie({autoReconnect: true})
+var bot = new Discordie({autoReconnect: true})
 
 // project modules
 const cmd = require('./commands.js')
@@ -18,14 +18,14 @@ const func = require('./common.js')
 // connect bot
 start()
 
-global.bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
-  if (e.member.id === global.bot.User.id) {
+bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
+  if (e.member.id === bot.User.id) {
     var client = func.getClient(e.member.guild.id)
-    if (client.textChannel && !func.can(['SEND_MESSAGES'], global.bot.Channels
+    if (client.textChannel && !func.can(['SEND_MESSAGES'], bot.Channels
     .textForGuild(client.guild.id).find(ch => ch.id === client.textChannel.id))) {
       client.textChannel = func.findChannel('text', client.guild.id)
       dmWarn(e.member.guild, client.textChannel, client.voiceChannel)
-    } else if (client.voiceChannel && !func.can(['SPEAK', 'CONNECT'], global.bot.Channels
+    } else if (client.voiceChannel && !func.can(['SPEAK', 'CONNECT'], bot.Channels
     .voiceForGuild(client.guild.id).find(ch => ch.id === client.voiceChannel.id))) {
       client.voiceChannel = func.findChannel('voice', client.guild.id)
       dmWarn(e.member.guild, client.textChannel, client.voiceChannel)
@@ -40,7 +40,7 @@ global.bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
   }
 })
 
-global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
+bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
   var client = func.getClient(e.guild.id)
   if (e.roleId === client.vip) {
     client.vip = null
@@ -51,7 +51,7 @@ global.bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
   }
 })
 
-global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
+bot.Dispatcher.on('PRESENCE_UPDATE', e => {
   var client = func.getClient(e.guild.id)
   if (e.member.guild_id && client.gameRoles.active) {
     var user = e.member
@@ -66,16 +66,16 @@ global.bot.Dispatcher.on('PRESENCE_UPDATE', e => {
   }
 })
 
-global.bot.Dispatcher.on('DISCONNECTED', e => {
+bot.Dispatcher.on('DISCONNECTED', e => {
   func.log(null, `${e.error}\nRECONNECT DELAY: ${e.delay}`)
 })
 
-global.bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
+bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
   var client = func.getClient(e.guildId)
-  if (e.user.id === global.bot.User.id) {
+  if (e.user.id === bot.User.id) {
     func.log(`left channel ${e.channel.name}`)
     if (!e.newChannelId) {
-      var voiceChannel = global.bot.Channels.find(c => c.id === e.channelId)
+      var voiceChannel = bot.Channels.find(c => c.id === e.channelId)
       voiceChannel.join(voiceChannel).catch((e) => { func.log(null, e) })
     }
   } else if (client.isPlaying && client.encoder.voiceConnection &&
@@ -85,7 +85,7 @@ global.bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
   }
 })
 
-global.bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
+bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
   var client = func.getClient(e.guildId)
   if (client.isPlaying && client.encoder.voiceConnection &&
     client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
@@ -94,7 +94,7 @@ global.bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
   }
 })
 
-global.bot.Dispatcher.on('CHANNEL_CREATE', e => {
+bot.Dispatcher.on('CHANNEL_CREATE', e => {
   var ch = e.channel
   var client = func.getClient(ch.guild_id)
   if (!client.textChannel || !client.voiceChannel) {
@@ -110,9 +110,9 @@ global.bot.Dispatcher.on('CHANNEL_CREATE', e => {
   }
 })
 
-global.bot.Dispatcher.on('CHANNEL_DELETE', e => {
+bot.Dispatcher.on('CHANNEL_DELETE', e => {
   var client = func.getClient(e.data.guild_id)
-  var guild = global.bot.Guilds.toArray().find(g => g.id === client.guild.id)
+  var guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
   if (e.channelId === client.textChannel.id) {
     client.textChannel = func.findChannel('text', client.guild.id)
     dmWarn(guild, client.textChannel, client.voiceChannel)
@@ -125,7 +125,7 @@ global.bot.Dispatcher.on('CHANNEL_DELETE', e => {
   func.writeChanges()
 })
 
-global.bot.Dispatcher.on('CHANNEL_UPDATE', e => {
+bot.Dispatcher.on('CHANNEL_UPDATE', e => {
   var ch = e.channel
   var client = func.getClient(ch.guild.id)
   if (client.textChannel && client.textChannel.id === ch.id && !func.can(['SEND_MESSAGES'], ch)) {
@@ -146,14 +146,14 @@ global.bot.Dispatcher.on('CHANNEL_UPDATE', e => {
   func.writeChanges()
 })
 
-global.bot.Dispatcher.on('GUILD_CREATE', e => {
+bot.Dispatcher.on('GUILD_CREATE', e => {
   var guilds = []
   guilds.push(e.guild)
   func.log(`joined ${e.guild.name} guild`)
   sweepClients(guilds)
 })
 
-global.bot.Dispatcher.on('GUILD_DELETE', e => {
+bot.Dispatcher.on('GUILD_DELETE', e => {
   var index = global.g.findIndex(s => s.guild.id === e.guildId)
   var client = func.getClient(e.guildId)
   func.log(`left ${client.guild.name} guild`)
@@ -165,12 +165,12 @@ global.bot.Dispatcher.on('GUILD_DELETE', e => {
   func.writeChanges()
 })
 
-global.bot.Dispatcher.on('GATEWAY_READY', () => {
+bot.Dispatcher.on('GATEWAY_READY', () => {
   global.g = []
   func.log('online')
-  global.bot.User.setGame('BZZT KILLING BZZT')
+  bot.User.setGame('BZZT KILLING BZZT')
   fs.open(global.guildData, 'r', (err) => {
-    var guilds = global.bot.Guilds.toArray()
+    var guilds = bot.Guilds.toArray()
     if (err) {
       func.log('no guild file')
       sweepClients(guilds)
@@ -190,7 +190,7 @@ global.bot.Dispatcher.on('GATEWAY_READY', () => {
           tmp.guild = {id: guild.id, name: guild.name}
           var oldTextChannel = null
           if (oldGuilds[i].textChannel) {
-            oldTextChannel = global.bot.Channels.textForGuild(tmp.guild.id)
+            oldTextChannel = bot.Channels.textForGuild(tmp.guild.id)
                       .find(c => c.id === oldGuilds[i].textChannel.id)
           }
           if (oldTextChannel && func.can(['SEND_MESSAGES'], oldTextChannel)) {
@@ -201,7 +201,7 @@ global.bot.Dispatcher.on('GATEWAY_READY', () => {
 
           var oldVoiceChannel = null
           if (oldGuilds[i].voiceChannel) {
-            oldVoiceChannel = global.bot.Channels.voiceForGuild(tmp.guild.id)
+            oldVoiceChannel = bot.Channels.voiceForGuild(tmp.guild.id)
                       .find(c => c.id === oldGuilds[i].voiceChannel.id)
           }
           if (oldVoiceChannel && func.can(['SPEAK', 'CONNECT'], oldVoiceChannel)) {
@@ -248,10 +248,10 @@ global.bot.Dispatcher.on('GATEWAY_READY', () => {
   })
 })
 
-global.bot.Dispatcher.on('MESSAGE_CREATE', e => {
+bot.Dispatcher.on('MESSAGE_CREATE', e => {
   var msg = e.message
   var text = msg.content
-  if (msg.member && msg.member.id !== global.bot.User.id) {
+  if (msg.member && msg.member.id !== bot.User.id) {
     if (text[0] === '*') {
       if (cmd.handleCommand(msg, text.substring(1), false)) {
         if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
@@ -282,7 +282,7 @@ function start () {
           fs.mkdirSync('data')
         }
       })
-      global.bot.connect({token: tok})
+      bot.connect({token: tok})
     } else {
       func.log('no token')
     }
@@ -327,7 +327,7 @@ function init (guilds) {
   for (var i = 0; i < global.g.length; i++) {
     gameRoles.sweepGames(global.g[i])
     if (guilds.find(s => s.id === global.g[i].guild.id) && global.g[i].autoplay &&
-    global.bot.User.getVoiceChannel(global.g[i].guild.id).members.length !== 1) {
+    bot.User.getVoiceChannel(global.g[i].guild.id).members.length !== 1) {
       music.autoQueue(global.g[i])
     }
   }
@@ -360,3 +360,5 @@ function dmWarn (guild, text, voice) {
         })
   }
 }
+
+exports.get = function () { return bot }
