@@ -26,10 +26,11 @@ module.exports = {
         }
       }
     }
-    return undefined
+    return null
   },
   getTextChannel: function (client) {
-    var text = global.bot.Channels.textForGuild(client.guild.id).find(c => c.id === client.textChannel.id)
+    var text = global.bot.Channels.textForGuild(client.guild.id)
+    .find(c => c.id === client.textChannel.id)
     if (!text || !module.exports.can(['SEND_MESSAGES'], text)) {
       return module.exports.findChannel('text', client.guild.id)
     } else {
