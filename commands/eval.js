@@ -8,6 +8,10 @@ module.exports = {
   execute: function (msg, params) {
     var client = func.getClient(msg.guild.id)
     var fullParam = params.join(' ')
-    eval(fullParam)
+    try {
+      eval(fullParam)
+    } catch (e) {
+      func.log(`could not eval "${fullParam}"`, e.message)
+    }
   }
 }
