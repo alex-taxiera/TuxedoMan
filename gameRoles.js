@@ -72,7 +72,8 @@ module.exports = {
       for (var j = 0; j < trackedRoles.length; j++) {
         var role = guild.roles.find(r => r.id === trackedRoles[j])
         if (role) {
-          if ((!client.gameRoles.active && members[i].hasRole(role)) || (members[i].hasRole(role) && role.name !== members[i].gameName)) {
+          if ((!client.gameRoles.active && members[i].hasRole(role)) ||
+          (members[i].hasRole(role) && role.name !== members[i].gameName)) {
             module.exports.unassignRole(members[i], role)
           } else if (!members[i].hasRole(role) && role.name === members[i].gameName) {
             module.exports.assignRole(members[i], role)

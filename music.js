@@ -107,13 +107,16 @@ function playNextSong (client, msg) {
 
   client.nowPlaying = {title: title, user: user}
 
-  var video = ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
+  var video =
+  ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
   video.pipe(fs.createWriteStream(`./data/${client.guild.id}.mp3`))
   video.once('end', () => {
-    if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying && user.id !== global.bot.User.id)) {
+    if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying &&
+      user.id !== global.bot.User.id)) {
       var textChannel = func.getTextChannel(client)
       if (textChannel) {
-        textChannel.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) => {
+        textChannel.sendMessage(`Now playing: "${title}" (requested by ${user.username})`)
+        .then((m) => {
           setTimeout(function () { m.delete() }, 25000)
         })
       }

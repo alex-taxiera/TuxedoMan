@@ -62,7 +62,8 @@ function rank (msg) {
     return 3
   } else if (client.vip && msg.member.hasRole(client.vip)) {
     return 2
-  } else if (global.bot.User.getVoiceChannel(client.guild.id).members.findIndex(m => m.id === msg.member.id) !== -1) {
+  } else if (global.bot.User.getVoiceChannel(client.guild.id).members
+  .findIndex(m => m.id === msg.member.id) !== -1) {
     return 1
   } else {
     return 0
