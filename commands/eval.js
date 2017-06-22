@@ -5,6 +5,7 @@ module.exports = {
   description: 'dev',
   parameters: ['stuff'],
   rank: 4,
+  hidden: true,
   execute: function (msg, params) {
     var client = func.getClient(msg.guild.id)
     var fullParam = params.join(' ')

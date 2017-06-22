@@ -10,21 +10,24 @@ module.exports = {
         continue
       }
       var c = commands[key]
-      var rank = ''
-      if (c.rank === 2) {
-        rank = 'VIP'
-      } else if (c.rank === 3) {
-        rank = 'Owner'
-      } else if (c.rank === 4) {
-        rank = 'Admin'
-      } else {
-        rank = 'Anyone'
+      // console.log(c)
+      if (!c.hidden) {
+        var rank = ''
+        if (c.rank === 2) {
+          rank = 'VIP'
+        } else if (c.rank === 3) {
+          rank = 'Owner'
+        } else if (c.rank === 4) {
+          rank = 'Admin'
+        } else {
+          rank = 'Anyone'
+        }
+        str += `\n* ${key} (${rank})`
+        for (var j = 0; j < c.parameters.length; j++) {
+          str += ` <${c.parameters[j]}>`
+        }
+        str += `: ${c.description}`
       }
-      str += `\n* ${key} (${rank})`
-      for (var j = 0; j < c.parameters.length; j++) {
-        str += ` <${c.parameters[j]}>`
-      }
-      str += `: ${c.description}`
     }
     msg.member.openDM()
         .then(dm => {

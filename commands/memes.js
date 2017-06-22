@@ -4,6 +4,7 @@ module.exports = {
   command: 'memes',
   description: 'Memes',
   parameters: [],
+  hidden: true,
   execute: function (msg, text) {
     text = text.toLowerCase()
     var client = func.getClient(msg.guild.id)
