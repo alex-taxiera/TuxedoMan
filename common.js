@@ -3,6 +3,9 @@ const moment = require('moment')
 
 module.exports = {
   log: function (str, err) {
+    if (typeof str !== 'string') {
+      str = str.toString()
+    }
     console.log(`${moment().format('MM/DD HH:mm:ss')} | BZZT ${str.toUpperCase()} BZZT`)
     if (err) {
       console.log(err)
