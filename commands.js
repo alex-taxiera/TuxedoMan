@@ -7,6 +7,7 @@ module.exports = {
       var client = func.getClient(msg.guild.id)
       var params = text.split(' ')
       command = commands[params[0]]
+
       if (command) {
         if (params.length - 1 < command.parameters.length) {
           return msg.reply('Insufficient parameters!').then((m) => {
@@ -15,7 +16,7 @@ module.exports = {
         } else {
           if (rank(msg) >= command.rank) {
             params.splice(0, 1)
-            if (params[0] === 'help') {
+            if (command.command === 'help') {
               params = commands
             }
             func.messageHandler(command.execute(msg, params), client)
