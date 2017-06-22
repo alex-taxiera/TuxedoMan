@@ -43,13 +43,15 @@ module.exports = {
   messageHandler: function (message, client) {
     if (message) {
       var delay
-      if (!message.delay) {
+      if (!message.delay && message.delay !== 0) {
         delay = 10000
       } else {
         delay = message.delay
       }
       message.promise.then((m) => {
-        setTimeout(function () { m.delete() }, delay)
+        if (delay) {
+          setTimeout(function () { m.delete() }, delay)
+        }
       })
             .catch(() => {
               var textChannel = module.exports.getTextChannel(client)
@@ -57,12 +59,16 @@ module.exports = {
                 if (message.embed) {
                   textChannel.sendMessage(message.content, false, message.embed)
                         .then((m) => {
-                          setTimeout(function () { m.delete() }, delay)
+                          if (delay) {
+                            setTimeout(function () { m.delete() }, delay)
+                          }
                         })
                 } else {
                   textChannel.sendMessage(message.content)
                         .then((m) => {
-                          setTimeout(function () { m.delete() }, delay)
+                          if (delay) {
+                            setTimeout(function () { m.delete() }, delay)
+                          }
                         })
                 }
               }
