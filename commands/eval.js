@@ -19,9 +19,10 @@ module.exports = {
         if (!results) {
           promise = 'No Promise'
         }
-        var desc = '```' + '       EVAL' + '```' + '**INPUT:**\n' + '``' + `${fullParam}` + '``\n' + '**PROMISE:**\n' + '``' + `${promise}` + '``'
+        var desc = '**INPUT:**\n' + '``' + `${fullParam}` + '``\n' + '**PROMISE:**\n' + '``' + `${promise}` + '``'
         var embed =
           {
+            title: ':gear:**Evaluation**',
             'description': desc,
             'timestamp': moment(),
             color: 0x3498db,

@@ -13,7 +13,8 @@ module.exports = {
     var member = guild.members.find(m => m.id === global.bot.User.id)
     var embed =
       {
-        description: '```          PREFERENCES```',
+        title: ':heartbeat: **Preferences**',
+        thumbnail: {url: '../images/tuxedoman.png'},
         'timestamp': moment(),
         color: 0x3498db,
         'footer': {
@@ -25,15 +26,15 @@ module.exports = {
           'url': 'https://github.com/alex-taxiera/TuxedoMan',
           'icon_url': member.avatarURL
         },
-        fields: [{name: 'Default Text Channel', value: client.textChannel.name, inline: true},
-            {name: 'Default Voice Channel', value: client.voiceChannel.name, inline: true},
-            {name: 'VIP Role', value: vipRole, inline: true},
-            {name: 'Autoplay', value: client.autoplay, inline: true},
+        fields: [{name: 'Default Text Channel', value: client.textChannel.name},
+            {name: 'Default Voice Channel', value: client.voiceChannel.name},
+            {name: 'VIP Role', value: vipRole},
             {name: 'Announce Now Playing', value: client.informNowPlaying, inline: true},
             {name: 'Announce Autoplay', value: client.informAutoPlaying, inline: true},
+            {name: 'Autoplay', value: client.autoplay, inline: true},
             {name: 'Memes', value: client.meme, inline: true},
             {name: 'Music Volume', value: `${client.volume * 2}`, inline: true},
-            {name: 'Game Roles', value: gameRoles, inline: true}]
+            {name: 'Game Roles', value: gameRoles}]
       }
     return {promise: msg.channel.sendMessage('', false, embed), content: '', delay: 25000, embed: embed}
   }
