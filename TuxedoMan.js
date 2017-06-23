@@ -18,6 +18,14 @@ const func = require('./common.js')
 // connect bot
 start()
 
+// randomly select a game every 12 hours
+setInterval(function () {
+  let games = mods.config.games
+  let game = games[Math.floor(rng() * games.length)]
+  mods.func.log(`playing ${game}`)
+  bot.User.setGame(game)
+}, 43200000)
+
 bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
   if (e.member.id === bot.User.id) {
     var client = func.getClient(e.member.guild.id)
