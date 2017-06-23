@@ -1,5 +1,5 @@
 const func = require('../common.js')
-const bot = require('../TuxedoMan.js')
+const bot = require('../../TuxedoMan.js')
 
 module.exports = {
   command: 'set',

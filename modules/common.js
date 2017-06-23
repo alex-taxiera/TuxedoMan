@@ -1,6 +1,6 @@
 const fs = require('fs')
 const moment = require('moment')
-var bot = require('./TuxedoMan.js')
+var bot = require('../TuxedoMan.js')
 
 module.exports = {
   log: function (str, err) {
@@ -49,31 +49,32 @@ module.exports = {
       } else {
         delay = message.delay
       }
-      message.promise.then((m) => {
+      message.promise
+      .then((m) => {
         if (delay) {
           setTimeout(function () { m.delete() }, delay)
         }
       })
-            .catch(() => {
-              var textChannel = module.exports.getTextChannel(client)
-              if (textChannel) {
-                if (message.embed) {
-                  textChannel.sendMessage(message.content, false, message.embed)
-                        .then((m) => {
-                          if (delay) {
-                            setTimeout(function () { m.delete() }, delay)
-                          }
-                        })
-                } else {
-                  textChannel.sendMessage(message.content)
-                        .then((m) => {
-                          if (delay) {
-                            setTimeout(function () { m.delete() }, delay)
-                          }
-                        })
-                }
+      .catch(() => {
+        var textChannel = module.exports.getTextChannel(client)
+        if (textChannel) {
+          if (message.embed) {
+            textChannel.sendMessage(message.content, false, message.embed)
+                  .then((m) => {
+                    if (delay) {
+                      setTimeout(function () { m.delete() }, delay)
+                    }
+                  })
+          } else {
+            textChannel.sendMessage(message.content)
+            .then((m) => {
+              if (delay) {
+                setTimeout(function () { m.delete() }, delay)
               }
             })
+          }
+        }
+      })
     }
   },
   getClient: function (guildId) {
@@ -132,9 +133,10 @@ module.exports = {
         gameRoles: global.g[i].gameRoles
       })
     }
-    fs.open(global.guildData, 'w+', () => {
-      fs.writeFileSync(global.guildData, JSON.stringify(tmp, null, 2), 'utf-8')
+    const guilds = bot.config().data + bot.config().guilds
+    fs.open(guilds, 'w+', () => {
+      fs.writeFileSync(guilds, JSON.stringify(tmp, null, 2), 'utf-8')
+      module.exports.log('wrote to file')
     })
-    module.exports.log('wrote to file')
   }
 }

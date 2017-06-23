@@ -1,7 +1,7 @@
 const func = require('../common.js')
 const music = require('../music.js')
 const gameRoles = require('../gameRoles.js')
-const bot = require('../TuxedoMan.js')
+const bot = require('../../TuxedoMan.js')
 
 module.exports = {
   command: 'toggle',
@@ -14,7 +14,7 @@ module.exports = {
     switch (params[0]) {
       case 'auto':
         client.autoplay = !client.autoplay
-        if (client.autoplay && bot.get().User.getVoiceChannel(msg.guild).members.length !== 1) {
+        if (!client.isPlaying && client.autoplay && bot.get().User.getVoiceChannel(msg.guild).members.length !== 1) {
           client.paused = false
           music.autoQueue(client)
         }

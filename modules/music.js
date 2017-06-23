@@ -6,17 +6,18 @@ const seedrandom = require('seedrandom')
 const rng = seedrandom()
 
 const func = require('./common.js')
-const bot = require('./TuxedoMan.js')
+const bot = require('../TuxedoMan.js')
 
 module.exports = {
   autoQueue: function (client) {
         // get a random video
-    var files = fs.readdirSync(global.playlist)
+    const playlists = bot.config().playlists
+    var files = fs.readdirSync(playlists)
     if (files.length === 0) {
       client.autoplay = false
       return func.log('no playlists')
     }
-    var tmp = fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
+    var tmp = fs.readFileSync(`${playlists}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
     var autoplaylist = tmp.split('\n')
     var video = autoplaylist[Math.floor(rng() * autoplaylist.length)]
 
@@ -108,9 +109,10 @@ function playNextSong (client, msg) {
 
   client.nowPlaying = {title: title, user: user}
 
+  const mp3 = `${bot.config().data}${client.guild.id}.mp3`
   var video =
   ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
-  video.pipe(fs.createWriteStream(`./data/${client.guild.id}.mp3`))
+  video.pipe(fs.createWriteStream(mp3))
   video.once('end', () => {
     if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying &&
       user.id !== bot.get().User.id)) {
@@ -126,7 +128,7 @@ function playNextSong (client, msg) {
     var info = bot.get().VoiceConnections.getForGuild(client.guild.id)
     client.encoder = info.voiceConnection.createExternalEncoder({
       type: 'ffmpeg',
-      source: `./data/${client.guild.id}.mp3`,
+      source: mp3,
       format: 'pcm'
     })
 
