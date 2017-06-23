@@ -1,5 +1,5 @@
 const func = require('./common.js')
-const bot = require('../TuxedoMan.js')
+const main = require('../TuxedoMan.js')
 const commands = require('./commands/')
 
 module.exports = {
@@ -43,7 +43,7 @@ function denyRank (msg, rank) {
   var str = ''
   switch (rank) {
     case 1:
-      str = `Must be in voice chat with ${bot.get().User.username}`
+      str = `Must be in voice chat with ${main.bot().User.username}`
       return {promise: msg.reply(str), content: str}
     case 2:
       str = 'Must be VIP!'
@@ -59,13 +59,13 @@ function denyRank (msg, rank) {
 
 function rank (msg) {
   var client = func.getClient(msg.guild.id)
-  if (msg.member.id === global.master) {
+  if (msg.member.id === main.config().admin) {
     return 4
   } else if (msg.guild.isOwner(msg.member)) {
     return 3
   } else if (client.vip && msg.member.hasRole(client.vip)) {
     return 2
-  } else if (bot.get().User.getVoiceChannel(client.guild.id).members
+  } else if (main.bot().User.getVoiceChannel(client.guild.id).members
   .findIndex(m => m.id === msg.member.id) !== -1) {
     return 1
   } else {

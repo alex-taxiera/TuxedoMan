@@ -354,5 +354,5 @@ function dmWarn (guild, text, voice) {
   }
 }
 
-exports.get = function () { return bot }
+exports.bot = function () { return bot }
 exports.config = function () { return mods.config }

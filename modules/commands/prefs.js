@@ -1,5 +1,5 @@
 const func = require('../common.js')
-const bot = require('../../TuxedoMan.js')
+const main = require('../../TuxedoMan.js')
 const moment = require('moment')
 
 module.exports = {
@@ -8,11 +8,12 @@ module.exports = {
   parameters: [],
   rank: 2,
   execute: function (msg) {
+    const bot = main.bot()
     var client = func.getClient(msg.guild.id)
-    var guild = bot.get().Guilds.toArray().find(g => g.id === client.guild.id)
+    var guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
     var vipRole = getCleanVipRole(client, guild)
     var gameRoles = getCleanGameRoles(client, guild)
-    var member = guild.members.find(m => m.id === bot.get().User.id)
+    var member = guild.members.find(m => m.id === bot.User.id)
     var embed =
       {
         title: ':heartbeat: **Preferences**',

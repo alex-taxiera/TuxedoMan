@@ -1,6 +1,6 @@
 const fs = require('fs')
 const moment = require('moment')
-var bot = require('../TuxedoMan.js')
+var main = require('../TuxedoMan.js')
 
 module.exports = {
   log: function (str, err) {
@@ -13,16 +13,17 @@ module.exports = {
     }
   },
   findChannel: function (type, guildId) {
+    const bot = main.bot()
     var i
     if (type === 'text') {
-      var textChannels = bot.get().Channels.textForGuild(guildId)
+      var textChannels = bot.Channels.textForGuild(guildId)
       for (i = 0; i < textChannels.length; i++) {
         if (module.exports.can(['SEND_MESSAGES'], textChannels[i])) {
           return {id: textChannels[i].id, name: textChannels[i].name}
         }
       }
     } else if (type === 'voice') {
-      var voiceChannels = bot.get().Channels.voiceForGuild(guildId)
+      var voiceChannels = bot.Channels.voiceForGuild(guildId)
       for (i = 0; i < voiceChannels.length; i++) {
         if (module.exports.can(['SPEAK', 'CONNECT'], voiceChannels[i])) {
           voiceChannels[i].join()
@@ -33,7 +34,7 @@ module.exports = {
     return null
   },
   getTextChannel: function (client) {
-    var text = bot.get().Channels.textForGuild(client.guild.id)
+    var text = main.bot().Channels.textForGuild(client.guild.id)
     .find(c => c.id === client.textChannel.id)
     if (!text || !module.exports.can(['SEND_MESSAGES'], text)) {
       return module.exports.findChannel('text', client.guild.id)
@@ -85,7 +86,7 @@ module.exports = {
       if (!context) {
         return false
       }
-      var perm = bot.get().User.permissionsFor(context)
+      var perm = main.bot().User.permissionsFor(context)
       var p
       if (context.isGuildText) {
         var text = perm.Text
@@ -118,6 +119,7 @@ module.exports = {
     return true
   },
   writeChanges: function () {
+    const config = main.config()
     var tmp = []
     for (var i = 0; i < global.g.length; i++) {
       tmp.push({
@@ -133,7 +135,7 @@ module.exports = {
         gameRoles: global.g[i].gameRoles
       })
     }
-    const guilds = bot.config().data + bot.config().guilds
+    const guilds = config.data + config.guilds
     fs.open(guilds, 'w+', () => {
       fs.writeFileSync(guilds, JSON.stringify(tmp, null, 2), 'utf-8')
       module.exports.log('wrote to file')

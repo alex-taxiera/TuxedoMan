@@ -1,5 +1,5 @@
 const func = require('../common.js')
-const bot = require('../../TuxedoMan.js')
+const main = require('../../TuxedoMan.js')
 const cmd = require('../commands.js')
 const moment = require('moment')
 
@@ -10,10 +10,12 @@ module.exports = {
   rank: 4,
   hidden: true,
   execute: function (msg, params) {
+    var bot = main.bot()
+    var config = main.config()
     var client = func.getClient(msg.guild.id)
     var fullParam = params.join(' ')
 
-    var member = msg.guild.members.find(m => m.id === bot.get().User.id)
+    var member = msg.guild.members.find(m => m.id === bot.User.id)
     try {
       var response = Promise.resolve(eval(fullParam))
       response.then((results) => {

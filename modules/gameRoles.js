@@ -1,5 +1,5 @@
 const func = require('./common.js')
-const bot = require('../TuxedoMan.js')
+const main = require('../TuxedoMan.js')
 
 module.exports = {
   addRole: function (msg, fullParam) {
@@ -66,7 +66,7 @@ module.exports = {
     user.unassignRole(role).catch(function (e) { func.log('cannot unassign role', e) })
   },
   sweepGames: function (client) {
-    var guild = bot.get().Guilds.toArray().find(g => g.id === client.guild.id)
+    var guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
     var members = guild.members
     var trackedRoles = client.gameRoles.roles
 
@@ -90,7 +90,7 @@ module.exports = {
   },
   checkGame: function (client, roleId) {
     var i
-    var guild = bot.get().Guilds.toArray().find(g => g.id === client.guild.id)
+    var guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
     var role = guild.roles.find(r => r.id === roleId)
     if (client.gameRoles.roles.find(r => r === role.id)) {
       for (i = 0; i < guild.members.count; i++) {
