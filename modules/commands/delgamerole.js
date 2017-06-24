@@ -6,7 +6,7 @@ module.exports = {
   parameters: ['role name'],
   rank: 2,
   execute: function (msg, params) {
-    var fullParam = params.join(' ')
+    let fullParam = params.join(' ')
     return gameRoles.delRole(msg, fullParam)
   }
 }

@@ -7,7 +7,7 @@ module.exports = {
   parameters: ['query'],
   rank: 1,
   execute: function (msg, params) {
-    var fullParam = params.join(' ')
+    let fullParam = params.join(' ')
     func.log(`search video on${func.getClient(msg.guild.id).guild.name}`)
     return music.searchVideo(msg, fullParam)
   }

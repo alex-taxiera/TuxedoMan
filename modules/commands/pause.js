@@ -6,8 +6,8 @@ module.exports = {
   parameters: [],
   rank: 1,
   execute: function (msg) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
+    let client = func.getClient(msg.guild.id)
+    let str = ''
     if (client.paused) {
       str = 'Playback is already paused!'
       return {promise: msg.reply(str), content: str}

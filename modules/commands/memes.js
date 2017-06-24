@@ -8,7 +8,7 @@ module.exports = {
   hidden: true,
   execute: function (msg, text) {
     text = text.toLowerCase()
-    var client = func.getClient(msg.guild.id)
+    let client = func.getClient(msg.guild.id)
         // DVA EXAMPLE
     if (text.includes(' dva ') || text === 'dva') {
       msg.channel.uploadFile('./images/kek.png')

@@ -6,12 +6,12 @@ module.exports = {
   parameters: [],
   rank: 0,
   execute: function (msg) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
+    let client = func.getClient(msg.guild.id)
+    let str = ''
     if (client.queue.length === 0) {
       str = 'the queue is empty.'
     } else {
-      for (var i = 0; i < client.queue.length; i++) {
+      for (let i = 0; i < client.queue.length; i++) {
                 // 17 because the "and more" string is 17 characters long
                 // the remaining videos in queue can never be more than max queue
                 // so compare against max queue to be safe

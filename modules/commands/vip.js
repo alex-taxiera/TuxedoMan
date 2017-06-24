@@ -6,10 +6,10 @@ module.exports = {
   parameters: ['role name'],
   rank: 3,
   execute: function (msg, params) {
-    var fullParam = params.join(' ')
-    var client = func.getClient(msg.guild.id)
-    var str = ''
-    var role = msg.guild.roles.find(r => r.name === fullParam)
+    let fullParam = params.join(' ')
+    let client = func.getClient(msg.guild.id)
+    let str = ''
+    let role = msg.guild.roles.find(r => r.name === fullParam)
     if (role) {
       if (role !== client.vip) {
         client.vip = role.id

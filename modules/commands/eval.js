@@ -10,21 +10,21 @@ module.exports = {
   rank: 4,
   hidden: true,
   execute: function (msg, params) {
-    var bot = main.bot()
-    var config = main.config()
-    var client = func.getClient(msg.guild.id)
-    var fullParam = params.join(' ')
+    let bot = main.bot()
+    let config = main.config()
+    let client = func.getClient(msg.guild.id)
+    let fullParam = params.join(' ')
 
-    var member = msg.guild.members.find(m => m.id === bot.User.id)
+    let member = msg.guild.members.find(m => m.id === bot.User.id)
     try {
-      var response = Promise.resolve(eval(fullParam))
+      let response = Promise.resolve(eval(fullParam))
       response.then((results) => {
-        var promise = results
+        let promise = results
         if (!results) {
           promise = 'No Promise'
         }
-        var desc = '**INPUT:**\n' + '``' + `${fullParam}` + '``\n' + '**PROMISE:**\n' + '``' + `${promise}` + '``'
-        var embed =
+        let desc = '**INPUT:**\n' + '``' + `${fullParam}` + '``\n' + '**PROMISE:**\n' + '``' + `${promise}` + '``'
+        let embed =
           {
             title: ':gear:**Evaluation**',
             'description': desc,

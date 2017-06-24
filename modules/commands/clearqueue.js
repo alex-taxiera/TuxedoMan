@@ -6,8 +6,8 @@ module.exports = {
   parameters: [],
   rank: 2,
   execute: function (msg) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
+    let client = func.getClient(msg.guild.id)
+    let str = ''
     client.queue = []
     str = 'Queue has been cleared!'
     return {promise: msg.reply(str), content: str}

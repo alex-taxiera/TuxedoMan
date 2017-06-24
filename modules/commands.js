@@ -4,10 +4,10 @@ const commands = require('./commands/')
 
 module.exports = {
   handleCommand: function (msg, text, meme) {
-    var command = ''
+    let command = ''
     if (!meme) {
-      var client = func.getClient(msg.guild.id)
-      var params = text.split(' ')
+      let client = func.getClient(msg.guild.id)
+      let params = text.split(' ')
       command = commands[params[0]]
 
       if (command) {
@@ -21,6 +21,7 @@ module.exports = {
             if (command.command === 'help') {
               params = commands
             }
+            // console.log(command.execute(msg, params), client)
             func.messageHandler(command.execute(msg, params), client)
           } else if (rank(msg) < command.rank) {
             func.messageHandler(denyRank(msg, command.rank))
@@ -40,7 +41,7 @@ function searchCommand (commandName) {
 }
 
 function denyRank (msg, rank) {
-  var str = ''
+  let str = ''
   switch (rank) {
     case 1:
       str = `Must be in voice chat with ${main.bot().User.username}`
@@ -58,7 +59,7 @@ function denyRank (msg, rank) {
 }
 
 function rank (msg) {
-  var client = func.getClient(msg.guild.id)
+  let client = func.getClient(msg.guild.id)
   if (msg.member.id === main.config().admin) {
     return 4
   } else if (msg.guild.isOwner(msg.member)) {

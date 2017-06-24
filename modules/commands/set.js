@@ -8,12 +8,12 @@ module.exports = {
   rank: 2,
   execute: function (msg, params) {
     const bot = main.bot()
-    var client = func.getClient(msg.guild.id)
-    var str = ''
-    var type = params[0]
+    let client = func.getClient(msg.guild.id)
+    let str = ''
+    let type = params[0]
     params.splice(0, 1)
-    var fullParam = params.join(' ')
-    var channel = {}
+    let fullParam = params.join(' ')
+    let channel = {}
     if (type === `text`) {
       channel = bot.Channels.textForGuild(msg.guild).find(tc => tc.name === fullParam)
       type = 0 // false for text

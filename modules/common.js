@@ -1,6 +1,6 @@
 const fs = require('fs')
 const moment = require('moment')
-var main = require('../TuxedoMan.js')
+let main = require('../TuxedoMan.js')
 
 module.exports = {
   log: function (str, err) {
@@ -14,17 +14,16 @@ module.exports = {
   },
   findChannel: function (type, guildId) {
     const bot = main.bot()
-    var i
     if (type === 'text') {
-      var textChannels = bot.Channels.textForGuild(guildId)
-      for (i = 0; i < textChannels.length; i++) {
+      let textChannels = bot.Channels.textForGuild(guildId)
+      for (let i = 0; i < textChannels.length; i++) {
         if (module.exports.can(['SEND_MESSAGES'], textChannels[i])) {
           return {id: textChannels[i].id, name: textChannels[i].name}
         }
       }
     } else if (type === 'voice') {
-      var voiceChannels = bot.Channels.voiceForGuild(guildId)
-      for (i = 0; i < voiceChannels.length; i++) {
+      let voiceChannels = bot.Channels.voiceForGuild(guildId)
+      for (let i = 0; i < voiceChannels.length; i++) {
         if (module.exports.can(['SPEAK', 'CONNECT'], voiceChannels[i])) {
           voiceChannels[i].join()
           return {id: voiceChannels[i].id, name: voiceChannels[i].name}
@@ -34,7 +33,7 @@ module.exports = {
     return null
   },
   getTextChannel: function (client) {
-    var text = main.bot().Channels.textForGuild(client.guild.id)
+    let text = main.bot().Channels.textForGuild(client.guild.id)
     .find(c => c.id === client.textChannel.id)
     if (!text || !module.exports.can(['SEND_MESSAGES'], text)) {
       return module.exports.findChannel('text', client.guild.id)
@@ -44,7 +43,7 @@ module.exports = {
   },
   messageHandler: function (message, client) {
     if (message) {
-      var delay
+      let delay
       if (!message.delay && message.delay !== 0) {
         delay = 10000
       } else {
@@ -57,7 +56,7 @@ module.exports = {
         }
       })
       .catch(() => {
-        var textChannel = module.exports.getTextChannel(client)
+        let textChannel = module.exports.getTextChannel(client)
         if (textChannel) {
           if (message.embed) {
             textChannel.sendMessage(message.content, false, message.embed)
@@ -82,15 +81,14 @@ module.exports = {
     return global.g.find(c => c.guild.id === guildId)
   },
   can: function (permissions, context) {
-    for (var i = 0; i < permissions.length; i++) {
+    for (let i = 0; i < permissions.length; i++) {
       if (!context) {
         return false
       }
-      var perm = main.bot().User.permissionsFor(context)
-      var p
+      let perm = main.bot().User.permissionsFor(context)
       if (context.isGuildText) {
-        var text = perm.Text
-        for (p in text) {
+        let text = perm.Text
+        for (let p in text) {
           if (!text.hasOwnProperty(p)) {
             continue
           }
@@ -101,8 +99,8 @@ module.exports = {
           }
         }
       } else if (context.isGuildVoice) {
-        var voice = perm.Voice
-        for (p in voice) {
+        let voice = perm.Voice
+        for (let p in voice) {
           if (!voice.hasOwnProperty(p)) {
             continue
           }
@@ -120,8 +118,8 @@ module.exports = {
   },
   writeChanges: function () {
     const config = main.config()
-    var tmp = []
-    for (var i = 0; i < global.g.length; i++) {
+    let tmp = []
+    for (let i = 0; i < global.g.length; i++) {
       tmp.push({
         guild: global.g[i].guild,
         textChannel: global.g[i].textChannel,

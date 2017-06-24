@@ -6,7 +6,7 @@ module.exports = {
   parameters: ['role name, should be as game appears on discord statuses'],
   rank: 2,
   execute: function (msg, params) {
-    var fullParam = params.join(' ')
+    let fullParam = params.join(' ')
     return gameRoles.addRole(msg, fullParam)
   }
 }

@@ -4,15 +4,15 @@ module.exports = {
   parameters: [],
   rank: 0,
   execute: function (msg, commands) {
-    var str = 'Available commands:'
-    for (var key in commands) {
+    let str = 'Available commands:'
+    for (let key in commands) {
       if (!commands.hasOwnProperty(key)) {
         continue
       }
-      var c = commands[key]
+      let c = commands[key]
       // console.log(c)
       if (!c.hidden) {
-        var rank = ''
+        let rank = ''
         if (c.rank === 2) {
           rank = 'VIP'
         } else if (c.rank === 3) {
@@ -23,7 +23,7 @@ module.exports = {
           rank = 'Anyone'
         }
         str += `\n* ${key} (${rank})`
-        for (var j = 0; j < c.parameters.length; j++) {
+        for (let j = 0; j < c.parameters.length; j++) {
           str += ` <${c.parameters[j]}>`
         }
         str += `: ${c.description}`
@@ -33,7 +33,7 @@ module.exports = {
         .then(dm => {
           dm.sendMessage(str)
         })
-    var retStr = 'Command list sent!'
+    let retStr = 'Command list sent!'
     return {promise: msg.reply(retStr), content: retStr}
   }
 }

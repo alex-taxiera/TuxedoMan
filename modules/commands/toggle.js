@@ -9,8 +9,8 @@ module.exports = {
   parameters: [`Alias: auto|np|autonp|gameroles|memes`],
   rank: 2,
   execute: function (msg, params) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
+    let client = func.getClient(msg.guild.id)
+    let str = ''
     switch (params[0]) {
       case 'auto':
         client.autoplay = !client.autoplay

@@ -3,9 +3,9 @@ const main = require('../TuxedoMan.js')
 
 module.exports = {
   addRole: function (msg, fullParam) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
-    var exists = msg.guild.roles.find(r => r.name === fullParam)
+    let client = func.getClient(msg.guild.id)
+    let str = ''
+    let exists = msg.guild.roles.find(r => r.name === fullParam)
     if (exists) {
       if (!client.gameRoles.roles.find(r => r === exists.id)) {
         client.gameRoles.roles.push(exists.id)
@@ -37,11 +37,11 @@ module.exports = {
     }
   },
   delRole: function (msg, fullParam) {
-    var client = func.getClient(msg.guild.id)
-    var str = ''
-    var role = msg.guild.roles.find(r => r.name === fullParam)
+    let client = func.getClient(msg.guild.id)
+    let str = ''
+    let role = msg.guild.roles.find(r => r.name === fullParam)
     if (role) {
-      var index = client.gameRoles.roles.findIndex(r => r === role.id)
+      let index = client.gameRoles.roles.findIndex(r => r === role.id)
       if (index !== -1) {
         client.gameRoles.roles.splice(index, 1)
         str = `Deleted "${fullParam}" from game roles!`
@@ -66,13 +66,13 @@ module.exports = {
     user.unassignRole(role).catch(function (e) { func.log('cannot unassign role', e) })
   },
   sweepGames: function (client) {
-    var guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
-    var members = guild.members
-    var trackedRoles = client.gameRoles.roles
+    let guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
+    let members = guild.members
+    let trackedRoles = client.gameRoles.roles
 
-    for (var i = 0; i < guild.member_count; i++) {
-      for (var j = 0; j < trackedRoles.length; j++) {
-        var role = guild.roles.find(r => r.id === trackedRoles[j])
+    for (let i = 0; i < guild.member_count; i++) {
+      for (let j = 0; j < trackedRoles.length; j++) {
+        let role = guild.roles.find(r => r.id === trackedRoles[j])
         if (role) {
           if ((!client.gameRoles.active && members[i].hasRole(role)) ||
           (members[i].hasRole(role) && role.name !== members[i].gameName)) {
@@ -89,17 +89,16 @@ module.exports = {
     }
   },
   checkGame: function (client, roleId) {
-    var i
-    var guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
-    var role = guild.roles.find(r => r.id === roleId)
+    let guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
+    let role = guild.roles.find(r => r.id === roleId)
     if (client.gameRoles.roles.find(r => r === role.id)) {
-      for (i = 0; i < guild.members.count; i++) {
+      for (let i = 0; i < guild.members.count; i++) {
         if (guild.members[i].gameName === role.name) {
           module.exports.assignRole(guild.members[i], role)
         }
       }
     } else {
-      for (i = 0; i < guild.members.count; i++) {
+      for (let i = 0; i < guild.members.count; i++) {
         if (guild.members[i].hasRole(role)) {
           module.exports.unassignRole(guild.members[i], role)
         }

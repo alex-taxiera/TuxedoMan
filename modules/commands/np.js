@@ -6,8 +6,8 @@ module.exports = {
   parameters: [],
   rank: 0,
   execute: function (msg) {
-    var client = func.getClient(msg.guild.id)
-    var str = 'Now playing: '
+    let client = func.getClient(msg.guild.id)
+    let str = 'Now playing: '
     if (client.isPlaying) {
       str += `"${client.nowPlaying.title}" (requested by ${client.nowPlaying.user.username})`
     } else {

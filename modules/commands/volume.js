@@ -7,9 +7,9 @@ module.exports = {
   parameters: ['number (1-200)'],
   rank: 1,
   execute: function (msg, params) {
-    var str = ''
+    let str = ''
     if (params[0] / 2 > 0 && params[0] / 2 <= 100) {
-      var client = func.getClient(msg.guild.id)
+      let client = func.getClient(msg.guild.id)
       if (params[0] / 2 === client.volume) {
         str = 'Volume is already at that level!'
         return {promise: msg.reply(str), content: str}

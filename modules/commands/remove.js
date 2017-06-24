@@ -6,9 +6,9 @@ module.exports = {
   parameters: ["Request index or 'last'"],
   rank: 2,
   execute: function (msg, params) {
-    var index = params[0]
-    var client = func.getClient(msg.guild.id)
-    var str = ''
+    let index = params[0]
+    let client = func.getClient(msg.guild.id)
+    let str = ''
     if (client.queue.length === 0) {
       str = 'The queue is empty'
       return {promise: msg.reply(str), content: str}
@@ -24,7 +24,7 @@ module.exports = {
       return {promise: msg.reply(str), content: str}
     }
 
-    var deleted = client.queue.splice(index - 1, 1)
+    let deleted = client.queue.splice(index - 1, 1)
     str = `Request "${deleted[0].title}" was removed from the queue.`
     return {promise: msg.reply(str), content: str}
   }
