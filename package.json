@@ -18,7 +18,7 @@
   },
   "scripts": {
     "test": "standard",
-    "start": "nodemon TuxedoMan.js --config ./modules/nodemon.json"
+    "start": "nodemon TuxedoMan.js"
   },
   "repository": {
     "type": "git",

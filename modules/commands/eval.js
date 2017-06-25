@@ -23,21 +23,15 @@ module.exports = {
         if (!results) {
           promise = 'No Promise'
         }
-        let desc = '**INPUT:**\n' + '``' + `${fullParam}` + '``\n' + '**PROMISE:**\n' + '``' + `${promise}` + '``'
+        let desc = '**INPUT:**\n' + '```js\n' + `${fullParam}` + '```\n' + '**PROMISE:**\n' + '```js\n' + `${promise}` + '```'
         let embed =
           {
-            title: ':gear:**Evaluation**',
-            'description': desc,
+            description: ':gear:[**Evaluation**](https://github.com/alex-taxiera/TuxedoMan)\n\n' + desc,
             'timestamp': moment(),
             color: 0x3498db,
             'footer': {
               'icon_url': 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
               'text': 'TuxedoMan'
-            },
-            'author': {
-              'name': member.nick,
-              'url': 'https://github.com/alex-taxiera/TuxedoMan',
-              'icon_url': member.avatarURL
             }
           }
         return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 0, embed: embed})

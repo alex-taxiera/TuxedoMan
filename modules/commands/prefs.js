@@ -16,18 +16,13 @@ module.exports = {
     let member = guild.members.find(m => m.id === bot.User.id)
     let embed =
       {
-        title: ':heartbeat: **Preferences**',
+        description: ':heartbeat: [**Preferences**](https://github.com/alex-taxiera/TuxedoMan)',
         thumbnail: {url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png'},
         'timestamp': moment(),
         color: 0x3498db,
         'footer': {
           'icon_url': 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
           'text': 'TuxedoMan'
-        },
-        'author': {
-          'name': member.nick,
-          'url': 'https://github.com/alex-taxiera/TuxedoMan',
-          'icon_url': member.avatarURL
         },
         fields: [{name: 'Default Text Channel', value: client.textChannel.name},
             {name: 'Default Voice Channel', value: client.voiceChannel.name},
