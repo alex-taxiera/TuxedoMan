@@ -5,45 +5,46 @@ const fs = require('fs')
 const seedrandom = require('seedrandom')
 const rng = seedrandom()
 
-var func = require('./common.js')
+const func = require('./common.js')
+const main = require('../TuxedoMan.js')
 
-module.exports =
-{
+module.exports = {
   autoQueue: function (client) {
         // get a random video
-    var files = fs.readdirSync(global.playlist)
+    const playlists = main.config().playlists
+    const files = fs.readdirSync(playlists)
     if (files.length === 0) {
       client.autoplay = false
-      return console.log('BZZT NO PLAYLISTS IN PLAYLIST FOLDER')
+      return func.log('no playlists')
     }
-    var tmp = fs.readFileSync(`${global.playlist}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
-    var autoplaylist = tmp.split('\n')
-    var video = autoplaylist[Math.floor(rng() * autoplaylist.length)]
+    let tmp = fs.readFileSync(`${playlists}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
+    let autoplaylist = tmp.split('\n')
+    let video = autoplaylist[Math.floor(rng() * autoplaylist.length)]
 
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
       if (error) {
-        console.log(`ERROR: ${video} ${error}`)
+        func.log(null, `${video} ${error}`)
         module.exports.autoQueue(client)
       } else {
-        console.log(`BZZT AUTO QUEUE ON ${client.guild.name.toUpperCase()} BZZT`)
-        client.queue.push({title: info.title, link: video, user: global.bot.User})
+        func.log(`auto queue on ${client.guild.name}`)
+        client.queue.push({title: info.title, link: video, user: main.bot().User})
         playNextSong(client, null)
       }
     })
   },
   addToQueue: function (video, msg, mute = false, done = false) {
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
-      var str = ''
+      let str = ''
       if (done) {
         str = 'Playlist is queued.'
         func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
       }
       if (error) {
-        console.log(`Error (${video}): ${error}`)
+        func.log(null, `${video}: ${error}`)
         str = `The requested video (${video}) does not exist or cannot be played.`
         func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
       } else {
-        var client = func.getClient(msg.guild.id)
+        let client = func.getClient(msg.guild.id)
         client.queue.push({title: info.title, link: video, user: msg.member})
 
         if (!mute) {
@@ -75,11 +76,11 @@ module.exports =
     })
   },
   queuePlaylist: function (playlistId, msg) {
-    var str = ''
-    var done = false
+    let str = ''
+    let done = false
     ytpl(playlistId, function (err, playlist) {
       if (err) throw err
-      for (var i = 0; i < playlist.items.length; i++) {
+      for (let i = 0; i < playlist.items.length; i++) {
         if (i === playlist.items.length - 1) {
           done = true
         }
@@ -102,32 +103,37 @@ function playNextSong (client, msg) {
     }
   }
   client.isPlaying = true
-  var videoLink = client.queue[0].link
-  var title = client.queue[0].title
-  var user = client.queue[0].user
+  let videoLink = client.queue[0].link
+  let title = client.queue[0].title
+  let user = client.queue[0].user
 
   client.nowPlaying = {title: title, user: user}
 
-  var video = ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
-  video.pipe(fs.createWriteStream(`./data/${client.guild.id}.mp3`))
+  const bot = main.bot()
+  const mp3 = `${main.config().data}${client.guild.id}.mp3`
+  let video =
+  ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
+  video.pipe(fs.createWriteStream(mp3))
   video.once('end', () => {
-    if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying && user.id !== global.bot.User.id)) {
-      var textChannel = func.getTextChannel(client)
+    if ((client.informNowPlaying && client.informAutoPlaying) || (client.informNowPlaying &&
+      user.id !== bot.User.id)) {
+      let textChannel = func.getTextChannel(client)
       if (textChannel) {
-        textChannel.sendMessage(`Now playing: "${title}" (requested by ${user.username})`).then((m) => {
+        textChannel.sendMessage(`Now playing: "${title}" (requested by ${user.username})`)
+        .then((m) => {
           setTimeout(function () { m.delete() }, 25000)
         })
       }
     }
 
-    var info = global.bot.VoiceConnections.getForGuild(client.guild.id)
+    let info = bot.VoiceConnections.getForGuild(client.guild.id)
     client.encoder = info.voiceConnection.createExternalEncoder({
       type: 'ffmpeg',
-      source: `./data/${client.guild.id}.mp3`,
+      source: mp3,
       format: 'pcm'
     })
 
-    console.log(`BZZT SONG START ON ${client.guild.name.toUpperCase()} BZZT`)
+    func.log(`song start on ${client.guild.name}`)
     client.encoder.play()
     client.encoder.voiceConnection.getEncoder().setVolume(client.volume)
 
@@ -139,7 +145,7 @@ function playNextSong (client, msg) {
     client.encoder.once('end', () => {
       client.isPlaying = false
       if (!client.paused && client.queue.length !== 0) {
-        console.log(`BZZT NEXT IN QUEUE ON ${client.guild.name.toUpperCase()} BZZT`)
+        func.log(`next in queue on ${client.guild.name}`)
         playNextSong(client, null)
       } else if (!client.paused && client.autoplay) {
         module.exports.autoQueue(client)

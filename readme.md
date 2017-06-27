@@ -1,9 +1,11 @@
 install nodejs  
 install npm if your system requires it  
 install ffmpeg and add it to your path variables if your system requires it  
-run npm install from bot root directory, this will install all the dependencies  
+run "npm install" from bot root directory, this will install all the dependencies  
 
-you need a token.txt with your bots token in order to run  
+in config.json enter your token in the token field, you can also rename the directories and files here
+run "npm test" to check your code against standard.js
+run "npm start" to run the code through nodemon  
 
 for autoplay:  
 

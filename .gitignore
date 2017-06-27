@@ -1,4 +1,5 @@
-playlist
+playlists
 data
 node_modules
-token.txt
+config.json
+nodemon.json

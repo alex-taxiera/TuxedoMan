@@ -1,0 +1,5 @@
+exports.config = require('./config.json')
+exports.cmd = require('./commands.js')
+exports.music = require('./music.js')
+exports.gameRoles = require('./gameRoles.js')
+exports.func = require('./common.js')
