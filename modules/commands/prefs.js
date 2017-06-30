@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 const main = require('../../TuxedoMan.js')
 const moment = require('moment')
 
@@ -9,11 +9,10 @@ module.exports = {
   rank: 2,
   execute: function (msg) {
     const bot = main.bot()
-    let client = func.getClient(msg.guild.id)
-    let guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
+    let guild = bot.Guilds.get(client.guild.id)
     let vipRole = getCleanVipRole(client, guild)
     let gameRoles = getCleanGameRoles(client, guild)
-    let member = guild.members.find(m => m.id === bot.User.id)
     let embed =
       {
         description: ':heartbeat: [**Preferences**](https://github.com/alex-taxiera/TuxedoMan)',
@@ -24,8 +23,8 @@ module.exports = {
           'icon_url': 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
           'text': 'TuxedoMan'
         },
-        fields: [{name: 'Default Text Channel', value: client.textChannel.name},
-            {name: 'Default Voice Channel', value: client.voiceChannel.name},
+        fields: [{name: 'Default Text Channel', value: client.text.name},
+            {name: 'Default Voice Channel', value: client.voice.name},
             {name: 'VIP Role', value: vipRole},
             {name: 'Announce Now Playing', value: client.informNowPlaying, inline: true},
             {name: 'Announce Autoplay', value: client.informAutoPlaying, inline: true},

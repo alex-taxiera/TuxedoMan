@@ -1,16 +1,17 @@
 const func = require('./common.js')
 const main = require('../TuxedoMan.js')
+const db = require('./database.js')
 
 module.exports = {
   addRole: function (msg, fullParam) {
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     let exists = msg.guild.roles.find(r => r.name === fullParam)
     if (exists) {
       if (!client.gameRoles.roles.find(r => r === exists.id)) {
         client.gameRoles.roles.push(exists.id)
         module.exports.checkGame(client, exists.id)
-        func.writeChanges()
+        db.updateGuilds(client)
         str = `Added "${fullParam}" to game roles!`
         return {promise: msg.reply(str), content: str}
       } else {
@@ -24,7 +25,7 @@ module.exports = {
         .then(() => {
           client.gameRoles.roles.push(role.id)
           module.exports.checkGame(client, role.id)
-          func.writeChanges()
+          db.updateGuilds(client)
           str = `"${fullParam}" created and added to game roles!`
           func.messageHandler({promise: msg.reply(str), content: str}, client)
         })
@@ -37,7 +38,7 @@ module.exports = {
     }
   },
   delRole: function (msg, fullParam) {
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     let role = msg.guild.roles.find(r => r.name === fullParam)
     if (role) {
@@ -46,7 +47,7 @@ module.exports = {
         client.gameRoles.roles.splice(index, 1)
         str = `Deleted "${fullParam}" from game roles!`
         module.exports.checkGame(client, role.id)
-        func.writeChanges()
+        db.updateGuilds(client)
         return {promise: msg.reply(str), content: str}
       } else {
         str = `"${fullParam}" not in list!`
@@ -66,7 +67,7 @@ module.exports = {
     user.unassignRole(role).catch(function (e) { func.log('cannot unassign role', e) })
   },
   sweepGames: function (client) {
-    let guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
+    let guild = main.bot().Guilds.get(client.guild.id)
     let members = guild.members
     let trackedRoles = client.gameRoles.roles
 
@@ -89,7 +90,7 @@ module.exports = {
     }
   },
   checkGame: function (client, roleId) {
-    let guild = main.bot().Guilds.toArray().find(g => g.id === client.guild.id)
+    let guild = main.bot().Guilds.get(client.guild.id)
     let role = guild.roles.find(r => r.id === roleId)
     if (client.gameRoles.roles.find(r => r === role.id)) {
       for (let i = 0; i < guild.members.count; i++) {

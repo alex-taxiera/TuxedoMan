@@ -1,12 +1,14 @@
 const func = require('./common.js')
 const main = require('../TuxedoMan.js')
 const commands = require('./commands/')
+const config = require('../config.json')
+const db = require('./database.js')
 
 module.exports = {
   handleCommand: function (msg, text, meme) {
     let command = ''
     if (!meme) {
-      let client = func.getClient(msg.guild.id)
+      let client = db.getGuildInfo(msg.guild.id)
       let params = text.split(' ')
       command = commands[params[0]]
 
@@ -21,7 +23,6 @@ module.exports = {
             if (command.command === 'help') {
               params = commands
             }
-            // console.log(command.execute(msg, params), client)
             func.messageHandler(command.execute(msg, params), client)
           } else if (rank(msg) < command.rank) {
             func.messageHandler(denyRank(msg, command.rank))
@@ -30,14 +31,9 @@ module.exports = {
         }
       }
     } else {
-      command = searchCommand('memes')
-      return command.execute(msg, text)
+      return commands['memes'].execute(msg, text)
     }
   }
-}
-
-function searchCommand (commandName) {
-  return (commands.find(cmd => cmd.command === commandName.toLowerCase()))
 }
 
 function denyRank (msg, rank) {
@@ -59,15 +55,15 @@ function denyRank (msg, rank) {
 }
 
 function rank (msg) {
-  let client = func.getClient(msg.guild.id)
-  if (msg.member.id === main.config().admin) {
+  let client = db.getGuildInfo(msg.guild.id)
+  if (msg.member.id === config.admin) {
     return 4
   } else if (msg.guild.isOwner(msg.member)) {
     return 3
   } else if (client.vip && msg.member.hasRole(client.vip)) {
     return 2
   } else if (main.bot().User.getVoiceChannel(client.guild.id).members
-  .findIndex(m => m.id === msg.member.id) !== -1) {
+  .find(m => m.id === msg.member.id) !== -1) {
     return 1
   } else {
     return 0

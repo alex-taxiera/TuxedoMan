@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 const music = require('../music.js')
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
   parameters: [],
   rank: 1,
   execute: function (msg) {
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     if (!client.isPlaying && client.queue.length === 0) {
       if (client.autoplay) {
