@@ -260,6 +260,14 @@ bot.Dispatcher.on('MESSAGE_CREATE', e => {
 
 // helpers
 function start () {
+  if (!fs.existsSync(config.data)) {
+    mods.func.log('creating data folder')
+    fs.mkdirSync(config.data)
+  }
+  if (!fs.existsSync(config.playlists)) {
+    mods.func.log('creating playlists folder')
+    fs.mkdirSync(config.playlists)
+  }
   const tok = config.token
   if (tok !== '') {
     bot.connect({token: tok})
