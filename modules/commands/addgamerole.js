@@ -7,6 +7,11 @@ module.exports = {
   rank: 2,
   execute: function (msg, params) {
     let fullParam = params.join(' ')
-    return gameRoles.addRole(msg, fullParam)
+    if (fullParam.length > 100) {
+      let str = 'Role name is too long!'
+      return {promise: msg.reply(str), content: str}
+    } else {
+      return gameRoles.addRole(msg, fullParam)
+    }
   }
 }
