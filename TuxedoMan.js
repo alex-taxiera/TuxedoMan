@@ -13,13 +13,7 @@ exports.bot = function () { return bot }
 start()
 
 // randomly select a game every 12 hours
-setInterval(function () {
-  let rng = seedrandom()
-  let games = config.games
-  let game = games[Math.floor(rng() * games.length)]
-  mods.func.log(`playing ${game}`)
-  bot.User.setGame(game)
-}, 43200000)
+setInterval(function () { setGame() }, 43200000) // 43200000
 
 // events
 bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
@@ -173,7 +167,7 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
   const guildData = config.data + config.guilds
   let oldGuilds = new Map()
   mods.func.log('online')
-  bot.User.setGame('BZZT KILLING BZZT')
+  setGame()
   fs.open(guildData, 'r', (err) => {
     let allGuilds = bot.Guilds
     if (err) {
@@ -351,4 +345,15 @@ function dmWarn (guild, text, voice) {
       dm.sendMessage(str)
     })
   }
+}
+
+function setGame () {
+  let rng = seedrandom()
+  let games = config.games
+  let game = bot.User.gameName
+  while (game === bot.User.gameName) {
+    game = games[Math.floor(rng() * games.length)]
+  }
+  mods.func.log(`playing ${game}`)
+  bot.User.setGame(game)
 }
