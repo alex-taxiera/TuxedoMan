@@ -53,7 +53,7 @@ bot.Dispatcher.on('PRESENCE_UPDATE', e => {
   var client = mods.db.getGuildInfo(e.guild.id)
   if (e.member.guild_id && client.gameRoles.active) {
     var user = e.member
-    var role = e.guild.roles.find(r => r.name === user.oldGameName)
+    var role = e.guild.roles.find(r => r.name === user.previousGameName)
     if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
       mods.gameRoles.unassignRole(user, role)
     }
