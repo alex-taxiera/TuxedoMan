@@ -7,11 +7,13 @@ const rng = seedrandom()
 
 const func = require('./common.js')
 const main = require('../TuxedoMan.js')
+const config = require('../config.json')
+const db = require('./database.js')
 
 module.exports = {
   autoQueue: function (client) {
         // get a random video
-    const playlists = main.config().playlists
+    const playlists = config.playlists
     const files = fs.readdirSync(playlists)
     if (files.length === 0) {
       client.autoplay = false
@@ -37,14 +39,14 @@ module.exports = {
       let str = ''
       if (done) {
         str = 'Playlist is queued.'
-        func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
+        func.messageHandler({promise: msg.reply(str), content: str}, db.getGuildInfo(msg.guild.id))
       }
       if (error) {
         func.log(null, `${video}: ${error}`)
         str = `The requested video (${video}) does not exist or cannot be played.`
-        func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
+        func.messageHandler({promise: msg.reply(str), content: str}, db.getGuildInfo(msg.guild.id))
       } else {
-        let client = func.getClient(msg.guild.id)
+        let client = db.getGuildInfo(msg.guild.id)
         client.queue.push({title: info.title, link: video, user: msg.member})
 
         if (!mute) {
@@ -63,7 +65,7 @@ module.exports = {
     if (client.isPlaying) {
       client.encoder.voiceConnection.getEncoder().setVolume(vol)
     }
-    func.writeChanges()
+    db.updateGuilds(client)
   },
   searchVideo: function (msg, query) {
     ytsr.search(query, {limit: 1}, function (err, data) {
@@ -87,7 +89,7 @@ module.exports = {
         module.exports.addToQueue(playlist.items[i].url_simple, msg, true, done)
       }
       str = `${playlist.title} is being queued.`
-      return func.messageHandler({promise: msg.reply(str), content: str}, func.getClient(msg.guild.id))
+      return func.messageHandler({promise: msg.reply(str), content: str}, db.getGuildInfo(msg.guild.id))
     })
   }
 }
@@ -110,7 +112,7 @@ function playNextSong (client, msg) {
   client.nowPlaying = {title: title, user: user}
 
   const bot = main.bot()
-  const mp3 = `${main.config().data}${client.guild.id}.mp3`
+  const mp3 = `${config.data}${client.guild.id}.mp3`
   let video =
   ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
   video.pipe(fs.createWriteStream(mp3))

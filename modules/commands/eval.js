@@ -1,7 +1,9 @@
 const func = require('../common.js')
 const main = require('../../TuxedoMan.js')
+const db = require('../database.js')
 const cmd = require('../commands.js')
 const moment = require('moment')
+const config = require('../../config.json')
 
 module.exports = {
   command: 'eval',
@@ -11,8 +13,7 @@ module.exports = {
   hidden: true,
   execute: function (msg, params) {
     let bot = main.bot()
-    let config = main.config()
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let fullParam = params.join(' ')
 
     let member = msg.guild.members.find(m => m.id === bot.User.id)

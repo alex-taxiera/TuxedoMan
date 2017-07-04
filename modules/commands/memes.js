@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 
 module.exports = {
   // meme hell
@@ -8,7 +8,7 @@ module.exports = {
   hidden: true,
   execute: function (msg, text) {
     text = text.toLowerCase()
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
         // DVA EXAMPLE
     if (text.includes(' dva ') || text === 'dva') {
       msg.channel.uploadFile('./images/kek.png')

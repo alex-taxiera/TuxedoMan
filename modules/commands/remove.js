@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 
 module.exports = {
   command: 'remove',
@@ -7,7 +7,7 @@ module.exports = {
   rank: 2,
   execute: function (msg, params) {
     let index = params[0]
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     if (client.queue.length === 0) {
       str = 'The queue is empty'

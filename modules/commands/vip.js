@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 
 module.exports = {
   command: 'vip',
@@ -7,13 +7,13 @@ module.exports = {
   rank: 3,
   execute: function (msg, params) {
     let fullParam = params.join(' ')
-    let client = func.getClient(msg.guild.id)
+    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     let role = msg.guild.roles.find(r => r.name === fullParam)
     if (role) {
       if (role !== client.vip) {
         client.vip = role.id
-        func.writeChanges()
+        db.updateGuilds(client)
         str = 'VIP set!'
         return {promise: msg.reply(str), content: str}
       } else {

@@ -1,4 +1,4 @@
-const func = require('../common.js')
+const db = require('../database.js')
 const music = require('../music.js')
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
   execute: function (msg, params) {
     let str = ''
     if (params[0] / 2 > 0 && params[0] / 2 <= 100) {
-      let client = func.getClient(msg.guild.id)
+      let client = db.getGuildInfo(msg.guild.id)
       if (params[0] / 2 === client.volume) {
         str = 'Volume is already at that level!'
         return {promise: msg.reply(str), content: str}
