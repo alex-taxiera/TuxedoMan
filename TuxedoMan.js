@@ -316,10 +316,12 @@ function init (guilds) {
   mods.db.updateGuilds(guilds, true)
   guilds.forEach((guild) => {
     mods.gameRoles.sweepGames(guild)
-    if (guild.autoplay &&
-    bot.User.getVoiceChannel(guild.guild.id).members.length !== 1) {
-      mods.music.autoQueue(guild)
-    }
+    setTimeout(() => {
+      let voice = bot.User.getVoiceChannel(guild.guild.id)
+      if (voice && guild.autoplay && voice.members.length !== 1) {
+        mods.music.autoQueue(guild)
+      }
+    }, 500)
   })
 }
 
