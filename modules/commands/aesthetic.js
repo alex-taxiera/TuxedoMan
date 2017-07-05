@@ -2,7 +2,7 @@ module.exports = {
   command: 'aesthetic',
   description: 'make your text *a e s t h e t i c*',
   parameters: [],
-  rank: 2,
+  rank: 0,
   execute: function (msg, params) {
     let fullParam = params.join(' ')
     let str = ''

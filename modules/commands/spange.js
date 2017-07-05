@@ -2,7 +2,7 @@ module.exports = {
   command: 'spange',
   description: 'MaKe yOur tExT sPanGe',
   parameters: [],
-  rank: 2,
+  rank: 0,
   execute: function (msg, params) {
     let fullParam = params.join(' ')
     let str = ''
