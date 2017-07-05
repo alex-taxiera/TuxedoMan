@@ -19,6 +19,6 @@ module.exports = {
         str += ' '
       }
     }
-    return {promise: msg.channel.sendMessage(str), content: str, delay: 30000}
+    msg.channel.sendMessage(str)
   }
 }
