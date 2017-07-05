@@ -241,7 +241,7 @@ bot.Dispatcher.on('MESSAGE_CREATE', e => {
     if (text[0] === '*') {
       if (mods.cmd.handleCommand(msg, text.substring(1), false)) {
         if (mods.func.can(['MANAGE_MESSAGES'], msg.channel)) {
-          setTimeout(function () { msg.delete() }, 5000)
+          msg.delete()
         }
       }
     } else if (mods.db.getGuildInfo(msg.guild.id).meme) {
