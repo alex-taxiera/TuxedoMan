@@ -4,16 +4,18 @@ module.exports = {
   parameters: [],
   rank: 0,
   execute: function (msg, params) {
-    let fullParam = params.join(' ')
+    let fullParam = params.join(' ').toLowerCase()
     let str = ''
     let charCode = ''
     let rng
     let indices = []
-    for (let i = 0; i < (fullParam.length * 0.4); i++) {
+    for (let i = 0; i < (fullParam.length * 0.33); i++) {
       do {
         rng = Math.floor(Math.random() * (fullParam.length - 1 - 0 + 1)) + 0
         charCode = fullParam[rng].charCodeAt()
-      } while (charCode > 122 || charCode < 97 || indices.includes(rng) || indices.includes((rng + 1)))
+      } while (charCode > 122 || charCode < 97 || indices.includes(rng) ||
+      indices.includes((rng + 1)) || indices.includes((rng - 1)))
+
       indices.push(rng)
     }
     for (let i = 0; i < fullParam.length; i++) {
@@ -24,6 +26,6 @@ module.exports = {
         str += fullParam[i]
       }
     }
-    msg.channel.uploadFile('./images/spange.jpg', null, str) // , str
+    msg.channel.uploadFile('./images/spange.jpg', null, str)
   }
 }
