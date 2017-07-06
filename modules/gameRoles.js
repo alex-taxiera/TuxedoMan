@@ -31,7 +31,7 @@ module.exports = {
         })
       })
       .catch((e) => {
-        func.log(`cannot create role`, e)
+        func.log(`cannot create role`, 'red', e)
         str = `Could not create role "${fullParam}"`
         func.messageHandler({promise: msg.reply(str), content: str}, client)
       })
@@ -59,12 +59,10 @@ module.exports = {
     }
   },
   assignRole: function (user, role) {
-    func.log(`assigning "${user.name}" ${role.name}`)
-    user.assignRole(role).catch(function (e) { func.log('cannot assign role', e) })
+    user.assignRole(role).catch(function (e) { func.log('cannot assign role', 'red', e) })
   },
   unassignRole: function (user, role) {
-    func.log(`unassigning "${user.name}" ${role.name}`)
-    user.unassignRole(role).catch(function (e) { func.log('cannot unassign role', e) })
+    user.unassignRole(role).catch(function (e) { func.log('cannot unassign role', 'red', e) })
   },
   sweepGames: function (client) {
     let guild = main.bot().Guilds.get(client.guild.id)

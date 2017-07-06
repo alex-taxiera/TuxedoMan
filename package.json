@@ -4,6 +4,7 @@
   "description": "A music and meme bot built for discord",
   "main": "TuxedoMan.js",
   "dependencies": {
+    "colors": "^1.1.2",
     "discordie": "^0.11.0",
     "moment": "^2.18.1",
     "node-opus": "^0.2.6",

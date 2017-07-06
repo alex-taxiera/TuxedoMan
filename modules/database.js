@@ -1,6 +1,5 @@
 const fs = require('fs')
 const config = require('../config.json')
-const func = require('./common.js')
 
 const guildData = config.data + config.guilds
 var guilds = new Map()
@@ -41,7 +40,6 @@ module.exports = {
     })
     fs.open(guildData, 'w+', () => {
       fs.writeFileSync(guildData, JSON.stringify([...writeMap], null, 2), 'utf-8')
-      func.log('wrote to file')
     })
   }
 }

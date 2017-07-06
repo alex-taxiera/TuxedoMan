@@ -1,14 +1,16 @@
 const moment = require('moment')
+const colors = require('colors')
 const main = require('../TuxedoMan.js')
 
 module.exports = {
-  log: function (str, err) {
+  log: function (str, color, err) {
     if (typeof str !== 'string') {
       str = str.toString()
     }
-    console.log(`${moment().format('MM/DD HH:mm:ss')} | BZZT ${str.toUpperCase()} BZZT`)
+    console.log(colors.gray(`${moment().format('MM/DD HH:mm:ss')}`) + ' | ' +
+    colors[color](`BZZT ${str.toUpperCase()} BZZT`))
     if (err) {
-      console.log(err)
+      console.log(colors.red(err))
     }
   },
   findChannel: function (type, guildId) {
@@ -21,11 +23,6 @@ module.exports = {
       if (channels[0]) {
         return {id: channels[0].id, name: channels[0].name}
       }
-      // for (let i = 0; i < textChannels.length; i++) {
-      //   if (module.exports.can(['SEND_MESSAGES'], textChannels[i])) {
-      //     return {id: textChannels[i].id, name: textChannels[i].name}
-      //   }
-      // }
     } else if (type === 'voice') {
       let channels = bot.Channels.voiceForGuild(guildId)
       .filter((channel) => {
@@ -35,12 +32,6 @@ module.exports = {
         channels[0].join()
         return {id: channels[0].id, name: channels[0].name}
       }
-      // for (let i = 0; i < voiceChannels.length; i++) {
-      //   if (module.exports.can(['SPEAK', 'CONNECT'], voiceChannels[i])) {
-      //     voiceChannels[i].join()
-      //     return {id: voiceChannels[i].id, name: voiceChannels[i].name}
-      //   }
-      // }
     }
     return null
   },
@@ -71,11 +62,11 @@ module.exports = {
         if (textChannel) {
           if (message.embed) {
             textChannel.sendMessage(message.content, false, message.embed)
-                  .then((m) => {
-                    if (delay) {
-                      setTimeout(function () { m.delete() }, delay)
-                    }
-                  })
+            .then((m) => {
+              if (delay) {
+                setTimeout(function () { m.delete() }, delay)
+              }
+            })
           } else {
             textChannel.sendMessage(message.content)
             .then((m) => {

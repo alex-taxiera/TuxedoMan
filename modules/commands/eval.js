@@ -38,7 +38,7 @@ module.exports = {
         return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 0, embed: embed})
       })
     } catch (e) {
-      func.log(`could not eval "${fullParam}"`, e.message)
+      func.log(`could not eval "${fullParam}"`, 'red', e.message)
     }
   }
 }

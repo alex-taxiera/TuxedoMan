@@ -65,16 +65,16 @@ bot.Dispatcher.on('PRESENCE_UPDATE', e => {
 })
 
 bot.Dispatcher.on('DISCONNECTED', e => {
-  mods.func.log('disconnected', `${e.error}\nRECONNECT DELAY: ${e.delay}`)
+  mods.func.log('disconnected', 'red', `${e.error}\nRECONNECT DELAY: ${e.delay}`)
 })
 
 bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
   var client = mods.db.getGuildInfo(e.guildId)
   if (e.user.id === bot.User.id) {
-    mods.func.log(`left channel ${e.channel.name}`)
+    mods.func.log(`left channel ${e.channel.name}`, 'yellow')
     if (!e.newChannelId) {
       var voiceChannel = bot.Channels.find(c => c.id === e.channelId)
-      voiceChannel.join(voiceChannel).catch((e) => { mods.func.log(null, e) })
+      voiceChannel.join(voiceChannel).catch((e) => { mods.func.log(null, 'red', e) })
     }
   } else if (client.isPlaying && client.encoder.voiceConnection &&
     client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
@@ -128,7 +128,6 @@ bot.Dispatcher.on('CHANNEL_UPDATE', e => {
   var client = mods.db.getGuildInfo(ch.guild.id)
   if (client.text && client.text.id === ch.id && !mods.func
   .can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
-    mods.func.log('in if')
     client.text = mods.func.findChannel('text', client.guild.id)
     dmWarn(ch.guild, client.text, client.voice)
   } else if (client.voice && client.voice.id === ch.id && !mods.func
@@ -149,13 +148,13 @@ bot.Dispatcher.on('CHANNEL_UPDATE', e => {
 })
 
 bot.Dispatcher.on('GUILD_CREATE', e => {
-  mods.func.log(`joined ${e.guild.name} guild`)
+  mods.func.log(`joined ${e.guild.name} guild`, 'green')
   sweepClients([e.guild])
 })
 
 bot.Dispatcher.on('GUILD_DELETE', e => {
   var client = mods.db.getGuildInfo(e.guildId)
-  mods.func.log(`left ${client.guild.name} guild`)
+  mods.func.log(`left ${client.guild.name} guild`, 'yellow')
   client.paused = true
   if (client.isPlaying) {
     client.encoder.destroy()
@@ -166,19 +165,19 @@ bot.Dispatcher.on('GUILD_DELETE', e => {
 bot.Dispatcher.on('GATEWAY_READY', () => {
   const guildData = config.data + config.guilds
   let oldGuilds = new Map()
-  mods.func.log('online')
+  mods.func.log('online', 'green')
   setGame()
   fs.open(guildData, 'r', (err) => {
     let allGuilds = bot.Guilds
     if (err) {
-      mods.func.log('no guild file')
+      mods.func.log('no guild file', 'yellow', err.message)
       sweepClients(allGuilds)
     } else {
       let savedGuilds
       try {
         savedGuilds = new Map(JSON.parse(fs.readFileSync(guildData, 'utf-8')))
       } catch (e) {
-        mods.func.log('empty guild file', e.message)
+        mods.func.log('empty guild file', 'yellow', e.message)
         return sweepClients(allGuilds)
       }
       savedGuilds.forEach((savedGuild, savedId, map) => {
@@ -255,18 +254,18 @@ bot.Dispatcher.on('MESSAGE_CREATE', e => {
 // helpers
 function start () {
   if (!fs.existsSync(config.data)) {
-    mods.func.log('creating data folder')
+    mods.func.log('creating data folder', 'yellow')
     fs.mkdirSync(config.data)
   }
   if (!fs.existsSync(config.playlists)) {
-    mods.func.log('creating playlists folder')
+    mods.func.log('creating playlists folder', 'yellow')
     fs.mkdirSync(config.playlists)
   }
   const tok = config.token
   if (tok !== '') {
     bot.connect({token: tok})
   } else {
-    mods.func.log('no token')
+    mods.func.log('no token', 'red')
   }
 }
 
@@ -354,6 +353,6 @@ function setGame () {
   while (game === bot.User.gameName) {
     game = games[Math.floor(rng() * games.length)]
   }
-  mods.func.log(`playing ${game}`)
+  mods.func.log(`playing ${game}`, 'cyan')
   bot.User.setGame(game)
 }
