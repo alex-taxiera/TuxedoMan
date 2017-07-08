@@ -6,7 +6,7 @@ const seedrandom = require('seedrandom')
 const mods = require('./modules/')
 const config = require('./config.json')
 
-var bot = new Discordie({ autoReconnect: true })
+let bot = new Discordie({ autoReconnect: true })
 exports.bot = function () { return bot }
 
 // connect bot
@@ -18,7 +18,7 @@ setInterval(function () { setGame() }, 43200000) // 43200000
 // events
 bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
   if (e.member.id === bot.User.id) {
-    var client = mods.db.getGuildInfo(e.member.guild.id)
+    let client = mods.db.getGuildInfo(e.member.guild.id)
     if (client.text && !mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], bot.Channels
     .textForGuild(client.guild.id).find(ch => ch.id === client.text.id))) {
       client.text = mods.func.findChannel('text', client.guild.id)
@@ -39,7 +39,7 @@ bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
 })
 
 bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
-  var client = mods.db.getGuildInfo(e.guild.id)
+  let client = mods.db.getGuildInfo(e.guild.id)
   if (e.roleId === client.vip) {
     client.vip = null
     return mods.db.updateGuilds(client)
@@ -50,10 +50,10 @@ bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
 })
 
 bot.Dispatcher.on('PRESENCE_UPDATE', e => {
-  var client = mods.db.getGuildInfo(e.guild.id)
+  let client = mods.db.getGuildInfo(e.guild.id)
   if (e.member.guild_id && client.gameRoles.active) {
-    var user = e.member
-    var role = e.guild.roles.find(r => r.name === user.previousGameName)
+    let user = e.member
+    let role = e.guild.roles.find(r => r.name === user.previousGameName)
     if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
       mods.gameRoles.unassignRole(user, role)
     }
@@ -69,11 +69,11 @@ bot.Dispatcher.on('DISCONNECTED', e => {
 })
 
 bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
-  var client = mods.db.getGuildInfo(e.guildId)
+  let client = mods.db.getGuildInfo(e.guildId)
   if (e.user.id === bot.User.id) {
     mods.func.log(`left channel ${e.channel.name}`, 'yellow')
     if (!e.newChannelId) {
-      var voiceChannel = bot.Channels.find(c => c.id === e.channelId)
+      let voiceChannel = bot.Channels.find(c => c.id === e.channelId)
       voiceChannel.join(voiceChannel).catch((e) => { mods.func.log(null, 'red', e) })
     }
   } else if (client.isPlaying && client.encoder.voiceConnection &&
@@ -84,7 +84,7 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
 })
 
 bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
-  var client = mods.db.getGuildInfo(e.guildId)
+  let client = mods.db.getGuildInfo(e.guildId)
   if (client.isPlaying && client.encoder.voiceConnection &&
     client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
     client.paused = true
@@ -93,8 +93,8 @@ bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
 })
 
 bot.Dispatcher.on('CHANNEL_CREATE', e => {
-  var ch = e.channel
-  var client = mods.db.getGuildInfo(ch.guild_id)
+  let ch = e.channel
+  let client = mods.db.getGuildInfo(ch.guild_id)
   if (client && (!client.text || !client.voice)) {
     if (ch.type === 0 && !client.text && mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
       client.text = {id: ch.id, name: ch.name}
@@ -109,8 +109,8 @@ bot.Dispatcher.on('CHANNEL_CREATE', e => {
 })
 
 bot.Dispatcher.on('CHANNEL_DELETE', e => {
-  var client = mods.db.getGuildInfo(e.data.guild_id)
-  var guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
+  let client = mods.db.getGuildInfo(e.data.guild_id)
+  let guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
   if (e.channelId === client.text.id) {
     client.text = mods.func.findChannel('text', client.guild.id)
     dmWarn(guild, client.text, client.voice)
@@ -124,8 +124,8 @@ bot.Dispatcher.on('CHANNEL_DELETE', e => {
 })
 
 bot.Dispatcher.on('CHANNEL_UPDATE', e => {
-  var ch = e.channel
-  var client = mods.db.getGuildInfo(ch.guild.id)
+  let ch = e.channel
+  let client = mods.db.getGuildInfo(ch.guild.id)
   if (client.text && client.text.id === ch.id && !mods.func
   .can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
     client.text = mods.func.findChannel('text', client.guild.id)
@@ -153,7 +153,7 @@ bot.Dispatcher.on('GUILD_CREATE', e => {
 })
 
 bot.Dispatcher.on('GUILD_DELETE', e => {
-  var client = mods.db.getGuildInfo(e.guildId)
+  let client = mods.db.getGuildInfo(e.guildId)
   mods.func.log(`left ${client.guild.name} guild`, 'yellow')
   client.paused = true
   if (client.isPlaying) {
@@ -234,8 +234,8 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
 })
 
 bot.Dispatcher.on('MESSAGE_CREATE', e => {
-  var msg = e.message
-  var text = msg.content
+  let msg = e.message
+  let text = msg.content
   if (msg.member && msg.member.id !== bot.User.id) {
     if (text[0] === '*') {
       if (mods.cmd.handleCommand(msg, text.substring(1), false)) {
@@ -271,7 +271,7 @@ function start () {
 
 function sweepClients (guilds) {
   if (guilds.length !== 0) {
-    var map = new Map()
+    let map = new Map()
 
     guilds.forEach((guild) => {
       let tmp = {}

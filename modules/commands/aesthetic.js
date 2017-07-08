@@ -6,7 +6,7 @@ module.exports = {
   execute: function (msg, params) {
     let fullParam = params.join(' ')
     let str = ''
-    for (var i = 0; i < fullParam.length; i++) {
+    for (let i = 0; i < fullParam.length; i++) {
       let result = ''
       let charCode = fullParam[i].charCodeAt()
       if (charCode < 127 && charCode !== 32) {

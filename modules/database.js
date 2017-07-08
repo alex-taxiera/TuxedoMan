@@ -2,7 +2,7 @@ const fs = require('fs')
 const config = require('../config.json')
 
 const guildData = config.data + config.guilds
-var guilds = new Map()
+let guilds = new Map()
 
 module.exports = {
   updateGuilds: function (entry, multi = false) {
@@ -22,7 +22,7 @@ module.exports = {
     return guilds.get(id)
   },
   writeFile: function () {
-    var writeMap = new Map()
+    let writeMap = new Map()
     guilds.forEach((value, key) => {
       let tmp = {
         guild: value.guild,
