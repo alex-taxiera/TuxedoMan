@@ -3,6 +3,7 @@ const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
 const cmd = require('../commands.js')
 const moment = require('moment')
+const fs = require('fs')
 const config = require('../../config.json')
 
 module.exports = {
@@ -24,21 +25,30 @@ module.exports = {
         if (!results) {
           promise = 'No Promise'
         }
-        let desc = '**INPUT:**\n' + '```js\n' + `${fullParam}` + '```\n' + '**PROMISE:**\n' + '```js\n' + `${promise}` + '```'
-        let embed =
-          {
-            description: ':gear:[**Evaluation**](https://github.com/alex-taxiera/TuxedoMan)\n\n' + desc,
-            'timestamp': moment(),
-            color: 0x3498db,
-            'footer': {
-              'icon_url': 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
-              'text': 'TuxedoMan'
-            }
-          }
-        return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 0, embed: embed})
+        let embed = evalEmbed(fullParam, {promise: promise})
+        return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 120000, embed: embed})
       })
     } catch (e) {
-      func.log(`could not eval "${fullParam}"`, e.message)
+      let embed = evalEmbed(fullParam, {error: e.message})
+      return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 120000, embed: embed})
+    }
+  }
+}
+
+function evalEmbed (fullParam, output) {
+  let desc = '**INPUT:**\n' + '```js\n' + `${fullParam}` + '```\n'
+  if (output.promise) {
+    desc += '**PROMISE:**\n' + '```js\n' + `${output.promise}` + '```'
+  } else {
+    desc += '**ERROR:**\n' + '```js\n' + `${output.error}` + '```'
+  }
+  return {
+    description: ':gear:[**Evaluation**](https://github.com/alex-taxiera/TuxedoMan)\n\n' + desc,
+    timestamp: moment(),
+    color: 0x3498db,
+    'footer': {
+      'icon_url': 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
+      'text': 'TuxedoMan'
     }
   }
 }

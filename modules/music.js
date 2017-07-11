@@ -17,7 +17,7 @@ module.exports = {
     const files = fs.readdirSync(playlists)
     if (files.length === 0) {
       client.autoplay = false
-      return func.log('no playlists')
+      return func.log('no playlists', 'yellow')
     }
     let tmp = fs.readFileSync(`${playlists}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
     let autoplaylist = tmp.split('\n')
@@ -25,10 +25,9 @@ module.exports = {
 
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
       if (error) {
-        func.log(null, `${video} ${error}`)
+        func.log(null, 'red', `${video} ${error}`)
         module.exports.autoQueue(client)
       } else {
-        func.log(`auto queue on ${client.guild.name}`)
         client.queue.push({title: info.title, link: video, user: main.bot().User})
         playNextSong(client, null)
       }
@@ -42,7 +41,7 @@ module.exports = {
         func.messageHandler({promise: msg.reply(str), content: str}, db.getGuildInfo(msg.guild.id))
       }
       if (error) {
-        func.log(null, `${video}: ${error}`)
+        func.log(null, 'red', `${video}: ${error}`)
         str = `The requested video (${video}) does not exist or cannot be played.`
         func.messageHandler({promise: msg.reply(str), content: str}, db.getGuildInfo(msg.guild.id))
       } else {
@@ -135,7 +134,6 @@ function playNextSong (client, msg) {
       format: 'pcm'
     })
 
-    func.log(`song start on ${client.guild.name}`)
     client.encoder.play()
     client.encoder.voiceConnection.getEncoder().setVolume(client.volume)
 
@@ -147,7 +145,6 @@ function playNextSong (client, msg) {
     client.encoder.once('end', () => {
       client.isPlaying = false
       if (!client.paused && client.queue.length !== 0) {
-        func.log(`next in queue on ${client.guild.name}`)
         playNextSong(client, null)
       } else if (!client.paused && client.autoplay) {
         module.exports.autoQueue(client)
