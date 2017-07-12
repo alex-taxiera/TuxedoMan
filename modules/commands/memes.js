@@ -142,6 +142,10 @@ module.exports = {
       msg.channel.uploadFile('./images/jon.gif', './images/jon.gif')
     }
         // left
+    // kevin
+    if (text.includes('birthday')) {
+      msg.channel.sendMessage('HAPPY BIRTHDAY <@119963118016266241>')
+    }
     if (text.includes(' left ') || text === 'left') {
       msg.channel.uploadFile('./images/left.jpg')
     }
