@@ -89,19 +89,21 @@ module.exports = {
   },
   checkGame: function (client, roleId) {
     let guild = main.bot().Guilds.get(client.guild.id)
-    let role = guild.roles.find(r => r.id === roleId)
-    if (client.gameRoles.roles.find(r => r === role.id)) {
-      for (let i = 0; i < guild.members.count; i++) {
-        if (guild.members[i].gameName === role.name) {
-          module.exports.assignRole(guild.members[i], role)
+
+    let role = guild.roles.find((r) => r.id === roleId)
+    if (client.gameRoles.roles.includes(role.id)) {
+      console.log('if 1')
+      guild.members.forEach((member) => {
+        if (member.gameName === role.name) {
+          module.exports.assignRole(member, role)
         }
-      }
+      })
     } else {
-      for (let i = 0; i < guild.members.count; i++) {
-        if (guild.members[i].hasRole(role)) {
-          module.exports.unassignRole(guild.members[i], role)
+      guild.members.forEach((member) => {
+        if (member.hasRole(role)) {
+          module.exports.unassignRole(member, role)
         }
-      }
+      })
     }
   }
 }
