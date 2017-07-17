@@ -2,6 +2,7 @@ const func = require('../common.js')
 const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
 const cmd = require('../commands.js')
+const Response = require('../response.js')
 const moment = require('moment')
 const fs = require('fs')
 const config = require('../../config.json')
@@ -31,6 +32,7 @@ module.exports = {
     } catch (e) {
       let embed = evalEmbed(fullParam, {error: e.message})
       return func.messageHandler({promise: msg.channel.sendMessage('', false, embed), content: '', delay: 120000, embed: embed})
+      return func.messageHandler(new Response(msg, '', 12000, embed), client)
     }
   }
 }

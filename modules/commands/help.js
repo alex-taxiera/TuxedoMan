@@ -1,3 +1,5 @@
+const Response = require('../response.js')
+
 module.exports = {
   command: 'help',
   description: 'Displays this message, duh!',
@@ -34,6 +36,6 @@ module.exports = {
           dm.sendMessage(str)
         })
     let retStr = 'Command list sent!'
-    return {promise: msg.reply(retStr), content: retStr}
+    return new Response(msg, retStr)
   }
 }

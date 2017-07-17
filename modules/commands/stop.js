@@ -1,4 +1,5 @@
 const db = require('../database.js')
+const Response = require('../response.js')
 
 module.exports = {
   command: 'stop',
@@ -8,15 +9,16 @@ module.exports = {
   execute: function (msg) {
     let client = db.getGuildInfo(msg.guild.id)
     let str = ''
+
     if (client.isPlaying) {
       client.paused = true
       client.encoder.destroy()
       client.nowPlaying = {}
+
       str = 'Stopping...'
-      return {promise: msg.reply(str), content: str}
     } else {
       str = 'Bot is not playing anything!'
-      return {promise: msg.reply(str), content: str}
     }
+    return new Response(msg, str)
   }
 }

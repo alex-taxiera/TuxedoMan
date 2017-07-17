@@ -1,5 +1,6 @@
 const db = require('../database.js')
 const main = require('../../TuxedoMan.js')
+const Response = require('../response.js')
 const moment = require('moment')
 
 module.exports = {
@@ -34,6 +35,7 @@ module.exports = {
             {name: 'Game Roles', value: gameRoles}]
       }
     return {promise: msg.channel.sendMessage('', false, embed), content: '', delay: 25000, embed: embed}
+    return new Response(msg, '', 25000, embed)
   }
 }
 function getCleanVipRole (client, guild) {

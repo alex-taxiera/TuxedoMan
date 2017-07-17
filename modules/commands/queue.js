@@ -1,4 +1,5 @@
 const db = require('../database.js')
+const Response = require('../response.js')
 
 module.exports = {
   command: 'queue',
@@ -24,6 +25,6 @@ module.exports = {
         }
       }
     }
-    return {promise: msg.reply(str), content: str}
+    return new Response(msg, str)
   }
 }
