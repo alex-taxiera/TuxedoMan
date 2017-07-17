@@ -79,40 +79,18 @@ module.exports = {
       })
     }
   },
-  can: function (permissions, context) {
-    for (let i = 0; i < permissions.length; i++) {
-      if (!context) {
-        return false
-      }
-      let perm = main.bot().User.permissionsFor(context)
-      if (context.isGuildText) {
-        let text = perm.Text
-        for (let p in text) {
-          if (!text.hasOwnProperty(p)) {
-            continue
-          }
-          if (p === permissions[i]) {
-            if (!text[p]) {
-              return false
-            }
-          }
-        }
-      } else if (context.isGuildVoice) {
-        let voice = perm.Voice
-        for (let p in voice) {
-          if (!voice.hasOwnProperty(p)) {
-            continue
-          }
-          if (p === permissions[i]) {
-            if (!voice[p]) {
-              return false
-            }
-          }
-        }
-      } else {
-        return false
-      }
+  can: function (needs, context) {
+    if (!context) {
+      return false
     }
-    return true
+
+    return needs.every((need) => {
+      let permission = main.bot().User.permissionsFor(context)
+      if (context.isGuildText) {
+        return permission.Text[need]
+      } else if (context.isGuildVoice) {
+        return permission.Voice[need]
+      }
+    })
   }
 }
