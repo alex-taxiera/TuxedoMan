@@ -193,7 +193,7 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
               tmp.text = mods.func.findChannel('text', guild.id)
             }
           } else {
-            tmp.text = null
+            tmp.text = mods.func.findChannel('text', guild.id)
           }
           if (savedGuild.voice) {
             let voice = bot.Channels.get(savedGuild.voice.id)
@@ -204,7 +204,7 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
               tmp.voice = mods.func.findChannel('voice', guild.id)
             }
           } else {
-            tmp.voice = null
+            tmp.voice = mods.func.findChannel('voice', guild.id)
           }
           if (!tmp.text || !tmp.voice) {
             dmWarn(guild, tmp.text, tmp.voice)
