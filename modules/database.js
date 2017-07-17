@@ -23,6 +23,7 @@ module.exports = {
   },
   writeFile: function () {
     let writeMap = new Map()
+
     guilds.forEach((value, key) => {
       let tmp = {
         guild: value.guild,
@@ -38,6 +39,7 @@ module.exports = {
       }
       writeMap.set(key, tmp)
     })
+
     fs.open(guildData, 'w+', () => {
       fs.writeFileSync(guildData, JSON.stringify([...writeMap], null, 2), 'utf-8')
     })

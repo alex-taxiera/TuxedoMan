@@ -8,8 +8,9 @@ module.exports = {
   parameters: [],
   rank: 1,
   execute: function (msg) {
-    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
+    let client = db.getGuildInfo(msg.guild.id)
+
     if (!client.isPlaying && client.queue.length === 0) {
       if (client.autoplay) {
         client.paused = false
