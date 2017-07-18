@@ -1,12 +1,14 @@
 const gameRoles = require('../gameRoles.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'addgamerole',
-  description: 'Add game roles',
-  parameters: ['role name, should be as game appears on discord statuses'],
-  rank: 2,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'addgamerole',
+  'Add game roles',
+  ['role name, should be as game appears on discord statuses'],
+  'VIP',
+  false,
+  function (msg, params) {
     let fullParam = params.join(' ')
     if (fullParam.length > 100) {
       let str = 'Role name is too long!'
@@ -15,4 +17,4 @@ module.exports = {
       return gameRoles.addRole(msg, fullParam)
     }
   }
-}
+)

@@ -1,12 +1,14 @@
 const db = require('../database.js')
+const Command = require('./command.js')
 
-module.exports = {
+module.exports = new Command(
   // meme hell
-  command: 'memes',
-  description: 'Memes',
-  parameters: [],
-  hidden: true,
-  execute: function (msg, text) {
+  'memes',
+  'Memes',
+  [],
+  'Anyone',
+  true,
+  function (msg, text) {
     text = text.toLowerCase()
     let client = db.getGuildInfo(msg.guild.id)
     // DVA EXAMPLE
@@ -272,4 +274,4 @@ module.exports = {
       msg.channel.uploadFile('./images/womb.gif', './images/womb.gif')
     }
   }
-}
+)

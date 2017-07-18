@@ -1,14 +1,16 @@
 const db = require('../database.js')
 const main = require('../../TuxedoMan.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 const moment = require('moment')
 
-module.exports = {
-  command: 'prefs',
-  description: 'Display current bot preferences',
-  parameters: [],
-  rank: 2,
-  execute: function (msg) {
+module.exports = new Command(
+  'prefs',
+  'Display current bot preferences',
+  [],
+  'VIP',
+  false,
+  function (msg) {
     const bot = main.bot()
     let client = db.getGuildInfo(msg.guild.id)
     let guild = bot.Guilds.get(client.guild.id)
@@ -36,7 +38,8 @@ module.exports = {
     }
     return new Response(msg, '', 25000, embed)
   }
-}
+)
+
 function getCleanVipRole (client, guild) {
   if (client.vip) {
     return guild.roles.find(r => r.id === client.vip).name

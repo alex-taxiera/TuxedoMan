@@ -1,13 +1,15 @@
 const db = require('../database.js')
 const music = require('../music.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'play',
-  description: 'Resumes paused/stopped playback',
-  parameters: [],
-  rank: 1,
-  execute: function (msg) {
+module.exports = new Command(
+  'play',
+  'Resumes paused/stopped playback',
+  [],
+  'Anyone in Voice',
+  false,
+  function (msg) {
     let str = ''
     let client = db.getGuildInfo(msg.guild.id)
 
@@ -33,4 +35,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

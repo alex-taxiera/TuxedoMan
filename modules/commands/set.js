@@ -1,14 +1,16 @@
 const func = require('../common.js')
 const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'set',
-  description: 'Set default voice or text channel',
-  parameters: [`"voice/text"`, 'channel name'],
-  rank: 2,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'set',
+  'Set default voice or text channel',
+  [`"voice/text"`, 'channel name'],
+  'VIP',
+  false,
+  function (msg, params) {
     const bot = main.bot()
     let client = db.getGuildInfo(msg.guild.id)
     let str = ''
@@ -72,4 +74,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

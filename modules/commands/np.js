@@ -1,12 +1,14 @@
 const db = require('../database.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'np',
-  description: 'Displays the current song',
-  parameters: [],
-  rank: 0,
-  execute: function (msg) {
+module.exports = new Command(
+  'np',
+  'Displays the current song',
+  [],
+  'Anyone',
+  false,
+  function (msg) {
     let client = db.getGuildInfo(msg.guild.id)
     let str = 'Now playing: '
 
@@ -17,4 +19,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

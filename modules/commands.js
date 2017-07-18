@@ -20,9 +20,9 @@ module.exports = {
             setTimeout(function () { m.delete() }, 10000)
           })
         } else {
-          if (rank(msg) >= command.rank) {
+          if (rank(msg.member, command.rank)) {
             params.splice(0, 1)
-            if (command.command === 'help') {
+            if (command.name === 'help') {
               params = commands
             }
             func.messageHandler(command.execute(msg, params), client)
@@ -44,35 +44,46 @@ function denyRank (msg, rank) {
   let str = ''
 
   switch (rank) {
-    case 1:
+    case 'Anyone in Voice':
       str = `Must be in voice chat with ${main.bot().User.username}`
       break
-    case 2:
+    case 'VIP':
       str = 'Must be VIP!'
       break
-    case 3:
+    case 'Owner':
       str = 'Must be guild owner!'
       break
-    case 4:
+    case 'Admin':
       str = 'Must be a boss!'
       break
   }
   return new Response(msg, str)
 }
 
-function rank (msg) {
-  let client = db.getGuildInfo(msg.guild.id)
+function rank (member, rank) {
+  let client = db.getGuildInfo(member.guild.id)
 
-  if (msg.member.id === config.admin) {
-    return 4
-  } else if (msg.guild.isOwner(msg.member)) {
-    return 3
-  } else if (msg.member.hasRole(client.vip)) {
-    return 2
-  } else if (main.bot().User.getVoiceChannel(client.guild.id)
-  .members.includes(msg.member.id)) {
-    return 1
-  } else {
-    return 0
+  switch (rank) {
+    case 'Anyone in Voice':
+      if (main.bot().User.getVoiceChannel(client.guild.id)
+      .members.includes(member.id)) {
+        return true
+      }
+    case 'VIP':
+      if (member.hasRole(client.vip)) {
+        return true
+      }
+    case 'Owner':
+      if (client.guild.isOwner(member)) {
+        return true
+      }
+    case 'Admin':
+      if (member.id === config.admin) {
+        return true
+      }
+      break
+    default:
+      return true
   }
+  return false
 }
