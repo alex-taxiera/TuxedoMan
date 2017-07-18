@@ -2,6 +2,7 @@ const music = require('../music.js')
 const gameRoles = require('../gameRoles.js')
 const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
+const Response = require('../response.js')
 
 module.exports = {
   command: 'toggle',
@@ -18,33 +19,29 @@ module.exports = {
           client.paused = false
           music.autoQueue(client)
         }
-        db.updateGuilds(client)
         str = `Autoplay set to ${client.autoplay}!`
-        return {promise: msg.reply(str), content: str}
+        break
       case 'np':
         client.informNowPlaying = !client.informNowPlaying
-        db.updateGuilds(client)
         str = `Now Playing announcements set to ${client.informNowPlaying}!`
-        return {promise: msg.reply(str), content: str}
+        break
       case 'autonp':
         client.informAutoPlaying = !client.informAutoPlaying
-        db.updateGuilds(client)
         str = `Now Playing (autoplay) announcements set to ${client.informAutoPlaying}!`
-        return {promise: msg.reply(str), content: str}
+        break
       case 'gameroles':
         client.gameRoles.active = !client.gameRoles.active
-        str = `Game roles set to ${client.gameRoles.active}!`
         gameRoles.sweepGames(client)
-        db.updateGuilds(client)
-        return {promise: msg.reply(str), content: str}
+        str = `Game roles set to ${client.gameRoles.active}!`
+        break
       case 'memes':
         client.meme = !client.meme
-        db.updateGuilds(client)
         str = `Meme posting set to ${client.meme}!`
-        return {promise: msg.reply(str), content: str}
+        break
       default:
         str = 'Specify option to toggle!'
-        return {promise: msg.reply(str), content: str}
     }
+    db.updateGuilds(client)
+    return new Response(msg, str)
   }
 }

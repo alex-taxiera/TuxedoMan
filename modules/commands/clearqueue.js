@@ -1,4 +1,5 @@
 const db = require('../database.js')
+const Response = require('../response.js')
 
 module.exports = {
   command: 'clearqueue',
@@ -6,10 +7,10 @@ module.exports = {
   parameters: [],
   rank: 2,
   execute: function (msg) {
-    let client = db.getGuildInfo(msg.guild.id)
     let str = ''
+    let client = db.getGuildInfo(msg.guild.id)
     client.queue = []
     str = 'Queue has been cleared!'
-    return {promise: msg.reply(str), content: str}
+    return new Response(msg, str)
   }
 }

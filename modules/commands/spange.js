@@ -9,6 +9,7 @@ module.exports = {
     let charCode = ''
     let rng
     let indices = []
+
     for (let i = 0; i < (fullParam.length * 0.33); i++) {
       do {
         rng = Math.floor(Math.random() * (fullParam.length - 1 - 0 + 1)) + 0
@@ -18,6 +19,7 @@ module.exports = {
 
       indices.push(rng)
     }
+
     for (let i = 0; i < fullParam.length; i++) {
       if (indices.includes(i)) {
         charCode = fullParam[i].charCodeAt()

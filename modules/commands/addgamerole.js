@@ -1,4 +1,5 @@
 const gameRoles = require('../gameRoles.js')
+const Response = require('../response.js')
 
 module.exports = {
   command: 'addgamerole',
@@ -9,7 +10,7 @@ module.exports = {
     let fullParam = params.join(' ')
     if (fullParam.length > 100) {
       let str = 'Role name is too long!'
-      return {promise: msg.reply(str), content: str}
+      return new Response(msg, str)
     } else {
       return gameRoles.addRole(msg, fullParam)
     }

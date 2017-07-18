@@ -16,15 +16,16 @@ start()
 setInterval(function () { setGame() }, 43200000) // 43200000
 
 // events
-bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
+bot.Dispatcher.on('GUILD_MEMBER_UPDATE', (e) => {
   if (e.member.id === bot.User.id) {
     let client = mods.db.getGuildInfo(e.member.guild.id)
-    if (client.text && !mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], bot.Channels
-    .textForGuild(client.guild.id).find(ch => ch.id === client.text.id))) {
+
+    if (client.text &&
+    !mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], bot.Channels.get(client.text.id))) {
       client.text = mods.func.findChannel('text', client.guild.id)
       dmWarn(e.member.guild, client.text, client.voice)
-    } else if (client.voice && !mods.func.can(['SPEAK', 'CONNECT'], bot.Channels
-    .voiceForGuild(client.guild.id).find(ch => ch.id === client.voice.id))) {
+    } else if (client.voice &&
+    !mods.func.can(['SPEAK', 'CONNECT'], bot.Channels.get(client.voice.id))) {
       client.voice = mods.func.findChannel('voice', client.guild.id)
       dmWarn(e.member.guild, client.text, client.voice)
     } else if (!client.text) {
@@ -38,42 +39,49 @@ bot.Dispatcher.on('GUILD_MEMBER_UPDATE', e => {
   }
 })
 
-bot.Dispatcher.on('GUILD_ROLE_DELETE', e => {
+bot.Dispatcher.on('GUILD_ROLE_DELETE', (e) => {
   let client = mods.db.getGuildInfo(e.guild.id)
+
   if (e.roleId === client.vip) {
     client.vip = null
     return mods.db.updateGuilds(client)
-  } else if (client.gameRoles.roles.find(r => r === e.roleId)) {
-    client.gameRoles.roles.splice(client.gameRoles.roles.findIndex(r => r === e.roleId), 1)
+  }
+  if (client.gameRoles.roles.includes(e.roleId)) {
+    client.gameRoles.roles.splice(client.gameRoles.roles.findIndex((r) => r === e.roleId), 1)
     mods.db.updateGuilds(client)
   }
 })
 
-bot.Dispatcher.on('PRESENCE_UPDATE', e => {
+bot.Dispatcher.on('PRESENCE_UPDATE', (e) => {
   let client = mods.db.getGuildInfo(e.guild.id)
+
   if (e.member.guild_id && client.gameRoles.active) {
     let user = e.member
-    let role = e.guild.roles.find(r => r.name === user.previousGameName)
-    if (role && client.gameRoles.roles.find(r => r === role.id) && user.hasRole(role)) {
+
+    let role = e.guild.roles.find((r) => r.name === user.previousGameName)
+    if (role && client.gameRoles.roles.includes(role.id) && user.hasRole(role)) {
       mods.gameRoles.unassignRole(user, role)
     }
-    role = e.guild.roles.find(r => r.name === user.gameName)
-    if (role && client.gameRoles.roles.find(r => r === role.id) && !user.hasRole(role)) {
+
+    role = e.guild.roles.find((r) => r.name === user.gameName)
+    if (role && client.gameRoles.roles.includes(role.id) && !user.hasRole(role)) {
       mods.gameRoles.assignRole(user, role)
     }
   }
 })
 
-bot.Dispatcher.on('DISCONNECTED', e => {
+bot.Dispatcher.on('DISCONNECTED', (e) => {
   mods.func.log('disconnected', 'red', `${e.error}\nRECONNECT DELAY: ${e.delay}`)
 })
 
-bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
+bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
   let client = mods.db.getGuildInfo(e.guildId)
+
   if (e.user.id === bot.User.id) {
     mods.func.log(`left channel ${e.channel.name}`, 'yellow')
+
     if (!e.newChannelId) {
-      let voiceChannel = bot.Channels.find(c => c.id === e.channelId)
+      let voiceChannel = bot.Channels.get(e.channelId)
       voiceChannel.join(voiceChannel).catch((e) => { mods.func.log(null, 'red', e) })
     }
   } else if (client.isPlaying && client.encoder.voiceConnection &&
@@ -83,8 +91,9 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', e => {
   }
 })
 
-bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
+bot.Dispatcher.on('VOICE_CHANNEL_JOIN', (e) => {
   let client = mods.db.getGuildInfo(e.guildId)
+
   if (client.isPlaying && client.encoder.voiceConnection &&
     client.encoder.voiceConnection.channel.members.length === 1 && !client.paused) {
     client.paused = true
@@ -92,15 +101,18 @@ bot.Dispatcher.on('VOICE_CHANNEL_JOIN', e => {
   }
 })
 
-bot.Dispatcher.on('CHANNEL_CREATE', e => {
+bot.Dispatcher.on('CHANNEL_CREATE', (e) => {
   let ch = e.channel
   let client = mods.db.getGuildInfo(ch.guild_id)
+
   if (client && (!client.text || !client.voice)) {
-    if (ch.type === 0 && !client.text && mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
-      client.text = {id: ch.id, name: ch.name}
-    } else if (ch.type === 2 && !client.voice && mods.func.can(['SPEAK', 'CONNECT'], ch)) {
+    if (ch.type === 0 && !client.text &&
+    mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
+      client.text = { id: ch.id, name: ch.name }
+    } else if (ch.type === 2 && !client.voice &&
+    mods.func.can(['SPEAK', 'CONNECT'], ch)) {
       ch.join()
-      client.voice = {id: ch.id, name: ch.name}
+      client.voice = { id: ch.id, name: ch.name }
     } else {
       return
     }
@@ -108,9 +120,10 @@ bot.Dispatcher.on('CHANNEL_CREATE', e => {
   }
 })
 
-bot.Dispatcher.on('CHANNEL_DELETE', e => {
+bot.Dispatcher.on('CHANNEL_DELETE', (e) => {
   let client = mods.db.getGuildInfo(e.data.guild_id)
-  let guild = bot.Guilds.toArray().find(g => g.id === client.guild.id)
+  let guild = bot.Guilds.get(client.guild.id)
+
   if (e.channelId === client.text.id) {
     client.text = mods.func.findChannel('text', client.guild.id)
     dmWarn(guild, client.text, client.voice)
@@ -123,24 +136,25 @@ bot.Dispatcher.on('CHANNEL_DELETE', e => {
   mods.db.updateGuilds(client)
 })
 
-bot.Dispatcher.on('CHANNEL_UPDATE', e => {
+bot.Dispatcher.on('CHANNEL_UPDATE', (e) => {
   let ch = e.channel
   let client = mods.db.getGuildInfo(ch.guild.id)
-  if (client.text && client.text.id === ch.id && !mods.func
-  .can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
+
+  if (client.text && client.text.id === ch.id &&
+  !mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
     client.text = mods.func.findChannel('text', client.guild.id)
     dmWarn(ch.guild, client.text, client.voice)
-  } else if (client.voice && client.voice.id === ch.id && !mods.func
-  .can(['SPEAK', 'CONNECT'], ch)) {
+  } else if (client.voice && client.voice.id === ch.id &&
+  !mods.func.can(['SPEAK', 'CONNECT'], ch)) {
     client.voice = mods.func.findChannel('voice', client.guild.id)
     dmWarn(ch.guild, client.text, client.voice)
-  } else if (!client.text && ch.type === 0 && mods.func
-  .can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
-    client.text = {id: ch.id, name: ch.name}
-  } else if (!client.voice && ch.type === 2 && mods.func
-  .can(['SPEAK', 'CONNECT'], ch)) {
+  } else if (!client.text && ch.type === 0 &&
+  mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
+    client.text = { id: ch.id, name: ch.name }
+  } else if (!client.voice && ch.type === 2 &&
+  mods.func.can(['SPEAK', 'CONNECT'], ch)) {
     ch.join()
-    client.voice = {id: ch.id, name: ch.name}
+    client.voice = { id: ch.id, name: ch.name }
   } else {
     return
   }
@@ -156,6 +170,7 @@ bot.Dispatcher.on('GUILD_DELETE', e => {
   let client = mods.db.getGuildInfo(e.guildId)
   mods.func.log(`left ${client.guild.name} guild`, 'yellow')
   client.paused = true
+
   if (client.isPlaying) {
     client.encoder.destroy()
   }
@@ -167,24 +182,30 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
   let oldGuilds = new Map()
   mods.func.log('online', 'green')
   setGame()
+
   fs.open(guildData, 'r', (err) => {
     let allGuilds = bot.Guilds
+
     if (err) {
-      mods.func.log('no guild file', 'yellow', err.message)
+      mods.func.log('creating guild file', 'yellow')
       sweepClients(allGuilds)
     } else {
       let savedGuilds
+
       try {
         savedGuilds = new Map(JSON.parse(fs.readFileSync(guildData, 'utf-8')))
       } catch (e) {
-        mods.func.log('empty guild file', 'yellow', e.message)
+        mods.func.log('empty guild file', 'yellow')
         return sweepClients(allGuilds)
       }
+
       savedGuilds.forEach((savedGuild, savedId, map) => {
         let tmp = {}
+
         let guild = allGuilds.get(savedId)
         if (guild) {
           tmp.guild = { id: guild.id, name: guild.name }
+
           if (savedGuild.text) {
             let text = bot.Channels.get(savedGuild.text.id)
             if (text && mods.func.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
@@ -193,7 +214,7 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
               tmp.text = mods.func.findChannel('text', guild.id)
             }
           } else {
-            tmp.text = null
+            tmp.text = mods.func.findChannel('text', guild.id)
           }
           if (savedGuild.voice) {
             let voice = bot.Channels.get(savedGuild.voice.id)
@@ -204,11 +225,12 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
               tmp.voice = mods.func.findChannel('voice', guild.id)
             }
           } else {
-            tmp.voice = null
+            tmp.voice = mods.func.findChannel('voice', guild.id)
           }
           if (!tmp.text || !tmp.voice) {
             dmWarn(guild, tmp.text, tmp.voice)
           }
+
           tmp.vip = savedGuild.vip
           tmp.queue = []
           tmp.nowPlaying = {}
@@ -236,6 +258,7 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
 bot.Dispatcher.on('MESSAGE_CREATE', e => {
   let msg = e.message
   let text = msg.content
+
   if (msg.member && msg.member.id !== bot.User.id) {
     if (text[0] === '*') {
       if (mods.cmd.handleCommand(msg, text.substring(1), false)) {
@@ -257,10 +280,12 @@ function start () {
     mods.func.log('creating data folder', 'yellow')
     fs.mkdirSync(config.data)
   }
+
   if (!fs.existsSync(config.playlists)) {
     mods.func.log('creating playlists folder', 'yellow')
     fs.mkdirSync(config.playlists)
   }
+
   const tok = config.token
   if (tok !== '') {
     bot.connect({token: tok})
@@ -276,6 +301,7 @@ function sweepClients (guilds) {
     guilds.forEach((guild) => {
       let tmp = {}
       tmp.guild = {id: guild.id, name: guild.name}
+
       tmp.text = mods.func.findChannel('text', guild.id)
       tmp.voice = mods.func.findChannel('voice', guild.id)
       if (tmp.voice) {
@@ -321,34 +347,34 @@ function init (guilds) {
 function dmWarn (guild, text, voice) {
   let owner = guild.members.find(m => m.id === guild.owner_id)
   let str = ''
+
   if (!text && !voice) {
     str = 'There are no text channels or voice channels that are suitable for me! ' +
     'I would like sending and reading permissions in a text channel and connect ' +
     'and speak permissions in a voice channel'
-    owner.openDM()
-    .then(dm => {
-      dm.sendMessage(str)
-    })
   } else if (!text) {
     str = 'There are no text channels that are suitable for me! ' +
     'I would like sending and reading permissions'
-    owner.openDM()
-    .then(dm => {
-      dm.sendMessage(str)
-    })
   } else if (!voice) {
     str = 'There are no voice channels that are suitable for me! ' +
     'I would like speaking and connecting permissions'
-    owner.openDM()
-    .then(dm => {
-      dm.sendMessage(str)
-    })
   }
+  owner.openDM()
+  .then(dm => {
+    dm.sendMessage(str)
+    .catch((e) => {
+      mods.func.log('cannot send dm', e)
+    })
+  })
+  .catch((e) => {
+    mods.func.log('cannot open dm', e)
+  })
 }
 
 function setGame () {
   let rng = seedrandom()
   let games = config.games
+
   let game = bot.User.gameName
   while (game === bot.User.gameName) {
     game = games[Math.floor(rng() * games.length)]
