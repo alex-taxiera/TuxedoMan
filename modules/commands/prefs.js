@@ -54,14 +54,14 @@ function getCleanGameRoles (client, guild) {
     gameRoles += 'False\n'
   }
 
-  for (let i = 0; i < client.gameRoles.roles.length; i++) {
-    let role = guild.roles.find(r => r.id === client.gameRoles.roles[i])
+  client.gameRoles.roles.forEach((gameRole, index) => {
+    let role = guild.roles.find(r => r.id === gameRole)
     if (role) {
-      if (i) {
-        gameRoles += ' '
-      }
       gameRoles += `"${role.name}"`
+      if (index !== (client.gameRoles.length - 1)) {
+        gameRoles += ', '
+      }
     }
-  }
+  })
   return gameRoles
 }
