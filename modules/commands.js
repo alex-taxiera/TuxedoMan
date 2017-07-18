@@ -6,7 +6,7 @@ const db = require('./database.js')
 const Response = require('./response.js')
 
 module.exports = {
-  handleCommand: function (msg, text, meme) {
+  handleCommand: function (msg, text, meme = false) {
     let command = ''
     if (!meme) {
       let client = db.getGuildInfo(msg.guild.id)
@@ -29,7 +29,9 @@ module.exports = {
           } else if (rank(msg) < command.rank) {
             func.messageHandler(denyRank(msg, command.rank))
           }
-          return true
+          if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
+            msg.delete()
+          }
         }
       }
     } else {
