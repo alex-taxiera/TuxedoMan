@@ -1,9 +1,12 @@
-module.exports = {
-  command: 'aesthetic',
-  description: 'make your text ａｅｓｔｈｅｔｉｃ',
-  parameters: [],
-  rank: 0,
-  execute: function (msg, params) {
+let Command = require('./command.js')
+
+module.exports = new Command(
+  'aesthetic',
+  'make your text ａｅｓｔｈｅｔｉｃ',
+  [],
+  'Anyone',
+  false,
+  function (msg, params) {
     let str = ''
 
     let fullParam = params.join(' ')
@@ -17,4 +20,4 @@ module.exports = {
     }
     msg.channel.sendMessage(str)
   }
-}
+)

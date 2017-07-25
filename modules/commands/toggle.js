@@ -2,14 +2,16 @@ const music = require('../music.js')
 const gameRoles = require('../gameRoles.js')
 const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'toggle',
-  description: 'Toggle various settings',
-  parameters: [`Alias: auto|np|autonp|gameroles|memes`],
-  rank: 2,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'toggle',
+  'Toggle various settings',
+  [`Alias: auto|np|autonp|gameroles|memes`],
+  'VIP',
+  false,
+  function (msg, params) {
     let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     switch (params[0]) {
@@ -44,4 +46,4 @@ module.exports = {
     db.updateGuilds(client)
     return new Response(msg, str)
   }
-}
+)

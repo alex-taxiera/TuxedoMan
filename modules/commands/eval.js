@@ -2,18 +2,19 @@ const func = require('../common.js')
 const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
 const cmd = require('../commands.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 const moment = require('moment')
 const fs = require('fs')
 const config = require('../../config.json')
 
-module.exports = {
-  command: 'eval',
-  description: 'dev',
-  parameters: ['stuff'],
-  rank: 4,
-  hidden: true,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'eval',
+  'dev',
+  ['stuff'],
+  'Admin',
+  true,
+  function (msg, params) {
     let bot = main.bot()
     let client = db.getGuildInfo(msg.guild.id)
     let member = msg.guild.members.find(m => m.id === bot.User.id)
@@ -34,7 +35,7 @@ module.exports = {
       return func.messageHandler(new Response(msg, '', 12000, embed), client)
     }
   }
-}
+)
 
 function evalEmbed (fullParam, output) {
   let desc = '**INPUT:**\n' + '```js\n' + `${fullParam}` + '```\n'

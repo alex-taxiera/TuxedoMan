@@ -1,12 +1,14 @@
 const db = require('../database.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'queue',
-  description: 'Displays the queue',
-  parameters: [],
-  rank: 0,
-  execute: function (msg) {
+module.exports = new Command(
+  'queue',
+  'Displays the queue',
+  [],
+  'Anyone',
+  false,
+  function (msg) {
     let client = db.getGuildInfo(msg.guild.id)
     let str = ''
     if (client.queue.length === 0) {
@@ -27,4 +29,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

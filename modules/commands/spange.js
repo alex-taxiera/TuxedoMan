@@ -1,9 +1,12 @@
-module.exports = {
-  command: 'spange',
-  description: 'MaKe yOur tExT sPanGe',
-  parameters: [],
-  rank: 0,
-  execute: function (msg, params) {
+const Command = require('./command.js')
+
+module.exports = new Command(
+  'spange',
+  'MaKe yOur tExT sPanGe',
+  [],
+  'Anyone',
+  false,
+  function (msg, params) {
     let fullParam = params.join(' ').toLowerCase()
     let str = ''
     let charCode = ''
@@ -30,4 +33,4 @@ module.exports = {
     }
     msg.channel.uploadFile('./images/spange.jpg', null, str)
   }
-}
+)

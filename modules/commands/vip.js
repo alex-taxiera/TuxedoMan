@@ -1,12 +1,14 @@
 const db = require('../database.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'vip',
-  description: 'Set VIP role',
-  parameters: ['role name'],
-  rank: 3,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'vip',
+  'Set VIP role',
+  ['role name'],
+  'Owner',
+  false,
+  function (msg, params) {
     let fullParam = params.join(' ')
     let client = db.getGuildInfo(msg.guild.id)
     let str = ''
@@ -25,4 +27,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

@@ -261,14 +261,10 @@ bot.Dispatcher.on('MESSAGE_CREATE', e => {
 
   if (msg.member && msg.member.id !== bot.User.id) {
     if (text[0] === '*') {
-      if (mods.cmd.handleCommand(msg, text.substring(1), false)) {
-        if (mods.func.can(['MANAGE_MESSAGES'], msg.channel)) {
-          msg.delete()
-        }
-      }
+      mods.cmd.handleCommand(msg, text.substring(1))
     } else if (mods.db.getGuildInfo(msg.guild.id).meme) {
       if (mods.func.can(['SEND_MESSAGES'], msg.channel)) {
-        mods.cmd.handleCommand(msg, text, true)
+        mods.cmd.handleCommand(msg, text, 'meme')
       }
     }
   }

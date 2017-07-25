@@ -1,13 +1,15 @@
 const db = require('../database.js')
 const music = require('../music.js')
+const Command = require('./command.js')
 const Response = require('../response.js')
 
-module.exports = {
-  command: 'volume',
-  description: 'Set music volume.',
-  parameters: ['number (1-200)'],
-  rank: 1,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'volume',
+  'Set music volume.',
+  ['number (1-200)'],
+  'Anyone in Voice',
+  false,
+  function (msg, params) {
     let str = ''
 
     if (params[0] / 2 > 0 && params[0] / 2 <= 100) {
@@ -23,4 +25,4 @@ module.exports = {
     }
     return new Response(msg, str)
   }
-}
+)

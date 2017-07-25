@@ -1,12 +1,14 @@
 const gameRoles = require('../gameRoles.js')
+const Command = require('./command.js')
 
-module.exports = {
-  command: 'delgamerole',
-  description: 'Delete game roles',
-  parameters: ['role name'],
-  rank: 2,
-  execute: function (msg, params) {
+module.exports = new Command(
+  'delgamerole',
+  'Delete game roles',
+  ['role name'],
+  'VIP',
+  false,
+  function (msg, params) {
     let fullParam = params.join(' ')
     return gameRoles.delRole(msg, fullParam)
   }
-}
+)
