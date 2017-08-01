@@ -111,7 +111,7 @@ module.exports = new Command(
       msg.channel.sendMessage('<:golduck:250425534427824128> ***GIT GUD*** ' +
       '<:golduck:250425534427824128>\n<:golduck:250425534427824128> ' +
       '***GIT GUD*** <:golduck:250425534427824128>\n<:golduck:250425534427824128> ' +
-      '***GIT GUD*** <:golduck:250425534427824128>\n<:golduck:25042553442okay does 7824128> ' +
+      '***GIT GUD*** <:golduck:250425534427824128>\n<:golduck:250425534427824128> ' +
       '***GIT GUD*** <:golduck:250425534427824128>\n<:golduck:250425534427824128> ' +
       '***GIT GUD*** <:golduck:250425534427824128>')
     }
