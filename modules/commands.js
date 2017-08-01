@@ -62,6 +62,7 @@ function denyRank (msg, rank) {
 
 function rank (member, rank) {
   let client = db.getGuildInfo(member.guild.id)
+  let vip = client.vip
 
   switch (rank) {
     case 'Anyone in Voice':
@@ -70,7 +71,7 @@ function rank (member, rank) {
         return true
       }
     case 'VIP':
-      if (member.hasRole(client.vip)) {
+      if (vip && member.hasRole(vip)) {
         return true
       }
     case 'Owner':

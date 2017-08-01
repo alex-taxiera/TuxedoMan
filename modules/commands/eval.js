@@ -6,6 +6,7 @@ const Command = require('./command.js')
 const Response = require('../response.js')
 const moment = require('moment')
 const fs = require('fs')
+const util = require('util')
 const config = require('../../config.json')
 
 module.exports = new Command(
@@ -25,7 +26,9 @@ module.exports = new Command(
       response.then((results) => {
         let promise = results
         if (!results) {
-          promise = 'No Promise'
+          promise = 'No Result'
+        } else if (promise instanceof Object) {
+          promise = `${util.inspect(promise)}`
         }
         let embed = evalEmbed(fullParam, { promise: promise })
         return func.messageHandler(new Response(msg, '', 12000, embed), client)
@@ -41,7 +44,7 @@ function evalEmbed (fullParam, output) {
   let desc = '**INPUT:**\n' + '```js\n' + `${fullParam}` + '```\n'
 
   if (output.promise) {
-    desc += '**PROMISE:**\n' + '```js\n' + `${output.promise}` + '```'
+    desc += '**OUTPUT:**\n' + '```js\n' + `${output.promise}` + '```'
   } else {
     desc += '**ERROR:**\n' + '```js\n' + `${output.error}` + '```'
   }
