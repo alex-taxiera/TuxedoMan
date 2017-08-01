@@ -75,7 +75,7 @@ function rank (member, rank) {
         return true
       }
     case 'Owner':
-      if (client.guild.isOwner(member)) {
+      if (member.guild.isOwner(member)) {
         return true
       }
     case 'Admin':
