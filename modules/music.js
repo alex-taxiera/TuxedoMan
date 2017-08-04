@@ -204,7 +204,7 @@ module.exports = {
         playerInfo.volume = vol
 
         if (player.isPlaying) {
-          player.encoder.voiceConnection.getEncoder().setVolume(vol)
+          player.encoder.voiceConnection.getEncoder().setVolume((vol / 2))
         }
         return 'Volume set!'
       }

@@ -33,7 +33,7 @@ module.exports = new Command(
           {name: 'Announce Autoplay', value: playerInfo.informAutoPlaying, inline: true},
           {name: 'Autoplay', value: playerInfo.autoplay, inline: true},
           {name: 'Memes', value: guildInfo.meme, inline: true},
-          {name: 'Music Volume', value: `${playerInfo.volume * 2}`, inline: true},
+          {name: 'Music Volume', value: `${playerInfo.volume}`, inline: true},
           {name: 'Game Roles', value: gameRoles}]
     }
     return new Response(msg, '', 25000, embed)
