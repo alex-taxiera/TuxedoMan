@@ -1,5 +1,5 @@
 const music = require('../music.js')
-const Command = require('./command.js')
+const Command = require('../classes/Command.js')
 
 module.exports = new Command(
   'search',

@@ -1,4 +1,4 @@
-let Command = require('./command.js')
+let Command = require('../classes/Command.js')
 
 module.exports = new Command(
   'aesthetic',

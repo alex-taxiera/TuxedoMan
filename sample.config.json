@@ -1,9 +1,4 @@
 {
   "token": "",
-  "table": "guilds",
-  "admin": "162674484828962816",
-  "playlists": "./playlists/",
-  "data": "./data/",
-  "guilds": "guilds.json",
   "games": ["with fire", "with code", "The Sims™", "Overwatch"]
 }

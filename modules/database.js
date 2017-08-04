@@ -1,47 +1,151 @@
 const fs = require('fs')
-const config = require('../config.json')
+const func = require('./common.js')
+const Client = require('./classes/Client.js')
+const data = './data/guilds/'
 
-const guildData = config.data + config.guilds
-let guilds = new Map()
+let clientMap = new Map()
 
 module.exports = {
-  updateGuilds: function (entry, multi = false) {
-    if (multi) {
-      entry.forEach((value, key) => {
-        guilds.set(key, value)
-      })
-    } else {
-      guilds.set(entry.guild.id, entry)
-    }
-    module.exports.writeFile()
+  initialize: function (guilds, channels) {
+    let saves = fs.readdirSync(data).filter((file) => {
+      return file.slice(-5) === '.json'
+    })
+    saves.forEach((save) => {
+      save = save.slice(0, -5)
+      let guild = guilds.get(save)
+      if (!guild) {
+        remove(save)
+      } else {
+        let tmp = {}
+        tmp.guild = { id: guild.id, name: guild.name }
+
+        let saveData = JSON.parse(fs.readFileSync(file(save)))
+        let savedGuild = saveData.guildInfo
+        if (savedGuild.text) {
+          let text = channels.get(savedGuild.text.id)
+          if (text && func.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
+            tmp.text = { id: text.id, name: text.name }
+          } else {
+            tmp.text = func.findChannel('text', guild.id)
+          }
+        } else {
+          tmp.text = func.findChannel('text', guild.id)
+        }
+
+        if (savedGuild.voice) {
+          let voice = channels.get(savedGuild.voice.id)
+          if (voice && func.can(['SPEAK', 'CONNECT'], voice)) {
+            voice.join()
+            tmp.voice = { id: voice.id, name: voice.name }
+          } else {
+            tmp.voice = func.findChannel('voice', guild.id)
+          }
+        } else {
+          tmp.voice = func.findChannel('voice', guild.id)
+        }
+
+        if (!tmp.text || !tmp.voice) {
+          func.dmWarn(guild, tmp.text, tmp.voice)
+        }
+
+        let client = new Client(
+          tmp.guild,
+          tmp.text,
+          tmp.voice,
+          savedGuild.vip,
+          savedGuild.meme,
+          saveData.playerInfo,
+          saveData.gameRolesInfo
+        )
+        clientMap.set(guild.id, client)
+        write(guild.id, client)
+      }
+    })
+
+    guilds.forEach((guild) => {
+      if (!clientMap.get(guild.id)) {
+        add(guild, channels)
+      }
+    })
   },
-  removeGuild: function (id) {
-    guilds.delete(id)
+  addClient: function (guild, channels) {
+    add(guild, channels)
+  },
+  removeClient: function (id) {
+    remove(id)
+  },
+  getClient: function (id) {
+    return clientMap.get(id)
+  },
+  updateClient: function (id) {
+    write(id, clientMap.get(id))
   },
   getGuildInfo: function (id) {
-    return guilds.get(id)
+    return clientMap.get(id).guildInfo
   },
-  writeFile: function () {
-    let writeMap = new Map()
+  getGameRolesInfo: function (id) {
+    return clientMap.get(id).gameRolesInfo
+  },
+  getPlayerInfo: function (id) {
+    return clientMap.get(id).playerInfo
+  },
+  checkChannels: function (id, channels, channelId) {
+    let guildInfo = clientMap.get(id).guildInfo
+    let textId = guildInfo.text.id
+    let voiceId = guildInfo.voice.id
 
-    guilds.forEach((value, key) => {
-      let tmp = {
-        guild: value.guild,
-        text: value.text,
-        voice: value.voice,
-        vip: value.vip,
-        autoplay: value.autoplay,
-        informNowPlaying: value.informNowPlaying,
-        informAutoPlaying: value.informAutoPlaying,
-        meme: value.meme,
-        volume: value.volume,
-        gameRoles: value.gameRoles
+    if (!channelId || channelId === textId || channelId === voiceId) {
+      if (!textId ||
+      (textId && !func.can(['SEND_MESSAGES', 'READ_MESSAGES'], channels.get(textId)))) {
+        // cannot use current default text channel
+        guildInfo.text = func.findChannel('text', id)
+      } else if (!voiceId ||
+      (voiceId && !func.can(['SPEAK', 'CONNECT'], channels.get(voiceId)))) {
+        // cannot use current default voice channel
+        guildInfo.voice = func.findChannel('voice', id)
+      } else {
+        return
       }
-      writeMap.set(key, tmp)
-    })
-
-    fs.open(guildData, 'w+', () => {
-      fs.writeFileSync(guildData, JSON.stringify([...writeMap], null, 2), 'utf-8')
-    })
+      func.dmWarn(id, guildInfo.text, guildInfo.voice)
+    }
   }
+}
+
+function add (guild, channels) {
+  let tmp = {}
+  tmp.guild = { id: guild.id, name: guild.name }
+  tmp.text = func.findChannel('text', guild.id)
+  tmp.voice = func.findChannel('voice', guild.id)
+
+  if (tmp.voice) {
+    channels.get(tmp.voice.id).join()
+  }
+  if (!tmp.text || !tmp.voice) {
+    func.dmWarn(guild, tmp.text, tmp.voice)
+  }
+  let client = new Client(tmp.guild, tmp.text, tmp.voice)
+  clientMap.set(guild.id, client)
+  write(guild.id, client)
+}
+
+async function write (id, client) {
+  fs.writeFile(file(id), JSON.stringify(client, null, 2), (e) => {
+    if (e) {
+      throw e
+    }
+  })
+}
+
+async function remove (id) {
+  // remove player map entry
+  clientMap.delete(id)
+  fs.unlink(file(id), (e) => {
+    if (e) {
+      throw e
+    }
+  })
+}
+
+function file (id) {
+  return `${data}${id}.json`
 }

@@ -1,6 +1,6 @@
-const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const music = require('../music.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'stop',
@@ -9,18 +9,7 @@ module.exports = new Command(
   'Anyone in Voice',
   false,
   function (msg) {
-    let client = db.getGuildInfo(msg.guild.id)
-    let str = ''
-
-    if (client.isPlaying) {
-      client.paused = true
-      client.encoder.destroy()
-      client.nowPlaying = {}
-
-      str = 'Stopping...'
-    } else {
-      str = 'Bot is not playing anything!'
-    }
+    let str = music.stop(msg.guild.id)
     return new Response(msg, str)
   }
 )

@@ -1,11 +1,12 @@
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'help',
   'Displays this message, duh!',
   [],
   'Anyone',
+  false,
   function (msg, commands) {
     let str = 'Available commands:'
 
@@ -16,7 +17,7 @@ module.exports = new Command(
 
       let c = commands[key]
       if (!c.hidden) {
-        str += `\n* ${c.name} (${c.rank})`
+        str += `\n*${c.name} (${c.rank})`
 
         for (let j = 0; j < c.parameters.length; j++) {
           str += ` <${c.parameters[j]}>`

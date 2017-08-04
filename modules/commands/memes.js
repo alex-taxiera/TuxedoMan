@@ -1,5 +1,8 @@
-const db = require('../database.js')
-const Command = require('./command.js')
+const Command = require('../classes/Command.js')
+const Meme = require('../classes/Meme.js')
+const images = './data/images/'
+
+let memeMap = new Map()
 
 module.exports = new Command(
   // meme hell
@@ -9,11 +12,16 @@ module.exports = new Command(
   'Anyone',
   true,
   function (msg, text) {
+    let id = msg.guild.id
+    if (!memeMap.get(id)) {
+      memeMap.set(id, new Meme())
+    }
+
+    let client = memeMap.get(id)
     text = text.toLowerCase()
-    let client = db.getGuildInfo(msg.guild.id)
     // DVA EXAMPLE
     if (text.includes(' dva ') || text === 'dva') {
-      msg.channel.uploadFile('./images/kek.png')
+      msg.channel.uploadFile(`${images}kek.png`)
     }
     // ayya
     if (text.includes(' ayya ') || text === 'ayya') {
@@ -29,11 +37,11 @@ module.exports = new Command(
     }
     // baby
     if (text.includes(' baby ') || text === 'baby') {
-      msg.channel.uploadFile('./images/baby.gif', './images/baby.gif')
+      msg.channel.uploadFile(`${images}baby.gif`, `${images}baby.gif`)
     }
     // ban
     if (text.includes(' ban ') || text === 'ban') {
-      msg.channel.uploadFile('./images/ban.jpg')
+      msg.channel.uploadFile(`${images}ban.jpg`)
     }
     // bb
     if (text.includes(' bb ') || text === 'bb') {
@@ -59,15 +67,15 @@ module.exports = new Command(
     }
     // boob
     if (text.includes(' boob ') || text === 'boob') {
-      msg.channel.uploadFile('./images/underboob.jpg')
+      msg.channel.uploadFile(`${images}underboob.jpg`)
     }
     // bruh
     if (text === 'bruh') {
-      msg.channel.uploadFile('./images/bruh.jpg')
+      msg.channel.uploadFile(`${images}bruh.jpg`)
     }
     // bye
     if (text.includes(' bye ') || text === 'bye') {
-      msg.channel.uploadFile('./images/bye.gif', './images/bye.gif')
+      msg.channel.uploadFile(`${images}bye.gif`, `${images}bye.gif`)
     }
     // daddy
     if (text.includes(' daddy ') || text === 'daddy') {
@@ -83,11 +91,11 @@ module.exports = new Command(
     }
     // dilligaf
     if (text.includes('dilligaf')) {
-      msg.channel.uploadFile('./images/dilligaf.png')
+      msg.channel.uploadFile(`${images}dilligaf.png`)
     }
     // doyoueven
     if (text.includes(' doyoueven') || text === 'doyoueven' || text.includes('do you even ') || text === 'do you even') {
-      msg.channel.uploadFile('./images/doyoueven.jpg')
+      msg.channel.uploadFile(`${images}doyoueven.jpg`)
     }
     // dozicus
     if (text.includes('dozicus')) {
@@ -125,7 +133,7 @@ module.exports = new Command(
     }
     // highfive
     if (text.includes('highfive') || text.includes('high five')) {
-      msg.channel.uploadFile('./images/highfive.jpg')
+      msg.channel.uploadFile(`${images}highfive.jpg`)
     }
     // hue
     if (text.includes('hue')) {
@@ -133,15 +141,15 @@ module.exports = new Command(
     }
     // ignis
     if (text.includes('ignis')) {
-      msg.channel.uploadFile('./images/ignis.gif', './images/ignis.gif')
+      msg.channel.uploadFile(`${images}ignis.gif`, `${images}ignis.gif`)
     }
     // iwata
     if (text.includes('iwata')) {
-      msg.channel.uploadFile('./images/iwata.jpg')
+      msg.channel.uploadFile(`${images}iwata.jpg`)
     }
     // jon
     if (text.includes(' jon ') || text === 'jon') {
-      msg.channel.uploadFile('./images/jon.gif', './images/jon.gif')
+      msg.channel.uploadFile(`${images}jon.gif`, `${images}jon.gif`)
     }
     // kevin
     if (text.includes('birthday')) {
@@ -149,7 +157,7 @@ module.exports = new Command(
     }
     // left
     if (text.includes(' left ') || text === 'left') {
-      msg.channel.uploadFile('./images/left.jpg')
+      msg.channel.uploadFile(`${images}left.jpg`)
     }
     // lmao
     if (text.includes('lmao')) {
@@ -181,7 +189,7 @@ module.exports = new Command(
     }
     // mao
     if (text.includes(' mao ') || text === 'mao') {
-      msg.channel.uploadFile('./images/mao.jpg')
+      msg.channel.uploadFile(`${images}mao.jpg`)
     }
     // minarah
     if (text.includes('minarah')) {
@@ -191,25 +199,25 @@ module.exports = new Command(
     }
     // miyamoto
     if (text.includes('miyamoto')) {
-      msg.channel.uploadFile('./images/miyamoto.gif', './images/miyamoto.gif')
+      msg.channel.uploadFile(`${images}miyamoto.gif`, `${images}miyamoto.gif`)
     }
     // myswamp
     if (text.includes('swamp')) {
       if (client.swamp) {
         client.swamp = false
-        msg.channel.uploadFile('./images/swamp1.png')
+        msg.channel.uploadFile(`${images}swamp1.png`)
       } else {
         client.swamp = true
-        msg.channel.uploadFile('./images/swamp2.png')
+        msg.channel.uploadFile(`${images}swamp2.png`)
       }
     }
     // nebby
     if (text.includes('nebby')) {
-      msg.channel.uploadFile('./images/nebby.gif', './images/nebby.gif')
+      msg.channel.uploadFile(`${images}nebby.gif`, `${images}nebby.gif`)
     }
     // pedo
     if (text.includes('pedo')) {
-      msg.channel.uploadFile('./images/pedo.png')
+      msg.channel.uploadFile(`${images}pedo.png`)
     }
     // pepe
     if (text.includes(' pepe ') || text === 'pepe') {
@@ -220,11 +228,11 @@ module.exports = new Command(
     }
     // petyr
     if (text.includes('petyr')) {
-      msg.channel.uploadFile('./images/petyr.jpeg')
+      msg.channel.uploadFile(`${images}petyr.jpeg`)
     }
     // pls
     if (text.includes('please the team') || text.includes('pleasetheteam') || text === 'pls') {
-      msg.channel.uploadFile('./images/pls.gif', './images/pls.gif').then((m) => {
+      msg.channel.uploadFile(`${images}pls.gif`, `${images}pls.gif`).then((m) => {
         setTimeout(function () { m.delete() }, 30000)
       })
     }
@@ -234,15 +242,15 @@ module.exports = new Command(
     }
     // pushthepayload
     if (text.includes('payload')) {
-      msg.channel.uploadFile('./images/payload.gif', './images/payload.gif')
+      msg.channel.uploadFile(`${images}payload.gif`, `${images}payload.gif`)
     }
     // snorlax
     if (text.includes('snorlax')) {
-      msg.channel.uploadFile('./images/snorlax.gif', './images/snorlax.gif')
+      msg.channel.uploadFile(`${images}snorlax.gif`, `${images}snorlax.gif`)
     }
     // sonicno
     if (text.includes('sonicno') || text.includes('sonic no')) {
-      msg.channel.uploadFile('./images/sonicno.jpg')
+      msg.channel.uploadFile(`${images}sonicno.jpg`)
     }
     // spookyshit
     if (text.includes('spookyshit') || text.includes('spooky shit')) {
@@ -259,19 +267,19 @@ module.exports = new Command(
     }
     // tbc
     if (text.includes('tbc') || text.includes('tobecontinued') || text.includes('to be continued')) {
-      msg.channel.uploadFile('./images/tbc.png')
+      msg.channel.uploadFile(`${images}tbc.png`)
     }
     // valor
     if (text.includes('valor')) {
-      msg.channel.uploadFile('./images/valor.png')
+      msg.channel.uploadFile(`${images}valor.png`)
     }
     // who
     if (text.includes('who are th') || text === 'who') {
-      msg.channel.uploadFile('./images/people.gif', './images/people.gif')
+      msg.channel.uploadFile(`${images}people.gif`, `${images}people.gif`)
     }
     // womb
     if (text.includes('womb')) {
-      msg.channel.uploadFile('./images/womb.gif', './images/womb.gif')
+      msg.channel.uploadFile(`${images}womb.gif`, `${images}womb.gif`)
     }
   }
 )

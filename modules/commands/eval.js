@@ -1,9 +1,9 @@
 const func = require('../common.js')
-const main = require('../../TuxedoMan.js')
+const music = require('../music.js')
 const db = require('../database.js')
 const cmd = require('../commands.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 const moment = require('moment')
 const fs = require('fs')
 const util = require('util')
@@ -16,8 +16,8 @@ module.exports = new Command(
   'Admin',
   true,
   function (msg, params) {
-    let bot = main.bot()
-    let client = db.getGuildInfo(msg.guild.id)
+    let bot = require('../../TuxedoMan.js')
+    let client = db.getClient(msg.guild.id)
     let member = msg.guild.members.find(m => m.id === bot.User.id)
     let fullParam = params.join(' ')
 
@@ -31,11 +31,11 @@ module.exports = new Command(
           promise = `${util.inspect(promise)}`
         }
         let embed = evalEmbed(fullParam, { promise: promise })
-        return func.messageHandler(new Response(msg, '', 12000, embed), client)
+        return func.messageHandler(new Response(msg, '', 120000, embed))
       })
     } catch (e) {
       let embed = evalEmbed(fullParam, { error: e.message })
-      return func.messageHandler(new Response(msg, '', 12000, embed), client)
+      return func.messageHandler(new Response(msg, '', 120000, embed))
     }
   }
 )

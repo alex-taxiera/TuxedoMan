@@ -1,6 +1,5 @@
 const moment = require('moment')
 const colors = require('colors')
-const main = require('../TuxedoMan.js')
 
 module.exports = {
   log: function (str, color, err) {
@@ -15,10 +14,9 @@ module.exports = {
     }
   },
   findChannel: function (type, guildId) {
-    const bot = main.bot()
-
+    let botChannels = require('../TuxedoMan.js').Channels
     if (type === 'text') {
-      let channels = bot.Channels.textForGuild(guildId)
+      let channels = botChannels.textForGuild(guildId)
       .filter((channel) => {
         if (module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], channel)) { return channel }
       })
@@ -26,7 +24,7 @@ module.exports = {
         return { id: channels[0].id, name: channels[0].name }
       }
     } else if (type === 'voice') {
-      let channels = bot.Channels.voiceForGuild(guildId)
+      let channels = botChannels.voiceForGuild(guildId)
       .filter((channel) => {
         if (module.exports.can(['SPEAK', 'CONNECT'], channel)) { return channel }
       })
@@ -38,24 +36,24 @@ module.exports = {
     }
     return null
   },
-  getTextChannel: function (client) {
-    let text = main.bot().Channels.get(client.text.id)
+  getTextChannel: function (id) {
+    let text = require('../TuxedoMan.js').Channels.get(require('./database').getClient(id).text.id)
     if (!module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
-      return module.exports.findChannel('text', client.guild.id)
+      return module.exports.findChannel('text', id)
     } else {
       return text
     }
   },
-  messageHandler: function (response, client) {
-    if (!response.message) { return }
-
+  messageHandler: function (response) {
+    if (!response || !response.message) { return }
+    let id = response.message.guild.id
     if (!response.embed) {
       response.message.reply(response.content)
       .then((m) => {
         setTimeout(() => { m.delete() }, response.delay)
       })
       .catch(() => {
-        let textChannel = module.exports.getTextChannel(client)
+        let textChannel = module.exports.getTextChannel(id)
         if (textChannel) {
           textChannel.sendMessage(response.content)
           .then((m) => {
@@ -69,7 +67,7 @@ module.exports = {
         setTimeout(() => { m.delete() }, response.delay)
       })
       .catch(() => {
-        let textChannel = module.exports.getTextChannel(client)
+        let textChannel = module.exports.getTextChannel(id)
         if (textChannel) {
           textChannel.sendMessage(response.content, false, response.embed)
           .then((m) => {
@@ -85,12 +83,39 @@ module.exports = {
     }
 
     return needs.every((need) => {
-      let permission = main.bot().User.permissionsFor(context)
+      let permission = require('../TuxedoMan.js').User.permissionsFor(context)
       if (context.isGuildText) {
         return permission.Text[need]
       } else if (context.isGuildVoice) {
         return permission.Voice[need]
       }
+    })
+  },
+  dmWarn: function (id, text, voice) {
+    let guild = require('../TuxedoMan.js').Guilds.get(id)
+    let owner = guild.members.find(m => m.id === guild.owner_id)
+    let str = ''
+
+    if (!text && !voice) {
+      str = 'There are no text channels or voice channels that are suitable for me! ' +
+      'I would like sending and reading permissions in a text channel and connect ' +
+      'and speak permissions in a voice channel'
+    } else if (!text) {
+      str = 'There are no text channels that are suitable for me! ' +
+      'I would like sending and reading permissions'
+    } else if (!voice) {
+      str = 'There are no voice channels that are suitable for me! ' +
+      'I would like speaking and connecting permissions'
+    }
+    owner.openDM()
+    .then(dm => {
+      dm.sendMessage(str)
+      .catch((e) => {
+        module.exports.log('cannot send dm', e)
+      })
+    })
+    .catch((e) => {
+      module.exports.log('cannot open dm', e)
     })
   }
 }
