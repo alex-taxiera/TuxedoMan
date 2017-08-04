@@ -287,7 +287,7 @@ function playNextSong (id, msg) {
       })
 
       player.encoder.play()
-      player.encoder.voiceConnection.getEncoder().setVolume(playerInfo.volume)
+      player.encoder.voiceConnection.getEncoder().setVolume(playerInfo.volume / 2)
 
       if (player.encoder.voiceConnection.channel.members.length === 1) {
         player.paused = true
