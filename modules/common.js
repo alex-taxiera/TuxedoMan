@@ -37,7 +37,7 @@ module.exports = {
     return null
   },
   getTextChannel: function (id) {
-    let text = require('../TuxedoMan.js').Channels.get(require('./database').getClient(id).text.id)
+    let text = require('../TuxedoMan.js').Channels.get(require('./database').getGuildInfo(id).text.id)
     if (!module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
       return module.exports.findChannel('text', id)
     } else {
