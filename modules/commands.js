@@ -43,7 +43,7 @@ function denyRank (msg, rank) {
 
   switch (rank) {
     case 'Anyone in Voice':
-      str = `Must be in voice chat with ${require('../TuxedoMan.js').bot.User.username}`
+      str = `Must be in voice chat with ${require('../TuxedoMan.js').User.username}`
       break
     case 'VIP':
       str = 'Must be VIP!'
@@ -65,8 +65,7 @@ async function rank (member, rank) {
 
   switch (rank) {
     case 'Anyone in Voice':
-      if (bot.User.getVoiceChannel(id)
-      .members.includes(member.id)) {
+      if (bot.User.getVoiceChannel(id).id === member.getVoiceChannel().id) {
         return true
       }
     case 'VIP':
