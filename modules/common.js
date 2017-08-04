@@ -45,14 +45,9 @@ module.exports = {
     }
   },
   messageHandler: function (response) {
-    if (!response || !response.message) { return }
-    let id = response.message.guild.id
-    if (!response.embed) {
-      response.message.reply(response.content)
-      .then((m) => {
-        setTimeout(() => { m.delete() }, response.delay)
-      })
-      .catch(() => {
+    if (response && response.message) {
+      if (typeof response.message === 'string') {
+        let id = response.message
         let textChannel = module.exports.getTextChannel(id)
         if (textChannel) {
           textChannel.sendMessage(response.content)
@@ -60,21 +55,38 @@ module.exports = {
             setTimeout(() => { m.delete() }, response.delay)
           })
         }
-      })
-    } else {
-      response.message.channel.sendMessage(response.content, false, response.embed)
-      .then((m) => {
-        setTimeout(() => { m.delete() }, response.delay)
-      })
-      .catch(() => {
-        let textChannel = module.exports.getTextChannel(id)
-        if (textChannel) {
-          textChannel.sendMessage(response.content, false, response.embed)
+      } else {
+        let id = response.message.guild.id
+        if (!response.embed) {
+          response.message.reply(response.content)
           .then((m) => {
             setTimeout(() => { m.delete() }, response.delay)
           })
+          .catch(() => {
+            let textChannel = module.exports.getTextChannel(id)
+            if (textChannel) {
+              textChannel.sendMessage(response.content)
+              .then((m) => {
+                setTimeout(() => { m.delete() }, response.delay)
+              })
+            }
+          })
+        } else {
+          response.message.channel.sendMessage(response.content, false, response.embed)
+          .then((m) => {
+            setTimeout(() => { m.delete() }, response.delay)
+          })
+          .catch(() => {
+            let textChannel = module.exports.getTextChannel(id)
+            if (textChannel) {
+              textChannel.sendMessage(response.content, false, response.embed)
+              .then((m) => {
+                setTimeout(() => { m.delete() }, response.delay)
+              })
+            }
+          })
         }
-      })
+      }
     }
   },
   can: function (needs, context) {

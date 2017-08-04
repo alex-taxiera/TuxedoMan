@@ -264,7 +264,7 @@ function playNextSong (id, msg) {
 
     let title = player.queue[0].title
     let user = player.queue[0].user
-    player.nowPlaying = { title: title, user: user }
+    player.nowPlaying = {title: title, user: user}
 
     const mp3 = `${data}${id}.mp3`
 
@@ -276,6 +276,7 @@ function playNextSong (id, msg) {
       if ((playerInfo.informNowPlaying && playerInfo.informAutoPlaying) ||
       (playerInfo.informNowPlaying && user.id !== require('../TuxedoMan.js').User.id)) {
         str = `Now playing: "${title}" (requested by ${user.username})`
+        func.messageHandler(new Response(id, str, 10000))
       }
 
       let info = require('../TuxedoMan.js').VoiceConnections.getForGuild(id)
