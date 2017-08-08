@@ -7,7 +7,6 @@ module.exports = new Command(
   'Displays the current song',
   [],
   'Anyone',
-  false,
   function (msg) {
     let str = 'Now playing: '
     str += music.np(msg.guild.id)

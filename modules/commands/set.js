@@ -8,7 +8,6 @@ module.exports = new Command(
   'Set default voice or text channel',
   [`"voice/text"`, 'channel name'],
   'VIP',
-  false,
   function (msg, params) {
     const bot = require('../../TuxedoMan.js')
     let id = msg.guild.id

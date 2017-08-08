@@ -7,7 +7,6 @@ module.exports = new Command(
   'Removes a song from the queue',
   ["Request index or 'last'"],
   'VIP',
-  false,
   function (msg, params) {
     let str = music.remove(msg.guild.id, params[0])
     return new Response(msg, str)

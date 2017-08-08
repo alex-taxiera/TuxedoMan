@@ -7,7 +7,6 @@ module.exports = new Command(
   'Set VIP role',
   ['role name'],
   'Owner',
-  false,
   function (msg, params) {
     let fullParam = params.join(' ')
     let guildInfo = db.getGuildInfo(msg.guild.id)

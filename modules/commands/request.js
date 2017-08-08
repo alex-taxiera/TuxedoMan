@@ -6,7 +6,6 @@ module.exports = new Command(
   'Adds the requested video to the playlist queue',
   ['video URL, video ID, playlist URL or alias'],
   'Anyone in Voice',
-  false,
   function (msg, params) {
     let regExp = /^.*(youtu.be\/|list=)([^#&?]*).*/
     let match = params[0].match(regExp)

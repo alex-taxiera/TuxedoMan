@@ -5,7 +5,6 @@ module.exports = new Command(
   'make your text ａｅｓｔｈｅｔｉｃ',
   [],
   'Anyone',
-  false,
   function (msg, params) {
     let str = ''
 

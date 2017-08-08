@@ -7,7 +7,6 @@ module.exports = new Command(
   'Displays the queue',
   [],
   'Anyone',
-  false,
   function (msg) {
     let str = music.getQueue(msg.guild.id)
     return new Response(msg, str)

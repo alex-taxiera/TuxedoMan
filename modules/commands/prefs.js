@@ -8,7 +8,6 @@ module.exports = new Command(
   'Display current bot preferences',
   [],
   'VIP',
-  false,
   function (msg) {
     let id = msg.guild.id
     let guildInfo = db.getGuildInfo(id)

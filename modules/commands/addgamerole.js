@@ -7,7 +7,6 @@ module.exports = new Command(
   'Add game roles',
   ['role name, should be as game appears on discord statuses'],
   'VIP',
-  false,
   function (msg, params) {
     let fullParam = params.join(' ')
     if (fullParam.length > 100) {

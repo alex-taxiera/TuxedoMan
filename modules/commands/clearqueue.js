@@ -7,7 +7,6 @@ module.exports = new Command(
   'Removes all songs from the queue',
   [],
   'VIP',
-  false,
   function (msg) {
     let str = ''
     music.clearQueue(msg.guild.id)

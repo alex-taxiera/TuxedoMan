@@ -7,7 +7,6 @@ module.exports = new Command(
   'Skips the current song',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
     let str = music.skip(msg.guild.id)
     return new Response(msg, str)

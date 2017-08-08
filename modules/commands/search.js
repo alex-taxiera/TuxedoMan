@@ -6,7 +6,6 @@ module.exports = new Command(
   'Searches for a video or playlist on YouTube and adds it to the queue',
   ['query'],
   'Anyone in Voice',
-  false,
   function (msg, params) {
     let fullParam = params.join(' ')
     return music.searchVideo(msg, fullParam)

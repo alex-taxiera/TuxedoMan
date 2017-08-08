@@ -5,7 +5,6 @@ module.exports = new Command(
   'MaKe yOur tExT sPanGe',
   [],
   'Anyone',
-  false,
   function (msg, params) {
     let fullParam = params.join(' ').toLowerCase()
     let str = ''

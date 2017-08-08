@@ -7,7 +7,6 @@ module.exports = new Command(
   'Delete current song and prevent further playback',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
     let str = music.stop(msg.guild.id)
     return new Response(msg, str)

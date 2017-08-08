@@ -7,7 +7,6 @@ module.exports = new Command(
   'Resumes paused/stopped playback',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
     let str = music.play(msg.guild.id)
 

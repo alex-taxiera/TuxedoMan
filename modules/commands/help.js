@@ -6,7 +6,6 @@ module.exports = new Command(
   'Displays this message, duh!',
   [],
   'Anyone',
-  false,
   function (msg, commands) {
     let str = 'Available commands:'
 
@@ -14,16 +13,13 @@ module.exports = new Command(
       if (!commands.hasOwnProperty(key)) {
         continue
       }
-
       let c = commands[key]
-      if (!c.hidden) {
-        str += `\n*${c.name} (${c.rank})`
+      str += `\n*${c.name} (${c.rank})`
 
-        for (let j = 0; j < c.parameters.length; j++) {
-          str += ` <${c.parameters[j]}>`
-        }
-        str += `: ${c.description}`
+      for (let j = 0; j < c.parameters.length; j++) {
+        str += ` <${c.parameters[j]}>`
       }
+      str += `: ${c.description}`
     }
 
     msg.member.openDM()

@@ -7,7 +7,6 @@ module.exports = new Command(
   'Pauses your shit',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
     let str = music.pause(msg.guild.id)
 

@@ -9,7 +9,6 @@ module.exports = new Command(
   'Toggle various settings',
   [`Alias: auto|np|autonp|gameroles|memes`],
   'VIP',
-  false,
   function (msg, params) {
     let id = msg.guild.id
     let guildInfo = db.getGuildInfo(id)

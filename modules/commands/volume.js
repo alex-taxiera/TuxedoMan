@@ -7,7 +7,6 @@ module.exports = new Command(
   'Set music volume.',
   ['number (1-200)'],
   'Anyone in Voice',
-  false,
   function (msg, params) {
     let str = music.volume(msg.guild.id, params[0])
 
