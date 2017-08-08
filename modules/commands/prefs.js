@@ -1,7 +1,6 @@
 const db = require('../database.js')
-const main = require('../../TuxedoMan.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 const moment = require('moment')
 
 module.exports = new Command(
@@ -9,13 +8,13 @@ module.exports = new Command(
   'Display current bot preferences',
   [],
   'VIP',
-  false,
   function (msg) {
-    const bot = main.bot()
-    let client = db.getGuildInfo(msg.guild.id)
-    let guild = bot.Guilds.get(client.guild.id)
-    let vipRole = getCleanVipRole(client, guild)
-    let gameRoles = getCleanGameRoles(client, guild)
+    let id = msg.guild.id
+    let guildInfo = db.getGuildInfo(id)
+    let playerInfo = db.getPlayerInfo(id)
+    let guild = require('../../TuxedoMan.js').Guilds.get(id)
+    let vipRole = getCleanVipRole(guildInfo, guild)
+    let gameRoles = getCleanGameRoles(db.getGameRolesInfo(id), guild)
 
     let embed = {
       description: ':heartbeat: [**Preferences**](https://github.com/alex-taxiera/TuxedoMan)',
@@ -26,42 +25,42 @@ module.exports = new Command(
         icon_url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
         text: 'TuxedoMan'
       },
-      fields: [{name: 'Default Text Channel', value: client.text.name},
-          {name: 'Default Voice Channel', value: client.voice.name},
+      fields: [{name: 'Default Text Channel', value: guildInfo.text.name},
+          {name: 'Default Voice Channel', value: guildInfo.voice.name},
           {name: 'VIP Role', value: vipRole},
-          {name: 'Announce Now Playing', value: client.informNowPlaying, inline: true},
-          {name: 'Announce Autoplay', value: client.informAutoPlaying, inline: true},
-          {name: 'Autoplay', value: client.autoplay, inline: true},
-          {name: 'Memes', value: client.meme, inline: true},
-          {name: 'Music Volume', value: `${client.volume * 2}`, inline: true},
+          {name: 'Announce Now Playing', value: playerInfo.informNowPlaying, inline: true},
+          {name: 'Announce Autoplay', value: playerInfo.informAutoPlaying, inline: true},
+          {name: 'Autoplay', value: playerInfo.autoplay, inline: true},
+          {name: 'Memes', value: guildInfo.meme, inline: true},
+          {name: 'Music Volume', value: `${playerInfo.volume}`, inline: true},
           {name: 'Game Roles', value: gameRoles}]
     }
     return new Response(msg, '', 25000, embed)
   }
 )
 
-function getCleanVipRole (client, guild) {
-  if (client.vip) {
-    return guild.roles.find(r => r.id === client.vip).name
+function getCleanVipRole (guildInfo, guild) {
+  if (guildInfo.vip) {
+    return guild.roles.find(r => r.id === guildInfo.vip).name
   } else {
     return 'None'
   }
 }
 
-function getCleanGameRoles (client, guild) {
+function getCleanGameRoles (gameRolesInfo, guild) {
   let gameRoles = ''
 
-  if (client.gameRoles.active) {
+  if (gameRolesInfo.active) {
     gameRoles += 'True\n'
   } else {
     gameRoles += 'False\n'
   }
 
-  client.gameRoles.roles.forEach((gameRole, index) => {
+  gameRolesInfo.roles.forEach((gameRole, index) => {
     let role = guild.roles.find(r => r.id === gameRole)
     if (role) {
       gameRoles += `"${role.name}"`
-      if (index !== (client.gameRoles.length - 1)) {
+      if (index !== (gameRolesInfo.roles.length - 1)) {
         gameRoles += ', '
       }
     }

@@ -5,38 +5,174 @@ const fs = require('fs')
 const seedrandom = require('seedrandom')
 const rng = seedrandom()
 const func = require('./common.js')
-const main = require('../TuxedoMan.js')
-const config = require('../config.json')
 const db = require('./database.js')
-const Response = require('./response.js')
+const Player = require('./classes/Player.js')
+const Response = require('./classes/Response.js')
+const data = './data/guilds/'
+
+let playerMap = new Map()
 
 module.exports = {
-  autoQueue: function (client) {
-    // get a random video
-    const playlists = config.playlists
+  map: playerMap,
+  initialize: function (guilds) {
+    guilds.forEach((guild) => {
+      playerMap.set(guild.id, new Player())
+      module.exports.checkPlayer(guild.id)
+    })
+  },
+  checkPlayer: function (id) {
+    let player = playerMap.get(id)
+    if (player.isPlaying &&
+    player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
+      player.paused = true
+      player.encoder.voiceConnection.getEncoderStream().cork()
+    } else if (!player.isPlaying &&
+    require('../TuxedoMan.js').User.getVoiceChannel(id).members.length > 1 &&
+    !player.paused) {
+      playNextSong(id)
+    }
+  },
+  play: function (id) {
+    let player = playerMap.get(id)
+    if (!player.isPlaying && player.queue.length === 0) {
+      if (player.autoplay) {
+        player.paused = false
+        module.exports.autoQueue(id)
+
+        return 'Starting!'
+      } else {
+        return 'Turn autoplay on, or use search or request to pick a song!'
+      }
+    } else if (player.paused) {
+      player.paused = false
+
+      if (player.isPlaying) {
+        player.encoder.voiceConnection.getEncoderStream().uncork()
+      }
+
+      return 'Resuming!'
+    } else {
+      return 'Playback is already running'
+    }
+  },
+  skip: function (id) {
+    let player = playerMap.get(id)
+    if (player.isPlaying) {
+      player.encoder.destroy()
+
+      return 'Skipping...'
+    } else {
+      return 'There is nothing being played.'
+    }
+  },
+  pause: function (id) {
+    let player = playerMap.get(id)
+    if (player.paused) {
+      return 'Playback is already paused!'
+    } else {
+      player.paused = true
+
+      if (player.isPlaying) {
+        player.encoder.voiceConnection.getEncoderStream().cork()
+      }
+      return 'Pausing!'
+    }
+  },
+  stop: function (id) {
+    let player = playerMap.get(id)
+
+    if (player.isPlaying) {
+      player.paused = true
+      player.encoder.destroy()
+      player.nowPlaying = {}
+
+      return 'Stopping...'
+    } else {
+      return 'Bot is not playing anything!'
+    }
+  },
+  clearQueue: function (id) {
+    let player = playerMap.get(id)
+    player.queue = []
+  },
+  getQueue: function (id) {
+    let player = playerMap.get(id)
+    if (player.queue.length === 0) {
+      return 'the queue is empty.'
+    } else {
+      let str = ''
+      for (let i = 0; i < player.queue.length; i++) {
+        // 17 because the "and more" string is 17 characters long
+        // the remaining videos in queue can never be more than max queue
+        // so compare against max queue to be safe
+        if (str.length + 17 + player.queue.length.toString().length +
+        player.queue[i].title.length + player.queue[i].user.username.length < 2000) {
+          str += `"${player.queue[i].title}" (requested by ${player.queue[i].user.username}) `
+        } else {
+          str += `\n**...and ${(player.queue.length - i - 1)} more.**`
+          break
+        }
+      }
+      return str
+    }
+  },
+  remove: function (id, index) {
+    let player = playerMap.get(id)
+
+    if (index === 'last') {
+      index = player.queue.length
+    }
+    index = parseInt(index)
+
+    if (player.queue.length === 0) {
+      return 'The queue is empty'
+    } else if (isNaN(index)) {
+      return `Argument "${index}" is not a valid index.`
+    } else if (index < 1 || index > player.queue.length) {
+      return `Cannot remove request #${index} from the queue (there are only ${player.queue.length} requests currently)`
+    } else {
+      let deleted = player.queue.splice(index - 1, 1)
+      return `Request "${deleted[0].title}" was removed from the queue.`
+    }
+  },
+  np: function (id) {
+    let player = playerMap.get(id)
+    if (player.isPlaying) {
+      return `"${player.nowPlaying.title}" (requested by ${player.nowPlaying.user.username})`
+    } else {
+      return 'nothing!'
+    }
+  },
+  autoQueue: function (id) {
+    let player = playerMap.get(id)
+    // TODO playlist overhaul
+    const playlists = './playlists/'
     const files = fs.readdirSync(playlists)
+
+    // check for playlists
     if (files.length === 0) {
-      client.autoplay = false
+      player.autoplay = false
       return func.log('no playlists', 'yellow')
     }
-
+    // get a random video
     let tmp = fs.readFileSync(`${playlists}/${files[Math.floor((rng() * files.length))]}`, 'utf-8')
     let autoplaylist = tmp.split('\n')
     let video = autoplaylist[Math.floor(rng() * autoplaylist.length)]
     ytdl.getInfo(video, [], { maxBuffer: Infinity }, (error, info) => {
       if (error) {
         func.log(null, 'red', `${video} ${error}`)
-        module.exports.autoQueue(client)
+        module.exports.autoQueue(id)
       } else {
-        client.queue.push({ title: info.title, link: video, user: main.bot().User })
-        playNextSong(client, null)
+        player.queue.push({ title: info.title, link: video, user: require('../TuxedoMan.js').User })
+        playNextSong(id)
       }
     })
   },
   addToQueue: function (video, msg, mute = false, done = false) {
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
       let str = ''
-      let client = db.getGuildInfo(msg.guild.id)
+      let id = msg.guild.id
+      let player = playerMap.get(id)
 
       if (done) {
         str = 'Playlist is queued.'
@@ -44,27 +180,37 @@ module.exports = {
         func.log(null, 'red', `${video}: ${error}`)
         str = `The requested video (${video}) does not exist or cannot be played.`
       } else {
-        client.queue.push({ title: info.title, link: video, user: msg.member })
+        player.queue.push({ title: info.title, link: video, user: msg.member })
 
         if (!mute) {
           str = `"${info.title}" has been added to the queue.`
         }
 
-        if (!client.isPlaying && client.queue.length === 1) {
-          client.paused = false
-          playNextSong(client)
+        if (!player.isPlaying && player.queue.length === 1) {
+          player.paused = false
+          playNextSong(id)
         }
       }
-      func.messageHandler(new Response(msg, str), client)
+      func.messageHandler(new Response(msg, str))
     })
   },
-  volume: function (client, vol) {
-    client.volume = vol
+  volume: function (id, vol) {
+    if (vol / 2 > 0 && vol / 2 <= 100) {
+      let player = playerMap.get(id)
+      let playerInfo = db.getPlayerInfo(id)
+      if (vol / 2 === playerInfo.volume) {
+        return 'Volume is already at that level!'
+      } else {
+        playerInfo.volume = vol
 
-    if (client.isPlaying) {
-      client.encoder.voiceConnection.getEncoder().setVolume(vol)
+        if (player.isPlaying) {
+          player.encoder.voiceConnection.getEncoder().setVolume((vol / 2))
+        }
+        return 'Volume set!'
+      }
+    } else {
+      return 'Invalid volume level!'
     }
-    db.updateGuilds(client)
   },
   searchVideo: function (msg, query) {
     ytsr.search(query, { limit: 1 }, function (err, data) {
@@ -91,66 +237,74 @@ module.exports = {
       }
 
       let str = `${playlist.title} is being queued.`
-      return func.messageHandler(new Response(msg, str), db.getGuildInfo(msg.guild.id))
+      return func.messageHandler(new Response(msg, str))
     })
+  },
+  destroy: function (id) {
+    let player = playerMap.get(id)
+    if (player.isPlaying) {
+      player.encoder.destroy()
+    }
   }
 }
 
-function playNextSong (client, msg) {
+function playNextSong (id, msg) {
+  let player = playerMap.get(id)
+  let playerInfo = db.getPlayerInfo(id)
   let str = ''
 
-  if (client.queue.length === 0) {
-    if (client.autoplay) {
-      return module.exports.autoQueue(client)
+  if (player.queue.length === 0) {
+    if (playerInfo.autoplay) {
+      return module.exports.autoQueue(id)
     } else if (msg) {
       str = 'Nothing in the queue!'
     }
   } else {
-    const bot = main.bot()
-    client.isPlaying = true
+    player.isPlaying = true
 
-    let title = client.queue[0].title
-    let user = client.queue[0].user
-    client.nowPlaying = { title: title, user: user }
+    let title = player.queue[0].title
+    let user = player.queue[0].user
+    player.nowPlaying = {title: title, user: user}
 
-    const mp3 = `${config.data}${client.guild.id}.mp3`
+    const mp3 = `${data}${id}.mp3`
 
-    let videoLink = client.queue[0].link
+    let videoLink = player.queue[0].link
     let video = ytdl(videoLink, ['--format=bestaudio/worstaudio', '--no-playlist'], {maxBuffer: Infinity})
     video.pipe(fs.createWriteStream(mp3))
 
     video.once('end', () => {
-      if ((client.informNowPlaying && client.informAutoPlaying) ||
-      (client.informNowPlaying && user.id !== bot.User.id)) {
+      if ((playerInfo.informNowPlaying && playerInfo.informAutoPlaying) ||
+      (playerInfo.informNowPlaying && user.id !== require('../TuxedoMan.js').User.id)) {
         str = `Now playing: "${title}" (requested by ${user.username})`
+        func.messageHandler(new Response(id, str, 10000))
       }
 
-      let info = bot.VoiceConnections.getForGuild(client.guild.id)
-      client.encoder = info.voiceConnection
+      let info = require('../TuxedoMan.js').VoiceConnections.getForGuild(id)
+      player.encoder = info.voiceConnection
       .createExternalEncoder({
         type: 'ffmpeg',
         source: mp3,
         format: 'pcm'
       })
 
-      client.encoder.play()
-      client.encoder.voiceConnection.getEncoder().setVolume(client.volume)
+      player.encoder.play()
+      player.encoder.voiceConnection.getEncoder().setVolume(playerInfo.volume / 2)
 
-      if (client.encoder.voiceConnection.channel.members.length === 1) {
-        client.paused = true
-        client.encoder.voiceConnection.getEncoderStream().cork()
+      if (player.encoder.voiceConnection.channel.members.length === 1) {
+        player.paused = true
+        player.encoder.voiceConnection.getEncoderStream().cork()
       }
 
-      client.encoder.once('end', () => {
-        client.isPlaying = false
-        if (!client.paused && client.queue.length !== 0) {
-          playNextSong(client, null)
-        } else if (!client.paused && client.autoplay) {
-          module.exports.autoQueue(client)
+      player.encoder.once('end', () => {
+        player.isPlaying = false
+        if (!player.paused && player.queue.length !== 0) {
+          playNextSong(id)
+        } else if (!player.paused && playerInfo.autoplay) {
+          module.exports.autoQueue(id)
         }
       })
     })
-    client.queue.splice(0, 1)
+    player.queue.splice(0, 1)
   }
-  func.messageHandler(new Response(msg, str), client)
+  func.messageHandler(new Response(msg, str))
 }

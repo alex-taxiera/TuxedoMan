@@ -1,5 +1,5 @@
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'help',
@@ -13,16 +13,13 @@ module.exports = new Command(
       if (!commands.hasOwnProperty(key)) {
         continue
       }
-
       let c = commands[key]
-      if (!c.hidden) {
-        str += `\n* ${c.name} (${c.rank})`
+      str += `\n*${c.name} (${c.rank})`
 
-        for (let j = 0; j < c.parameters.length; j++) {
-          str += ` <${c.parameters[j]}>`
-        }
-        str += `: ${c.description}`
+      for (let j = 0; j < c.parameters.length; j++) {
+        str += ` <${c.parameters[j]}>`
       }
+      str += `: ${c.description}`
     }
 
     msg.member.openDM()

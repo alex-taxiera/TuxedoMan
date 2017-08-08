@@ -1,49 +1,48 @@
 const music = require('../music.js')
 const gameRoles = require('../gameRoles.js')
-const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'toggle',
   'Toggle various settings',
   [`Alias: auto|np|autonp|gameroles|memes`],
   'VIP',
-  false,
   function (msg, params) {
-    let client = db.getGuildInfo(msg.guild.id)
+    let id = msg.guild.id
+    let guildInfo = db.getGuildInfo(id)
+    let gameRolesInfo = db.getGameRolesInfo(id)
+    let playerInfo = db.getPlayerInfo(id)
     let str = ''
+
     switch (params[0]) {
       case 'auto':
-        client.autoplay = !client.autoplay
-        if (!client.isPlaying && client.autoplay && main.bot().User.getVoiceChannel(msg.guild).members.length !== 1) {
-          client.paused = false
-          music.autoQueue(client)
-        }
-        str = `Autoplay set to ${client.autoplay}!`
+        playerInfo.autoplay = !playerInfo.autoplay
+        music.checkPlayer(id)
+        str = `Autoplay set to ${playerInfo.autoplay}!`
         break
       case 'np':
-        client.informNowPlaying = !client.informNowPlaying
-        str = `Now Playing announcements set to ${client.informNowPlaying}!`
+        playerInfo.informNowPlaying = !playerInfo.informNowPlaying
+        str = `Now Playing announcements set to ${playerInfo.informNowPlaying}!`
         break
       case 'autonp':
-        client.informAutoPlaying = !client.informAutoPlaying
-        str = `Now Playing (autoplay) announcements set to ${client.informAutoPlaying}!`
+        playerInfo.informAutoPlaying = !playerInfo.informAutoPlaying
+        str = `Now Playing (autoplay) announcements set to ${playerInfo.informAutoPlaying}!`
         break
       case 'gameroles':
-        client.gameRoles.active = !client.gameRoles.active
-        gameRoles.sweepGames(client)
-        str = `Game roles set to ${client.gameRoles.active}!`
+        gameRolesInfo.active = !gameRolesInfo.active
+        gameRoles.sweepGames(id)
+        str = `Game roles set to ${gameRolesInfo.active}!`
         break
       case 'memes':
-        client.meme = !client.meme
-        str = `Meme posting set to ${client.meme}!`
+        guildInfo.meme = !guildInfo.meme
+        str = `Meme posting set to ${guildInfo.meme}!`
         break
       default:
         str = 'Specify option to toggle!'
+        return new Response(msg, str)
     }
-    db.updateGuilds(client)
     return new Response(msg, str)
   }
 )

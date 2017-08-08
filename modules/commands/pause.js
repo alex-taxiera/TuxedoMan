@@ -1,27 +1,15 @@
-const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const music = require('../music.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'pause',
   'Pauses your shit',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
-    let client = db.getGuildInfo(msg.guild.id)
-    let str = ''
+    let str = music.pause(msg.guild.id)
 
-    if (client.paused) {
-      str = 'Playback is already paused!'
-    } else {
-      client.paused = true
-
-      if (client.isPlaying) {
-        client.encoder.voiceConnection.getEncoderStream().cork()
-      }
-      str = 'Pausing!'
-    }
     return new Response(msg, str)
   }
 )

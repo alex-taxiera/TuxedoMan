@@ -1,17 +1,15 @@
-const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const music = require('../music.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'clearqueue',
   'Removes all songs from the queue',
   [],
   'VIP',
-  false,
   function (msg) {
     let str = ''
-    let client = db.getGuildInfo(msg.guild.id)
-    client.queue = []
+    music.clearQueue(msg.guild.id)
     str = 'Queue has been cleared!'
     return new Response(msg, str)
   }

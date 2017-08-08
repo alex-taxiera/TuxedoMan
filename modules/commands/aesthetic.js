@@ -1,11 +1,10 @@
-let Command = require('./command.js')
+let Command = require('../classes/Command.js')
 
 module.exports = new Command(
   'aesthetic',
   'make your text ａｅｓｔｈｅｔｉｃ',
   [],
   'Anyone',
-  false,
   function (msg, params) {
     let str = ''
 

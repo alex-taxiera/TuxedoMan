@@ -1,18 +1,17 @@
 const func = require('../common.js')
-const main = require('../../TuxedoMan.js')
 const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'set',
   'Set default voice or text channel',
   [`"voice/text"`, 'channel name'],
   'VIP',
-  false,
   function (msg, params) {
-    const bot = main.bot()
-    let client = db.getGuildInfo(msg.guild.id)
+    const bot = require('../../TuxedoMan.js')
+    let id = msg.guild.id
+    let guildInfo = db.getGuildInfo(id)
     let str = ''
 
     let type = params[0]
@@ -22,12 +21,12 @@ module.exports = new Command(
 
     switch (type) {
       case 'text':
-        channel = bot.Channels.textForGuild(client.guild.id)
+        channel = bot.Channels.textForGuild(id)
         .find((channel) => channel.name === fullParam)
         type = false // false for text
         break
       case 'voice':
-        channel = bot.Channels.voiceForGuild(client.guild.id)
+        channel = bot.Channels.voiceForGuild(id)
         .find((channel) => channel.name === fullParam)
         type = true // true for voice
         break
@@ -37,12 +36,11 @@ module.exports = new Command(
     }
 
     if (channel) {
-      if (client.text.id !== channel.id && client.voice.id !== channel.id) {
+      if (guildInfo.text.id !== channel.id && guildInfo.voice.id !== channel.id) {
         if (!type) { // text
           if (func.can(['READ_MESSAGES'], channel)) {
             if (func.can(['SEND_MESSAGES'], channel)) {
-              client.text = {id: channel.id, name: channel.name}
-              db.updateGuilds(client)
+              guildInfo.text = {id: channel.id, name: channel.name}
 
               str = 'Default set!'
             } else {
@@ -54,8 +52,7 @@ module.exports = new Command(
         } else { // voice
           if (func.can(['CONNECT'], channel)) {
             if (func.can(['SPEAK'], channel)) {
-              client.voice = {id: channel.id, name: channel.name}
-              db.updateGuilds(client)
+              guildInfo.voice = {id: channel.id, name: channel.name}
               channel.join()
 
               str = 'Default set!'

@@ -1,24 +1,14 @@
-const db = require('../database.js')
-const Command = require('./command.js')
-const Response = require('../response.js')
+const music = require('../music.js')
+const Command = require('../classes/Command.js')
+const Response = require('../classes/Response.js')
 
 module.exports = new Command(
   'skip',
   'Skips the current song',
   [],
   'Anyone in Voice',
-  false,
   function (msg) {
-    let client = db.getGuildInfo(msg.guild.id)
-    let str = ''
-
-    if (client.isPlaying) {
-      client.encoder.destroy()
-
-      str = 'Skipping...'
-    } else {
-      str = 'There is nothing being played.'
-    }
+    let str = music.skip(msg.guild.id)
     return new Response(msg, str)
   }
 )
