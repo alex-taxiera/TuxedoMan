@@ -8,6 +8,7 @@ const gameRoles = require('./modules/gameRoles.js')
 const music = require('./modules/music.js')
 const db = require('./modules/database.js')
 const cmd = require('./modules/commands.js')
+const memes = require('./modules/memes.js')
 
 let bot = new Discordie({ autoReconnect: true })
 module.exports = bot
@@ -139,7 +140,7 @@ bot.Dispatcher.on('MESSAGE_CREATE', e => {
       cmd.handleCommand(msg, text.substring(1))
     } else if (db.getGuildInfo(msg.guild.id).meme) {
       if (func.can(['SEND_MESSAGES'], msg.channel)) {
-        cmd.handleCommand(msg, text, 'meme')
+        memes(msg, text, 'meme')
       }
     }
   }

@@ -6,34 +6,29 @@ const Response = require('./classes/Response.js')
 module.exports = {
   handleCommand: async function (msg, text, meme = false) {
     let command = ''
-    if (!meme) {
-      let params = text.split(' ')
-
-      command = commands[params[0]]
-      if (command) {
-        if (params.length - 1 < command.parameters.length) {
-          return msg.reply('Insufficient parameters!')
-          .then((m) => {
-            setTimeout(function () { m.delete() }, 10000)
-          })
+    let params = text.split(' ')
+    command = commands[params[0]]
+    if (command) {
+      if (params.length - 1 < command.parameters.length) {
+        return msg.reply('Insufficient parameters!')
+        .then((m) => {
+          setTimeout(function () { m.delete() }, 10000)
+        })
+      } else {
+        let memberRank = await rank(msg.member, command.rank)
+        if (memberRank) {
+          params.splice(0, 1)
+          if (command.name === 'help') {
+            params = commands
+          }
+          func.messageHandler(command.execute(msg, params))
         } else {
-          let memberRank = await rank(msg.member, command.rank)
-          if (memberRank) {
-            params.splice(0, 1)
-            if (command.name === 'help') {
-              params = commands
-            }
-            func.messageHandler(command.execute(msg, params))
-          } else {
-            func.messageHandler(denyRank(msg, command.rank))
-          }
-          if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
-            msg.delete()
-          }
+          func.messageHandler(denyRank(msg, command.rank))
+        }
+        if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
+          msg.delete()
         }
       }
-    } else {
-      return commands['memes'].execute(msg, text)
     }
   }
 }
