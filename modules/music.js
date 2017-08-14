@@ -13,23 +13,29 @@ const data = './data/guilds/'
 let playerMap = new Map()
 
 module.exports = {
-  map: playerMap,
   initialize: function (guilds) {
     guilds.forEach((guild) => {
       playerMap.set(guild.id, new Player())
-      module.exports.checkPlayer(guild.id)
+      module.exports.checkPlayer(guild.id, true)
     })
   },
-  checkPlayer: function (id) {
+  checkPlayer: function (id, start = false) {
+    let voiceMembers = require('../TuxedoMan.js').User.getVoiceChannel(id).members.length
     let player = playerMap.get(id)
-    if (player.isPlaying &&
-    player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
-      player.paused = true
-      player.encoder.voiceConnection.getEncoderStream().cork()
-    } else if (!player.isPlaying &&
-    require('../TuxedoMan.js').User.getVoiceChannel(id).members.length > 1 &&
-    !player.paused) {
-      playNextSong(id)
+    if (start) {
+      if (voiceMembers > 1) {
+        playNextSong(id)
+      } else {
+        player.paused = true
+      }
+    } else {
+      if (player.isPlaying &&
+      player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
+        player.paused = true
+        player.encoder.voiceConnection.getEncoderStream().cork()
+      } else if (!player.isPlaying && voiceMembers > 1 && !player.paused) {
+        playNextSong(id)
+      }
     }
   },
   play: function (id) {
