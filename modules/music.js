@@ -34,8 +34,9 @@ module.exports = {
   },
   play: function (id) {
     let player = playerMap.get(id)
+    let playerInfo = db.getPlayerInfo(id)
     if (!player.isPlaying && player.queue.length === 0) {
-      if (player.autoplay) {
+      if (playerInfo.autoplay) {
         player.paused = false
         module.exports.autoQueue(id)
 
@@ -145,13 +146,14 @@ module.exports = {
   },
   autoQueue: function (id) {
     let player = playerMap.get(id)
+    let playerInfo = db.getPlayerInfo(id)
     // TODO playlist overhaul
     const playlists = './playlists/'
     const files = fs.readdirSync(playlists)
 
     // check for playlists
     if (files.length === 0) {
-      player.autoplay = false
+      playerInfo.autoplay = false
       return func.log('no playlists', 'yellow')
     }
     // get a random video
