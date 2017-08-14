@@ -25,15 +25,17 @@ module.exports = new Command(
         icon_url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
         text: 'TuxedoMan'
       },
-      fields: [{name: 'Default Text Channel', value: guildInfo.text.name},
-          {name: 'Default Voice Channel', value: guildInfo.voice.name},
-          {name: 'VIP Role', value: vipRole},
-          {name: 'Announce Now Playing', value: playerInfo.informNowPlaying, inline: true},
-          {name: 'Announce Autoplay', value: playerInfo.informAutoPlaying, inline: true},
-          {name: 'Autoplay', value: playerInfo.autoplay, inline: true},
-          {name: 'Memes', value: guildInfo.meme, inline: true},
-          {name: 'Music Volume', value: `${playerInfo.volume}`, inline: true},
-          {name: 'Game Roles', value: gameRoles}]
+      fields: [
+        {name: 'Default Text Channel', value: guildInfo.text.name},
+        {name: 'Default Voice Channel', value: guildInfo.voice.name},
+        {name: 'VIP Role', value: vipRole},
+        {name: 'Announce Now Playing', value: playerInfo.informNowPlaying, inline: true},
+        {name: 'Announce Autoplay', value: playerInfo.informAutoPlaying, inline: true},
+        {name: 'Autoplay', value: playerInfo.autoplay, inline: true},
+        {name: 'Memes', value: guildInfo.meme, inline: true},
+        {name: 'Music Volume', value: `${playerInfo.volume}`, inline: true},
+        {name: 'Game Roles', value: gameRoles}
+      ]
     }
     return new Response(msg, '', 25000, embed)
   }
