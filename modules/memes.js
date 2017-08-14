@@ -154,8 +154,7 @@ module.exports = function (msg, text) {
   // lmao
   if (text.includes('lmao')) {
     client.lmaoCount++
-    if (client.lmaoCount > 10) {
-      client.lmaoCount = 0
+    if (client.lmaoCount % 20 === 0) {
       msg.channel.sendMessage('What the ayy did you just fucking lmao about ' +
       'me, you ayy lmao? I\'ll have you know I graduated top of my ayy in ' +
       'the Lmaos, and I\'ve been involved in numerous Lmao\'s on Ayyl-Quaeda' +
