@@ -5,7 +5,7 @@ module.exports = new Command(
   'delgamerole',
   'Delete game roles',
   ['role name'],
-  false,
+  'VIP',
   function (msg, params) {
     let fullParam = params.join(' ')
     return gameRoles.delRole(msg, fullParam)

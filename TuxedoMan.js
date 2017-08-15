@@ -78,7 +78,7 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
 })
 
 bot.Dispatcher.on('VOICE_CHANNEL_JOIN', (e) => {
-  setTimeout(() => { music.checkPlayer(e.guildId) }, 60)
+  setTimeout(() => { music.checkPlayer(e.guildId) }, 100)
 })
 
 bot.Dispatcher.on('CHANNEL_CREATE', (e) => {
@@ -102,7 +102,7 @@ bot.Dispatcher.on('CHANNEL_CREATE', (e) => {
 })
 
 bot.Dispatcher.on('CHANNEL_DELETE', (e) => {
-  db.checkChannels(e.data.guild.id, bot.Channels)
+  db.checkChannels(e.data.guild_id, bot.Channels)
 })
 
 bot.Dispatcher.on('CHANNEL_UPDATE', (e) => {

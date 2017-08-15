@@ -13,29 +13,36 @@ const data = './data/guilds/'
 let playerMap = new Map()
 
 module.exports = {
-  map: playerMap,
   initialize: function (guilds) {
     guilds.forEach((guild) => {
       playerMap.set(guild.id, new Player())
-      module.exports.checkPlayer(guild.id)
+      module.exports.checkPlayer(guild.id, true)
     })
   },
-  checkPlayer: function (id) {
+  checkPlayer: function (id, start = false) {
+    let voiceMembers = require('../TuxedoMan.js').User.getVoiceChannel(id).members.length
     let player = playerMap.get(id)
-    if (player.isPlaying &&
-    player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
-      player.paused = true
-      player.encoder.voiceConnection.getEncoderStream().cork()
-    } else if (!player.isPlaying &&
-    require('../TuxedoMan.js').User.getVoiceChannel(id).members.length > 1 &&
-    !player.paused) {
-      playNextSong(id)
+    if (start) {
+      if (voiceMembers > 1) {
+        playNextSong(id)
+      } else {
+        player.paused = true
+      }
+    } else {
+      if (player.isPlaying &&
+      player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
+        player.paused = true
+        player.encoder.voiceConnection.getEncoderStream().cork()
+      } else if (!player.isPlaying && voiceMembers > 1 && !player.paused) {
+        playNextSong(id)
+      }
     }
   },
   play: function (id) {
     let player = playerMap.get(id)
+    let playerInfo = db.getPlayerInfo(id)
     if (!player.isPlaying && player.queue.length === 0) {
-      if (player.autoplay) {
+      if (playerInfo.autoplay) {
         player.paused = false
         module.exports.autoQueue(id)
 
@@ -145,13 +152,14 @@ module.exports = {
   },
   autoQueue: function (id) {
     let player = playerMap.get(id)
+    let playerInfo = db.getPlayerInfo(id)
     // TODO playlist overhaul
     const playlists = './playlists/'
     const files = fs.readdirSync(playlists)
 
     // check for playlists
     if (files.length === 0) {
-      player.autoplay = false
+      playerInfo.autoplay = false
       return func.log('no playlists', 'yellow')
     }
     // get a random video
