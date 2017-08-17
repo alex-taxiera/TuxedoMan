@@ -160,10 +160,13 @@ function setGame () {
   let rng = seedrandom()
   let games = config.games
 
-  let game = bot.User.gameName
-  while (game === bot.User.gameName) {
-    game = games[Math.floor(rng() * games.length)]
+  let game = {
+    type: 0,
+    name: bot.User.gameName
   }
-  func.log(`playing ${game}`, 'cyan')
+  while (game.name === bot.User.gameName) {
+    game.name = games[Math.floor(rng() * games.length)]
+  }
+  func.log(`playing ${game.name}`, 'cyan')
   bot.User.setGame(game)
 }
