@@ -261,7 +261,7 @@ module.exports = function (msg, text) {
     msg.channel.uploadFile(`${images}tbc.png`)
   }
   // trap
-  if (text.includes(' trap ') || text === 'trap') {
+  if (text.includes(' trap ') || text.includes('trap!') || text === 'trap') {
     msg.channel.uploadFile(`${images}micno.jpg`)
   }
   // valor
