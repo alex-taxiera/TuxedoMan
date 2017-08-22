@@ -53,9 +53,9 @@ function getCleanGameRoles (gameRolesInfo, guild) {
   let gameRoles = ''
 
   if (gameRolesInfo.active) {
-    gameRoles += 'True\n'
+    gameRoles += 'Active\n'
   } else {
-    gameRoles += 'False\n'
+    gameRoles += 'Inactive\n'
   }
 
   gameRolesInfo.roles.forEach((gameRole, index) => {
@@ -67,5 +67,14 @@ function getCleanGameRoles (gameRolesInfo, guild) {
       }
     }
   })
+  if (gameRolesInfo.other.active) {
+    gameRoles += '\nOther Role Active\nOther Role: '
+  } else {
+    gameRoles += '\nOther Role Inactive\nOther Role: '
+  }
+  let otherRole = guild.roles.find(r => r.id === gameRolesInfo.other.role)
+  if (otherRole) {
+    gameRoles += `"${otherRole.name}"`
+  }
   return gameRoles
 }
