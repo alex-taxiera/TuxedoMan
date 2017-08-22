@@ -8,23 +8,23 @@ module.exports = {
       module.exports.sweepGames(guild.id)
     })
   },
-  checkMember: function (id, guild, member) {
+  checkMember: async function (id, guild, member) {
     let gameRolesInfo = db.getGameRolesInfo(id)
-
     if (gameRolesInfo.active) {
       let roles = gameRolesInfo.roles
-      if (member.bot) { return }
 
       let role = guild.roles.find((r) => r.name === member.previousGameName)
       if (role && roles.includes(role.id) && member.hasRole(role)) {
-        unassignRole(member, role)
+        await unassignRole(member, role)
+      } else if (!member.gameName && member.hasRole(gameRolesInfo.other.role)) {
+        await unassignRole(member, gameRolesInfo.other.role)
       }
 
       role = guild.roles.find((r) => r.name === member.gameName)
       if (role && roles.includes(role.id) && !member.hasRole(role)) {
-        assignRole(member, role)
+        await assignRole(member, role)
       } else if (gameRolesInfo.other.active && member.gameName) {
-        assignRole(member, gameRolesInfo.other.role)
+        await assignRole(member, gameRolesInfo.other.role)
       }
     }
   },
@@ -175,12 +175,12 @@ module.exports = {
   }
 }
 
-function assignRole (member, role) {
-  member.assignRole(role).catch((e) => { func.log('cannot assign role', 'red', e) })
+async function assignRole (member, role) {
+  await member.assignRole(role).catch((e) => { func.log('cannot assign role', 'red', e) })
 }
 
-function unassignRole (member, role) {
-  member.unassignRole(role).catch((e) => { func.log('cannot unassign role', 'red', e) })
+async function unassignRole (member, role) {
+  await member.unassignRole(role).catch((e) => { func.log('cannot unassign role', 'red', e) })
 }
 
 function checkOther (id, other, gameRoles) {
