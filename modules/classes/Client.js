@@ -24,7 +24,11 @@ module.exports = class Client {
       }
       this.gameRolesInfo = {
         active: false,
-        roles: []
+        roles: [],
+        other: {
+          active: false,
+          role: ''
+        }
       }
     }
     watch(this, () => {

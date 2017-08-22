@@ -35,6 +35,11 @@ module.exports = new Command(
         gameRoles.sweepGames(id)
         str = `Game roles set to ${gameRolesInfo.active}!`
         break
+      case 'gamerolesother':
+        gameRolesInfo.other.active = !gameRolesInfo.other.active
+        gameRoles.sweepGames(id)
+        str = `Other role set to ${gameRolesInfo.other.active}!`
+        break
       case 'memes':
         guildInfo.meme = !guildInfo.meme
         str = `Meme posting set to ${guildInfo.meme}!`

@@ -34,27 +34,12 @@ bot.Dispatcher.on('GUILD_ROLE_DELETE', (e) => {
     guildInfo.vip = null
   }
 
-  gameRoles.checkGameRoles(id, e.roleId)
+  gameRoles.checkRole(id, e.roleId)
 })
 
 bot.Dispatcher.on('PRESENCE_UPDATE', (e) => {
-  let id = e.guild.id
-  let gameRolesInfo = db.getGameRolesInfo(id)
-
-  if (gameRolesInfo.active) {
-    let roles = gameRolesInfo.roles
-    let member = e.member
-    if (member.bot) { return }
-
-    let role = e.guild.roles.find((r) => r.name === member.previousGameName)
-    if (role && roles.includes(role.id) && member.hasRole(role)) {
-      gameRoles.unassignRole(member, role)
-    }
-
-    role = e.guild.roles.find((r) => r.name === member.gameName)
-    if (role && roles.includes(role.id) && !member.hasRole(role)) {
-      gameRoles.assignRole(member, role)
-    }
+  if (!e.member.bot) {
+    gameRoles.checkMember(e.guild.id, e.guild, e.member)
   }
 })
 
@@ -109,12 +94,12 @@ bot.Dispatcher.on('CHANNEL_UPDATE', (e) => {
   db.checkChannels(e.channel.guild.id, bot.Channels, e.channel.id)
 })
 
-bot.Dispatcher.on('GUILD_CREATE', e => {
+bot.Dispatcher.on('GUILD_CREATE', (e) => {
   func.log(`joined ${e.guild.name} guild`, 'green')
   db.addClient(e.guild, bot.Channels)
 })
 
-bot.Dispatcher.on('GUILD_DELETE', e => {
+bot.Dispatcher.on('GUILD_DELETE', (e) => {
   let id = e.guildId
   let name = db.getClient(id).guild.name
   func.log(`left ${name} guild`, 'yellow')
@@ -131,11 +116,10 @@ bot.Dispatcher.on('GATEWAY_READY', () => {
   setTimeout(() => { music.initialize(bot.Guilds) }, 50)
 })
 
-bot.Dispatcher.on('MESSAGE_CREATE', e => {
+bot.Dispatcher.on('MESSAGE_CREATE', (e) => {
   let msg = e.message
-  let text = msg.content
-
   if (msg.member && msg.member.id !== bot.User.id) {
+    let text = msg.content
     if (text[0] === '*') {
       cmd.handleCommand(msg, text.substring(1))
     } else if (db.getGuildInfo(msg.guild.id).meme) {
@@ -160,10 +144,13 @@ function setGame () {
   let rng = seedrandom()
   let games = config.games
 
-  let game = bot.User.gameName
-  while (game === bot.User.gameName) {
-    game = games[Math.floor(rng() * games.length)]
+  let game = {
+    type: 0,
+    name: bot.User.gameName
   }
-  func.log(`playing ${game}`, 'cyan')
+  while (game.name === bot.User.gameName) {
+    game.name = games[Math.floor(rng() * games.length)]
+  }
+  func.log(`playing ${game.name}`, 'cyan')
   bot.User.setGame(game)
 }
