@@ -30,6 +30,6 @@ module.exports = new Command(
         str += fullParam[i]
       }
     }
-    msg.channel.uploadFile('./images/spange.jpg', null, str)
+    msg.channel.uploadFile('./data/images/spange.jpg', null, str)
   }
 )
