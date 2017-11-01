@@ -12,20 +12,22 @@ module.exports = {
     let gameRolesInfo = db.getGameRolesInfo(id)
     if (gameRolesInfo.active) {
       let roles = gameRolesInfo.roles
+      let userRoles = member.roles.map((role) => { return role.id })
 
       let role = guild.roles.find((r) => r.name === member.previousGameName)
-      if (role && roles.includes(role.id) && member.hasRole(role)) {
-        await unassignRole(member, role)
+      if (role && roles.includes(role.id) && member.hasRole(role.id)) {
+        userRoles = userRoles.filter((userRole) => { return userRole !== role.id })
       } else if (!member.gameName && member.hasRole(gameRolesInfo.other.role)) {
-        await unassignRole(member, gameRolesInfo.other.role)
+        userRoles = userRoles.filter((userRole) => { return userRole !== gameRolesInfo.other.role })
       }
 
       role = guild.roles.find((r) => r.name === member.gameName)
-      if (role && roles.includes(role.id) && !member.hasRole(role)) {
-        await assignRole(member, role)
+      if (role && roles.includes(role.id) && !member.hasRole(role.id)) {
+        userRoles.push(role.id)
       } else if (gameRolesInfo.other.active && member.gameName) {
-        await assignRole(member, gameRolesInfo.other.role)
+        userRoles.push(gameRolesInfo.other.role)
       }
+      member.setRoles(userRoles)
     }
   },
   checkRole: function (id, roleId) {
