@@ -220,13 +220,24 @@ module.exports = {
     }
   },
   searchVideo: function (msg, query) {
+    let str = ''
     ytsr.search(query, { limit: 1 }, function (err, data) {
-      if (err) { throw err }
-
-      if (data.items[0].type === 'playlist') {
-        return module.exports.queuePlaylist(data.items[0].link, msg)
-      } else if (data.items[0].type === 'video') {
-        return module.exports.addToQueue(data.items[0].link, msg)
+      if (!err) {
+        if (data.items.length !== 0) {
+          if (data.items[0].type === 'playlist') {
+            return module.exports.queuePlaylist(data.items[0].link, msg)
+          } else if (data.items[0].type === 'video') {
+            return module.exports.addToQueue(data.items[0].link, msg)
+          }
+        } else {
+          func.log('no video results', 'yellow')
+          str = 'Could not find any results!'
+          return func.messageHandler(new Response(msg, str))
+        }
+      } else {
+        func.log(null, 'red', err)
+        str = 'Error finding video!'
+        return func.messageHandler(new Response(msg, str))
       }
     })
   },
