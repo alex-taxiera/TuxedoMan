@@ -10,8 +10,13 @@ module.exports = {
   },
   checkMember: function (id, guild, member) {
     let gameRolesInfo = db.getGameRolesInfo(id)
-    if (gameRolesInfo.active) {
+    if (gameRolesInfo.active && member.previousGameName !== member.gameName) {
       let roles = gameRolesInfo.roles
+<<<<<<< HEAD
+      func.log('user presence update', 'yellow')
+      console.log(member.nick)
+=======
+>>>>>>> 87057c287a5031b577cd095e6cc10d0f3d9bc72a
       func.log('previous user game', 'green')
       console.log(member.previousGameName)
       func.log('current user game', 'green')
