@@ -11,22 +11,20 @@ module.exports = {
   checkMember: function (id, guild, member) {
     let gameRolesInfo = db.getGameRolesInfo(id)
     if (gameRolesInfo.active && member.previousGameName !== member.gameName) {
-      let roles = gameRolesInfo.roles
+      let gameRoles = gameRolesInfo.roles
+      let other = gameRolesInfo.other
+      // let user roles be all the roles that are not 'game roles'
       let userRoles = member.roles.map((role) => { return role.id })
+      .filter((role) => {
+        return !gameRoles.includes(role) && role !== other.role
+      })
 
-      let role = guild.roles.find((r) => r.name === member.previousGameName)
-      if (role && roles.includes(role.id) && member.hasRole(role.id)) {
-        userRoles = userRoles.filter((userRole) => { return userRole !== role.id })
-      }
-      if (member.previousGameName && member.hasRole(gameRolesInfo.other.role)) {
-        userRoles = userRoles.filter((userRole) => { return userRole !== gameRolesInfo.other.role })
-      }
-
-      role = guild.roles.find((r) => r.name === member.gameName)
-      if (role && roles.includes(role.id) && !member.hasRole(role.id)) {
+      // add proper game role if found, or other role if active
+      let role = guild.roles.find((r) => r.name === member.gameName)
+      if (role && gameRoles.includes(role.id)) {
         userRoles.push(role.id)
-      } else if (gameRolesInfo.other.active && member.gameName) {
-        userRoles.push(gameRolesInfo.other.role)
+      } else if (other.active && member.gameName) {
+        userRoles.push(other.role)
       }
 
       member.setRoles(userRoles)
