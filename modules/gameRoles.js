@@ -12,45 +12,22 @@ module.exports = {
     let gameRolesInfo = db.getGameRolesInfo(id)
     if (gameRolesInfo.active && member.previousGameName !== member.gameName) {
       let roles = gameRolesInfo.roles
-      func.log('user presence update', 'yellow')
-      console.log(member.nick)
-      func.log('previous user game', 'green')
-      console.log(member.previousGameName)
-      func.log('current user game', 'green')
-      console.log(member.gameName)
-      func.log('current game roles', 'green')
-      guild.roles.forEach((role) => { if (roles.includes(role.id)) { console.log(role.name) } })
-
       let userRoles = member.roles.map((role) => { return role.id })
-      func.log('current user roles', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
 
       let role = guild.roles.find((r) => r.name === member.previousGameName)
-      if (role) { func.log('previous game match', 'green') }
       if (role && roles.includes(role.id) && member.hasRole(role.id)) {
-        func.log(`filtering ${role.name}`, 'yellow')
         userRoles = userRoles.filter((userRole) => { return userRole !== role.id })
       }
       if (member.previousGameName && member.hasRole(gameRolesInfo.other.role)) {
-        func.log('filtering other role', 'yellow')
         userRoles = userRoles.filter((userRole) => { return userRole !== gameRolesInfo.other.role })
       }
 
-      func.log('user roles after filters', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
-
       role = guild.roles.find((r) => r.name === member.gameName)
-      if (role) { func.log('current game match', 'green') }
       if (role && roles.includes(role.id) && !member.hasRole(role.id)) {
-        func.log(`pushing ${role.name}`, 'yellow')
         userRoles.push(role.id)
       } else if (gameRolesInfo.other.active && member.gameName) {
-        func.log('pushing other role', 'yellow')
         userRoles.push(gameRolesInfo.other.role)
       }
-
-      func.log('user roles after pushes', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
 
       member.setRoles(userRoles)
     }
