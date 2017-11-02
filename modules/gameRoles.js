@@ -30,7 +30,8 @@ module.exports = {
       if (role && roles.includes(role.id) && member.hasRole(role.id)) {
         func.log(`filtering ${role.name}`, 'yellow')
         userRoles = userRoles.filter((userRole) => { return userRole !== role.id })
-      } else if (!member.gameName && member.hasRole(gameRolesInfo.other.role)) {
+      }
+      if (member.previousGameName && member.hasRole(gameRolesInfo.other.role)) {
         func.log('filtering other role', 'yellow')
         userRoles = userRoles.filter((userRole) => { return userRole !== gameRolesInfo.other.role })
       }
