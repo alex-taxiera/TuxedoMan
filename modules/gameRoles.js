@@ -131,7 +131,8 @@ module.exports = {
         gameRolesInfo.roles[i] = null
       }
     })
-    gameRolesInfo.roles = gameRolesInfo.roles.filter((role) => {
+    gameRolesInfo.roles = gameRolesInfo.roles
+    .filter((role) => {
       return role !== null
     })
     if (!guild.roles.find((role) => role.id === gameRolesInfo.other.role)) {
@@ -178,11 +179,13 @@ module.exports = {
 }
 
 async function assignRole (member, role) {
-  await member.assignRole(role).catch((e) => { func.log('cannot assign role', 'red', e) })
+  await member.assignRole(role)
+  .catch((e) => { func.log('cannot assign role', 'red', e) })
 }
 
 async function unassignRole (member, role) {
-  await member.unassignRole(role).catch((e) => { func.log('cannot unassign role', 'red', e) })
+  await member.unassignRole(role)
+  .catch((e) => { func.log('cannot unassign role', 'red', e) })
 }
 
 function checkOther (id, other, gameRoles) {
