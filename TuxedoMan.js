@@ -56,7 +56,7 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
     if (!e.newChannelId) {
       let voiceChannel = bot.Channels.get(e.channelId)
       voiceChannel.join(voiceChannel)
-      .then(() => { music.checkPlayer(e.guildId) })
+      .then(() => { music.checkPlayer(id) })
       .catch((e) => { func.log(null, 'red', e) })
     }
   } else {
@@ -65,22 +65,23 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
 })
 
 bot.Dispatcher.on('CHANNEL_CREATE', (e) => {
-  let ch = e.channel
-  if (!ch.guild) { return }
-  let id = ch.guild.id
-  let guildInfo = db.getGuildInfo(id)
-  let text = guildInfo.text
-  let voice = guildInfo.voice
+  if (e.channel.guild) {
+    let ch = e.channel
+    let id = ch.guild.id
+    let guildInfo = db.getGuildInfo(id)
+    let text = guildInfo.text
+    let voice = guildInfo.voice
 
-  if (!text || !voice) {
-    if (ch.type === 0 && !text &&
-    func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
-      guildInfo.text = { id: ch.id, name: ch.name }
-    } else if (ch.type === 2 && !voice &&
-    func.can(['SPEAK', 'CONNECT'], ch)) {
-      ch.join()
-      .then(() => { music.checkPlayer(e.guildId) })
-      guildInfo.voice = { id: ch.id, name: ch.name }
+    if (!text || !voice) {
+      if (ch.type === 0 && !text &&
+      func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
+        guildInfo.text = { id: ch.id, name: ch.name }
+      } else if (ch.type === 2 && !voice &&
+      func.can(['SPEAK', 'CONNECT'], ch)) {
+        ch.join()
+        .then(() => { music.checkPlayer(id) })
+        guildInfo.voice = { id: ch.id, name: ch.name }
+      }
     }
   }
 })

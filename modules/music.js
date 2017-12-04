@@ -29,7 +29,8 @@ module.exports = {
       }
     } else {
       if (player.isPlaying &&
-      player.encoder.voiceConnection.channel.members.length === 1 && !player.paused) {
+      player.encoder.voiceConnection.channel.members.length === 1 &&
+      !player.paused) {
         player.paused = true
         player.encoder.voiceConnection.getEncoderStream().cork()
       } else if (!player.isPlaying && voiceMembers > 1 && !player.paused) {

@@ -9,86 +9,56 @@ module.exports = {
     })
   },
   checkMember: function (id, guild, member) {
-    let gameRolesInfo = db.getGameRolesInfo(id)
-    if (gameRolesInfo.active && member.previousGameName !== member.gameName) {
-      let roles = gameRolesInfo.roles
-      func.log('user presence update', 'yellow')
-      console.log(member.nick)
-      func.log('previous user game', 'green')
-      console.log(member.previousGameName)
-      func.log('current user game', 'green')
-      console.log(member.gameName)
-      func.log('current game roles', 'green')
-      guild.roles.forEach((role) => { if (roles.includes(role.id)) { console.log(role.name) } })
-
+    let { active, roles, other } = db.getGameRolesInfo(id)
+    if (active && member.previousGameName !== member.gameName) {
+      // let user roles be all the roles that are not 'game roles'
       let userRoles = member.roles.map((role) => { return role.id })
-      func.log('current user roles', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
+      .filter((role) => {
+        return !roles.includes(role) && role !== other.role
+      })
 
-      let role = guild.roles.find((r) => r.name === member.previousGameName)
-      if (role) { func.log('previous game match', 'green') }
-      if (role && roles.includes(role.id) && member.hasRole(role.id)) {
-        func.log(`filtering ${role.name}`, 'yellow')
-        userRoles = userRoles.filter((userRole) => { return userRole !== role.id })
-      }
-      if (member.previousGameName && member.hasRole(gameRolesInfo.other.role)) {
-        func.log('filtering other role', 'yellow')
-        userRoles = userRoles.filter((userRole) => { return userRole !== gameRolesInfo.other.role })
-      }
-
-      func.log('user roles after filters', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
-
-      role = guild.roles.find((r) => r.name === member.gameName)
-      if (role) { func.log('current game match', 'green') }
-      if (role && roles.includes(role.id) && !member.hasRole(role.id)) {
-        func.log(`pushing ${role.name}`, 'yellow')
+      // add proper game role if found, or other role if active
+      let role = guild.roles.find((r) => r.name === member.gameName)
+      if (role && roles.includes(role.id)) {
         userRoles.push(role.id)
-      } else if (gameRolesInfo.other.active && member.gameName) {
-        func.log('pushing other role', 'yellow')
-        userRoles.push(gameRolesInfo.other.role)
+      } else if (other.active && member.gameName) {
+        userRoles.push(other.role)
       }
-
-      func.log('user roles after pushes', 'green')
-      guild.roles.forEach((role) => { if (userRoles.includes(role.id)) { console.log(role.name) } })
 
       member.setRoles(userRoles)
     }
   },
   checkRole: function (id, roleId) {
-    let gameRolesInfo = db.getGameRolesInfo(id)
-    if (gameRolesInfo.roles.includes(roleId)) {
-      gameRolesInfo.roles.splice(gameRolesInfo.roles.indexOf(roleId), 1)
-    } else if (gameRolesInfo.other.role === roleId) {
-      gameRolesInfo.other.active = false
-      gameRolesInfo.other.role = ''
+    let { roles, other } = db.getGameRolesInfo(id)
+    if (roles.includes(roleId)) {
+      roles.splice(roles.indexOf(roleId), 1)
+    } else if (other.role === roleId) {
+      other.active = false
+      other.role = ''
     }
   },
   addRole: async function (msg, fullParam, addOther = false) {
     let id = msg.guild.id
-    let gameRolesInfo = db.getGameRolesInfo(id)
-    let gameRoles = gameRolesInfo.roles
-    let active = gameRolesInfo.active
-    let other = gameRolesInfo.other
+    let { active, roles, other } = db.getGameRolesInfo(id)
     let str = ''
 
     let exists = msg.guild.roles.find((r) => r.name === fullParam)
     if (exists) {
       if (addOther) {
         if (other.role !== exists.id) {
-          gameRolesInfo.other.role = exists.id
+          other.role = exists.id
           if (other.active) {
-            checkOther(id, gameRolesInfo.other, gameRolesInfo.roles)
+            checkOther(id, other, roles)
           }
           str = `"${fullParam}" set to other role!`
         } else {
           str = `"${fullParam}" already added!`
         }
       } else {
-        if (!gameRoles.find((r) => r === exists.id)) {
-          gameRolesInfo.roles.push(exists.id)
+        if (!roles.find((r) => r === exists.id)) {
+          roles.push(exists.id)
           if (active) {
-            checkGame(id, gameRoles, exists.id)
+            checkGame(id, roles, exists.id)
           }
           str = `"${fullParam}" added!`
         } else {
@@ -101,14 +71,14 @@ module.exports = {
         return role.commit(fullParam, 0, true)
         .then(() => {
           if (addOther) {
-            gameRolesInfo.other.role = role.id
-            if (gameRolesInfo.other.active) {
+            other.role = role.id
+            if (other.active) {
               module.exports.sweepGames(id)
             }
           } else {
-            gameRolesInfo.roles.push(role.id)
+            roles.push(role.id)
             if (active) {
-              checkGame(id, gameRoles, role.id)
+              checkGame(id, roles, role.id)
             }
           }
           return `"${fullParam}" created and added!`
@@ -124,19 +94,17 @@ module.exports = {
   },
   delRole: function (msg, fullParam) {
     let id = msg.guild.id
-    let gameRolesInfo = db.getGameRolesInfo(id)
-    let gameRoles = gameRolesInfo.roles
-    let active = gameRolesInfo.active
+    let { active, roles } = db.getGameRolesInfo(id)
     let str = ''
 
     let role = msg.guild.roles.find((r) => r.name === fullParam)
     if (role) {
-      let index = gameRoles.findIndex((r) => r === role.id)
+      let index = roles.findIndex((r) => r === role.id)
       if (index > -1) {
-        gameRolesInfo.roles.splice(index, 1)
+        roles.splice(index, 1)
         str = `"${fullParam} removed!"`
         if (active) {
-          checkGame(id, gameRoles, role.id)
+          checkGame(id, roles, role.id)
         }
       } else {
         str = `"${fullParam}" not in list!`
@@ -149,28 +117,23 @@ module.exports = {
   sweepGames: function (id) {
     let guild = require('../TuxedoMan.js').Guilds.get(id)
     let members = guild.members
-    let gameRolesInfo = db.getGameRolesInfo(id)
+    let { active, roles, other } = db.getGameRolesInfo(id)
 
-    gameRolesInfo.roles.forEach((gameRole, i) => {
-      if (!guild.roles.find((r) => r.id === gameRole)) {
-        gameRolesInfo.roles[i] = null
-      }
+    roles = roles.filter((role) => {
+      return guild.roles.find((r) => r.id === role)
     })
-    gameRolesInfo.roles = gameRolesInfo.roles.filter((role) => {
-      return role !== null
-    })
-    if (!guild.roles.find((role) => role.id === gameRolesInfo.other.role)) {
-      gameRolesInfo.other.active = false
-      gameRolesInfo.other.role = ''
+    if (!guild.roles.find((role) => role.id === other.role)) {
+      other.active = false
+      other.role = ''
     }
 
-    if (!gameRolesInfo.active) {
+    if (!active) {
       members.forEach((member) => {
         if (!member.bot) {
-          if (member.hasRole(gameRolesInfo.other.role)) {
-            unassignRole(member, gameRolesInfo.other.role)
+          if (member.hasRole(other.role)) {
+            unassignRole(member, other.role)
           }
-          gameRolesInfo.roles.forEach((gameRole, i) => {
+          roles.forEach((gameRole, i) => {
             if (member.hasRole(gameRole)) {
               unassignRole(member, gameRole)
             }
@@ -180,21 +143,21 @@ module.exports = {
     } else {
       members.forEach((member) => {
         if (!member.bot) {
-          gameRolesInfo.roles.forEach((gameRole, i) => {
+          roles.forEach((gameRole, i) => {
             let role = guild.roles.find((r) => r.id === gameRole)
             if (!member.hasRole(role) && member.gameName === role.name) {
               assignRole(member, role)
-              if (member.hasRole(gameRolesInfo.other.role)) {
-                unassignRole(member, gameRolesInfo.other.role)
+              if (member.hasRole(other.role)) {
+                unassignRole(member, other.role)
               }
             } else if (member.hasRole(role) && member.gameName !== role.name) {
               unassignRole(member, role)
             }
           })
-          if (gameRolesInfo.other.active && member.gameName) {
-            assignRole(member, gameRolesInfo.other.role)
-          } else if (member.hasRole(gameRolesInfo.other.role) && !member.gameName) {
-            unassignRole(member, gameRolesInfo.other.role)
+          if (other.active && member.gameName) {
+            assignRole(member, other.role)
+          } else if (member.hasRole(other.role) && !member.gameName) {
+            unassignRole(member, other.role)
           }
         }
       })
@@ -203,11 +166,13 @@ module.exports = {
 }
 
 async function assignRole (member, role) {
-  await member.assignRole(role).catch((e) => { func.log('cannot assign role', 'red', e) })
+  await member.assignRole(role)
+  .catch((e) => { func.log('cannot assign role', 'red', e) })
 }
 
 async function unassignRole (member, role) {
-  await member.unassignRole(role).catch((e) => { func.log('cannot unassign role', 'red', e) })
+  await member.unassignRole(role)
+  .catch((e) => { func.log('cannot unassign role', 'red', e) })
 }
 
 function checkOther (id, other, gameRoles) {
