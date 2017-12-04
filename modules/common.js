@@ -18,7 +18,9 @@ module.exports = {
     if (type === 'text') {
       let channels = botChannels.textForGuild(guildId)
       .filter((channel) => {
-        if (module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], channel)) { return channel }
+        if (module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], channel)) {
+          return channel
+        }
       })
       if (channels[0]) {
         return { id: channels[0].id, name: channels[0].name }
@@ -26,62 +28,66 @@ module.exports = {
     } else if (type === 'voice') {
       let channels = botChannels.voiceForGuild(guildId)
       .filter((channel) => {
-        if (module.exports.can(['SPEAK', 'CONNECT'], channel)) { return channel }
+        if (module.exports.can(['SPEAK', 'CONNECT'], channel)) {
+          return channel
+        }
       })
 
       if (channels[0]) {
         channels[0].join()
+        .then(() => { require('./music.js').checkPlayer(guildId) })
         return { id: channels[0].id, name: channels[0].name }
       }
     }
     return null
   },
   getTextChannel: function (id) {
-    let text = require('../TuxedoMan.js').Channels.get(require('./database').getGuildInfo(id).text.id)
+    let text = require('../TuxedoMan.js').Channels
+              .get(require('./database').getGuildInfo(id).text.id)
     if (!module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
       return module.exports.findChannel('text', id)
     } else {
       return text
     }
   },
-  messageHandler: function (response) {
-    if (response && response.message) {
-      if (typeof response.message === 'string') {
-        let id = response.message
+  messageHandler: function (res) {
+    if (res && res.message) {
+      if (typeof res.message === 'string') {
+        let id = res.message
         let textChannel = module.exports.getTextChannel(id)
         if (textChannel) {
-          textChannel.sendMessage(response.content)
+          textChannel.sendMessage(res.content)
           .then((m) => {
-            setTimeout(() => { m.delete() }, response.delay)
+            setTimeout(() => { m.delete() }, res.delay)
           })
         }
       } else {
-        let id = response.message.guild.id
-        if (!response.embed) {
-          response.message.reply(response.content)
+        let id = res.message.guild.id
+        if (!res.embed) {
+          res.message.reply(res.content)
           .then((m) => {
-            setTimeout(() => { m.delete() }, response.delay)
+            setTimeout(() => { m.delete() }, res.delay)
           })
           .catch(() => {
             let textChannel = module.exports.getTextChannel(id)
             if (textChannel) {
-              textChannel.sendMessage(response.content)
+              textChannel.sendMessage(res.content)
               .then((m) => {
-                setTimeout(() => { m.delete() }, response.delay)
+                setTimeout(() => { m.delete() }, res.delay)
               })
             }
           })
         } else {
-          response.message.channel.sendMessage(response.content, false, response.embed)
+          res.message.channel.sendMessage(res.content, false, res.embed)
           .then((m) => {
-            setTimeout(() => { m.delete() }, response.delay)
+            setTimeout(() => { m.delete() }, res.delay)
           })
           .catch(() => {
             let textChannel = module.exports.getTextChannel(id)
             if (textChannel) {
-              textChannel.sendMessage(response.content, false, response.embed)
+              textChannel.sendMessage(res.content, false, res.embed)
               .then((m) => {
-                setTimeout(() => { m.delete() }, response.delay)
+                setTimeout(() => { m.delete() }, res.delay)
               })
             }
           })
