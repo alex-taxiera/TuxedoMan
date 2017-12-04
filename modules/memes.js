@@ -39,10 +39,6 @@ module.exports = function (msg, text) {
   if (text.includes(' bb ') || text === 'bb') {
     msg.channel.sendMessage('Big Brother is watching™')
   }
-  // black
-  if (text.includes(' black ') || text === 'black') {
-    msg.channel.sendMessage("'I hate black people, I swear' ~Fig 2016")
-  }
   // blueberry
   if (text.includes(' blueberry pie ') || text === 'blueberry pie') {
     msg.channel.sendMessage('BLUEBERRY FUCKING PIE? WHAT KIND OF FILTHY, ' +
@@ -100,11 +96,6 @@ module.exports = function (msg, text) {
     msg.channel.sendMessage('But now, Gwilith was dead. His world had turned ' +
     'into his worst enemy, and now the only thing he knew was the wind. This was ' +
     'the beginning of Embargo. This was the beginning of the end. <@185936558036090880>')
-  }
-  // fig
-  if (text.includes(' fig ') || text === 'fig') {
-    msg.channel.sendMessage('WHAT WOULD FIG DO!')
-    msg.channel.sendMessage("'I hate black people, I swear' ~Fig 2016")
   }
   // gg
   if (text.includes(' gg ') || text === 'gg') {
