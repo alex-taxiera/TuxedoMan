@@ -56,7 +56,7 @@ bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
     if (!e.newChannelId) {
       let voiceChannel = bot.Channels.get(e.channelId)
       voiceChannel.join(voiceChannel)
-      .then(() => { music.checkPlayer(e.guildId) })
+      .then(() => { music.checkPlayer(id) })
       .catch((e) => { func.log(null, 'red', e) })
     }
   } else {
