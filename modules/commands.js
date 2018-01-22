@@ -16,7 +16,7 @@ module.exports = {
         })
       } else {
         let perm = permissions[command.perm]
-        if (allow(perm, msg)) {
+        if (await allow(perm, msg)) {
           params.splice(0, 1)
           if (command.name === 'help') {
             params = commands
@@ -33,12 +33,12 @@ module.exports = {
   }
 }
 
-function allow (perm, msg) {
+async function allow (perm, msg) {
   let info = db.getGuildInfo(msg.channel.guild.id)
   let member = msg.member
   let keys = Object.keys(permissions)
   for (let i = keys.indexOf(perm.name); i < keys.length; i++) {
-    if (permissions[keys[i]].check(info, member, msg)) {
+    if (await permissions[keys[i]].check(info, member, msg)) {
       return true
     }
   }
