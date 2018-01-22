@@ -9,20 +9,20 @@ module.exports = new Command(
   [],
   'VIP',
   function (msg) {
-    let id = msg.guild.id
+    let id = msg.channel.guild.id
     let guildInfo = db.getGuildInfo(id)
     let playerInfo = db.getPlayerInfo(id)
-    let guild = require('../../TuxedoMan.js').Guilds.get(id)
+    let guild = require('../../TuxedoMan.js').guilds.get(id)
     let vipRole = getCleanVipRole(guildInfo, guild)
     let gameRoles = getCleanGameRoles(db.getGameRolesInfo(id), guild)
 
     let embed = {
       description: ':heartbeat: [**Preferences**](https://github.com/alex-taxiera/TuxedoMan)',
-      thumbnail: {url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png'},
+      thumbnail: { url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/master/data/images/tuxedoman.png' },
       timestamp: moment(),
       color: 0x3498db,
       footer: {
-        icon_url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/indev/images/tuxedoman.png',
+        icon_url: 'https://raw.githubusercontent.com/alex-taxiera/TuxedoMan/master/data/images/tuxedoman.png',
         text: 'TuxedoMan'
       },
       fields: [

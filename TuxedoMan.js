@@ -1,156 +1,142 @@
-const Discordie = require('discordie')
-const seedrandom = require('seedrandom')
+const Eris = require('eris')
+const rng = require('seedrandom')()
 
 // project modules
 const config = require('./config.json')
-const func = require('./modules/common.js')
-const gameRoles = require('./modules/gameRoles.js')
-const music = require('./modules/music.js')
-const db = require('./modules/database.js')
-const cmd = require('./modules/commands.js')
-const memes = require('./modules/memes.js')
+const { common, gameRoles, music, database, commands, memes } = require('./modules')
 
-let bot = new Discordie({ autoReconnect: true })
+const tok = config.token
+if (tok !== '') {
+  var bot = new Eris(tok)
+  bot.connect()
+} else {
+  common.log('no token', 'red')
+}
+
 module.exports = bot
 
-// connect bot
-start()
-
-// randomly select a game every 12 hours
-setInterval(function () { setGame() }, 43200000) // 43200000
-
 // events
-bot.Dispatcher.on('GUILD_MEMBER_UPDATE', (e) => {
-  if (e.member.id === bot.User.id) {
-    db.checkChannels(e.member.guild.id, bot.Channels)
+bot.on('guildMemberUpdate', (guild, member) => {
+  if (member.id === bot.user.id) {
+    database.checkChannels(guild)
   }
 })
 
-bot.Dispatcher.on('GUILD_ROLE_DELETE', (e) => {
-  let id = e.guild.id
-  let guildInfo = db.getGuildInfo(id)
+bot.on('guildRoleDelete', (guild, role) => {
+  let id = guild.id
+  let vip = database.getGuildInfo(id).vip
 
-  if (e.roleId === guildInfo.vip) {
-    guildInfo.vip = null
-  }
-
-  gameRoles.checkRole(id, e.roleId)
-})
-
-bot.Dispatcher.on('PRESENCE_UPDATE', (e) => {
-  if (!e.member.bot) {
-    gameRoles.checkMember(e.guild.id, e.guild, e.member)
-  }
-})
-
-bot.Dispatcher.on('DISCONNECTED', (e) => {
-  func.log('disconnected', 'red', `${e.error}\nRECONNECT DELAY: ${e.delay}`)
-})
-
-bot.Dispatcher.on('VOICE_CHANNEL_LEAVE', (e) => {
-  let id = e.guildId
-
-  if (e.user.id === bot.User.id) {
-    func.log(`left channel ${e.channel.name}`, 'yellow')
-
-    if (!e.newChannelId) {
-      let voiceChannel = bot.Channels.get(e.channelId)
-      voiceChannel.join(voiceChannel)
-      .then(() => { music.checkPlayer(id) })
-      .catch((e) => { func.log(null, 'red', e) })
-    }
+  if (role.id === vip) {
+    vip = null
   } else {
-    music.checkPlayer(id)
+    gameRoles.checkRole(id, role.id)
   }
 })
 
-bot.Dispatcher.on('CHANNEL_CREATE', (e) => {
-  if (e.channel.guild) {
-    let ch = e.channel
-    let id = ch.guild.id
-    let guildInfo = db.getGuildInfo(id)
+bot.on('presenceUpdate', (member, old) => {
+  if (!member.bot) {
+    gameRoles.checkMember(member.guild.id, member.guild, member, old.game)
+  }
+})
+
+bot.on('disconnect', () => {
+  common.log('disconnected', 'red')
+})
+
+bot.on('error', (e) => {
+  common.log('error', 'red', e.message)
+})
+
+bot.on('voiceChannelSwitch', (member, newChannel, oldChannel) => {
+  let guild = member.guild
+  if (member.id === bot.user.id) {
+    common.log(`switched from ${oldChannel.name} to ${newChannel.name}`, 'yellow')
+
+    let voiceChannel = bot.Channels.get(newChannel.id)
+    voiceChannel.join(voiceChannel)
+    .then(() => { music.checkPlayer(guild) })
+    .catch((e) => { common.log(null, 'red', e) })
+  } else {
+    music.checkPlayer(guild)
+  }
+})
+
+bot.on('voiceChannelLeave', (member, channel) => {
+  if (member.id === bot.user.id) {
+    common.log(`left channel ${channel.name}`, 'yellow')
+  } else {
+    music.checkPlayer(member.guild)
+  }
+})
+
+bot.on('channelCreate', (channel) => {
+  if (channel.guild) {
+    let ch = channel
+    let guildInfo = database.getGuildInfo(ch.guild.id)
     let text = guildInfo.text
     let voice = guildInfo.voice
 
     if (!text || !voice) {
       if (ch.type === 0 && !text &&
-      func.can(['SEND_MESSAGES', 'READ_MESSAGES'], ch)) {
+      common.can(['sendMessages', 'readMessages'], ch)) {
         guildInfo.text = { id: ch.id, name: ch.name }
       } else if (ch.type === 2 && !voice &&
-      func.can(['SPEAK', 'CONNECT'], ch)) {
+      common.can(['voiceSpeak', 'voiceConnect'], ch)) {
         ch.join()
-        .then(() => { music.checkPlayer(id) })
+        .then(() => { music.checkPlayer(ch.guild) })
         guildInfo.voice = { id: ch.id, name: ch.name }
       }
     }
   }
 })
 
-bot.Dispatcher.on('CHANNEL_DELETE', (e) => {
-  db.checkChannels(e.data.guild_id, bot.Channels)
+bot.on('channelDelete', (channel) => {
+  database.checkChannels(channel.guild)
 })
 
-bot.Dispatcher.on('CHANNEL_UPDATE', (e) => {
-  db.checkChannels(e.channel.guild.id, bot.Channels, e.channel.id)
+bot.on('channelUpdate', (channel) => {
+  database.checkChannels(channel.guild, channel.id)
 })
 
-bot.Dispatcher.on('GUILD_CREATE', (e) => {
-  func.log(`joined ${e.guild.name} guild`, 'green')
-  db.addClient(e.guild, bot.Channels)
+bot.on('guildCreate', (guild) => {
+  common.log(`joined ${guild.name} guild`, 'green')
+  database.addClient(guild)
 })
 
-bot.Dispatcher.on('GUILD_DELETE', (e) => {
-  let id = e.guildId
-  let name = db.getClient(id).guild.name
-  func.log(`left ${name} guild`, 'yellow')
+bot.on('guildDelete', (guild) => {
+  let id = guild.id
+  common.log(`left ${guild.name} guild`, 'yellow')
 
   music.destroy(id)
-  db.removeClient(id)
+  database.removeClient(id)
 })
 
-bot.Dispatcher.on('GATEWAY_READY', () => {
-  func.log('online', 'green')
+bot.on('ready', () => {
+  common.log('online', 'green')
   setGame()
-  music.initialize(bot.Guilds)
-  db.initialize(bot.Guilds, bot.Channels)
-  gameRoles.initialize(bot.Guilds)
+  music.initialize(bot.guilds)
+  database.initialize(bot.guilds)
+  gameRoles.initialize(bot.guilds)
 })
 
-bot.Dispatcher.on('MESSAGE_CREATE', (e) => {
-  let msg = e.message
-  if (msg.member && msg.member.id !== bot.User.id) {
+bot.on('messageCreate', (msg) => {
+  if (msg.member && msg.member.id !== bot.user.id) {
     let text = msg.content
     if (text[0] === '*') {
-      cmd.handleCommand(msg, text.substring(1))
-    } else if (db.getGuildInfo(msg.guild.id).meme) {
-      if (func.can(['SEND_MESSAGES'], msg.channel)) {
-        memes(msg, text, 'meme')
+      commands.handleCommand(msg, text.substring(1))
+    } else if (database.getGuildInfo(msg.channel.guild.id).meme) {
+      if (common.can(['sendMessages'], msg.channel)) {
+        memes(msg, text)
       }
     }
   }
 })
 
 // helpers
-function start () {
-  const tok = config.token
-  if (tok !== '') {
-    bot.connect({ token: tok })
-  } else {
-    func.log('no token', 'red')
-  }
-}
-
 function setGame () {
-  let rng = seedrandom()
   let games = config.games
-
-  let game = {
-    type: 0,
-    name: bot.User.gameName
-  }
-  while (game.name === bot.User.gameName) {
-    game.name = games[Math.floor(rng() * games.length)]
-  }
-  func.log(`playing ${game.name}`, 'cyan')
-  bot.User.setGame(game)
+  let name = games[Math.floor(rng() * games.length)]
+  common.log(`playing ${name}`, 'cyan')
+  bot.editStatus('online', { name })
+  setTimeout(() => { setGame() }, 43200000) // 43200000
 }

@@ -2,9 +2,9 @@ const Permission = require('../classes/Permission.js')
 const Response = require('../classes/Response.js')
 
 module.exports = new Permission(
-  'VIP',
+  'Owner',
   function (info, member, msg) {
-    if (member.guild.isOwner(member)) {
+    if (member.id === member.guild.ownerID) {
       return true
     }
     return false

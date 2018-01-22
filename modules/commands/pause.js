@@ -8,7 +8,7 @@ module.exports = new Command(
   [],
   'Anyone in Voice',
   function (msg) {
-    let str = music.pause(msg.guild.id)
+    let str = music.pause(msg.channel.guild.id)
 
     return new Response(msg, str)
   }

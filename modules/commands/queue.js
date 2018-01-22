@@ -8,7 +8,7 @@ module.exports = new Command(
   [],
   'Anyone',
   function (msg) {
-    let str = music.getQueue(msg.guild.id)
+    let str = music.getQueue(msg.channel.guild.id)
     return new Response(msg, str)
   }
 )

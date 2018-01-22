@@ -9,7 +9,7 @@ module.exports = new Command(
   'VIP',
   function (msg) {
     let str = ''
-    music.clearQueue(msg.guild.id)
+    music.clearQueue(msg.channel.guild.id)
     str = 'Queue has been cleared!'
     return new Response(msg, str)
   }

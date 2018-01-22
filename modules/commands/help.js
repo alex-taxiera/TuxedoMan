@@ -14,7 +14,7 @@ module.exports = new Command(
         continue
       }
       let c = commands[key]
-      str += `\n*${c.name} (${c.rank})`
+      str += `\n*${c.name} (${c.perm})`
 
       for (let j = 0; j < c.parameters.length; j++) {
         str += ` <${c.parameters[j]}>`
@@ -22,9 +22,15 @@ module.exports = new Command(
       str += `: ${c.description}`
     }
 
-    msg.member.openDM()
+    msg.author.getDMChannel()
     .then(dm => {
-      dm.sendMessage(str)
+      dm.createMessage(str)
+      .catch((e) => {
+        module.exports.log('cannot send dm', e)
+      })
+    })
+    .catch((e) => {
+      module.exports.log('cannot open dm', e)
     })
 
     let retStr = 'Command list sent!'

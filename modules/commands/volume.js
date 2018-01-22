@@ -8,7 +8,7 @@ module.exports = new Command(
   ['number (1-200)'],
   'Anyone in Voice',
   function (msg, params) {
-    let str = music.volume(msg.guild.id, params[0])
+    let str = music.volume(msg.channel.guild.id, params[0])
 
     return new Response(msg, str)
   }

@@ -6,7 +6,7 @@ const data = './data/guilds/'
 let clientMap = new Map()
 
 module.exports = {
-  initialize: function (guilds, channels) {
+  initialize: function (guilds) {
     let saves = fs.readdirSync(data).filter((file) => {
       return file.slice(-5) === '.json'
     })
@@ -22,8 +22,8 @@ module.exports = {
         let saveData = JSON.parse(fs.readFileSync(file(save)))
         let savedGuild = saveData.guildInfo
         if (savedGuild.text) {
-          let text = channels.get(savedGuild.text.id)
-          if (text && func.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
+          let text = guild.channels.get(savedGuild.text.id)
+          if (text && func.can(['sendMessages', 'readMessages'], text)) {
             tmp.text = { id: text.id, name: text.name }
           } else {
             tmp.text = func.findChannel('text', guild.id)
@@ -33,10 +33,10 @@ module.exports = {
         }
 
         if (savedGuild.voice) {
-          let voice = channels.get(savedGuild.voice.id)
-          if (voice && func.can(['SPEAK', 'CONNECT'], voice)) {
+          let voice = guild.channels.get(savedGuild.voice.id)
+          if (voice && func.can(['voiceSpeak', 'voiceConnect'], voice)) {
             voice.join()
-            .then(() => { require('./music.js').checkPlayer(guild.id, true) })
+            .then(() => { require('./music.js').checkPlayer(guild, true) })
             tmp.voice = { id: voice.id, name: voice.name }
           } else {
             tmp.voice = func.findChannel('voice', guild.id)
@@ -65,12 +65,12 @@ module.exports = {
 
     guilds.forEach((guild) => {
       if (!clientMap.get(guild.id)) {
-        add(guild, channels)
+        add(guild)
       }
     })
   },
-  addClient: function (guild, channels) {
-    add(guild, channels)
+  addClient: function (guild) {
+    add(guild)
   },
   removeClient: function (id) {
     remove(id)
@@ -90,18 +90,19 @@ module.exports = {
   getPlayerInfo: function (id) {
     return clientMap.get(id).playerInfo
   },
-  checkChannels: function (id, channels, channelId) {
+  checkChannels: function (guild, channelId) {
+    let id = guild.id
     let guildInfo = clientMap.get(id).guildInfo
     let textId = guildInfo.text.id
     let voiceId = guildInfo.voice.id
 
     if (!channelId || channelId === textId || channelId === voiceId) {
       if (!textId ||
-      (textId && !func.can(['SEND_MESSAGES', 'READ_MESSAGES'], channels.get(textId)))) {
+      (textId && !func.can(['sendMessages', 'readMessages'], guild.channels.get(textId)))) {
         // cannot use current default text channel
         guildInfo.text = func.findChannel('text', id)
       } else if (!voiceId ||
-      (voiceId && !func.can(['SPEAK', 'CONNECT'], channels.get(voiceId)))) {
+      (voiceId && !func.can(['voiceSpeak', 'voiceConnect'], guild.channels.get(voiceId)))) {
         // cannot use current default voice channel
         guildInfo.voice = func.findChannel('voice', id)
       } else {
@@ -112,15 +113,15 @@ module.exports = {
   }
 }
 
-function add (guild, channels) {
+function add (guild) {
   let tmp = {}
   tmp.guild = { id: guild.id, name: guild.name }
   tmp.text = func.findChannel('text', guild.id)
   tmp.voice = func.findChannel('voice', guild.id)
 
   if (tmp.voice) {
-    channels.get(tmp.voice.id).join()
-    .then(() => { require('./music.js').checkPlayer(guild.id, true) })
+    guild.channels.get(tmp.voice.id).join()
+    .then(() => { require('./music.js').checkPlayer(guild, true) })
   }
   if (!tmp.text || !tmp.voice) {
     func.dmWarn(guild, tmp.text, tmp.voice)

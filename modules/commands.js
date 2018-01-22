@@ -4,13 +4,13 @@ const permissions = require('./permissions/')
 const db = require('./database.js')
 
 module.exports = {
-  handleCommand: function (msg, text) {
+  handleCommand: async function (msg, text) {
     let command = ''
     let params = text.split(' ')
     command = commands[params[0]]
     if (command) {
       if (params.length - 1 < command.parameters.length) {
-        msg.reply('Insufficient parameters!')
+        msg.channel.createMessage(msg.author.mention + ' insufficient parameters!')
         .then((m) => {
           setTimeout(function () { m.delete() }, 10000)
         })
@@ -21,11 +21,11 @@ module.exports = {
           if (command.name === 'help') {
             params = commands
           }
-          func.messageHandler(command.execute(msg, params))
+          func.messageHandler(await command.execute(msg, params))
         } else {
           func.messageHandler(perm.deny(msg))
         }
-        if (func.can(['MANAGE_MESSAGES'], msg.channel)) {
+        if (func.can(['manageMessages'], msg.channel)) {
           msg.delete()
         }
       }
@@ -34,7 +34,7 @@ module.exports = {
 }
 
 function allow (perm, msg) {
-  let info = db.getGuildInfo(msg.guild.id)
+  let info = db.getGuildInfo(msg.channel.guild.id)
   let member = msg.member
   let keys = Object.keys(permissions)
   for (let i = keys.indexOf(perm.name); i < keys.length; i++) {

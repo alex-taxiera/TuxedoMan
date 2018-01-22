@@ -1,3 +1,5 @@
+const fs = require('fs')
+const { common } = require('../')
 const Command = require('../classes/Command.js')
 
 module.exports = new Command(
@@ -30,6 +32,14 @@ module.exports = new Command(
         str += fullParam[i]
       }
     }
-    msg.channel.uploadFile('./data/images/spange.jpg', null, str)
+    const name = 'spange.jpg'
+    fs.readFile(`./data/images/${name}`, (err, file) => {
+      if (err) {
+        common.log('error reading file', 'red', err)
+      } else {
+        const image = { file, name }
+        msg.channel.createMessage(str, image)
+      }
+    })
   }
 )

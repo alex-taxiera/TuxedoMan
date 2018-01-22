@@ -10,7 +10,7 @@ module.exports = new Command(
   'VIP',
   function (msg, params) {
     const bot = require('../../TuxedoMan.js')
-    let id = msg.guild.id
+    let id = msg.channel.guild.id
     let guildInfo = db.getGuildInfo(id)
     let str = ''
 
@@ -21,9 +21,9 @@ module.exports = new Command(
 
     switch (option) {
       case 'vip':
-        let role = msg.guild.roles.find(r => r.name === fullParam)
+        let role = msg.channel.guild.roles.find(r => r.name === fullParam)
         if (role) {
-          if (role !== guildInfo.vip) {
+          if (role.id !== guildInfo.vip) {
             guildInfo.vip = role.id
             str = 'VIP set!'
           } else {
@@ -36,12 +36,13 @@ module.exports = new Command(
       case 'other':
         return require('../gameRoles.js').addRole(msg, fullParam, true)
       case 'text':
-        channel = bot.Channels.textForGuild(id)
+        channel = bot.guilds.get(id).channels
+        .filter((ch) => { return ch.type === 0 })
         .find((channel) => channel.name === fullParam)
         if (channel) {
           if (guildInfo.text.id !== channel.id) {
-            if (func.can(['READ_MESSAGES'], channel)) {
-              if (func.can(['SEND_MESSAGES'], channel)) {
+            if (func.can(['readMessages'], channel)) {
+              if (func.can(['sendMessages'], channel)) {
                 guildInfo.text = {id: channel.id, name: channel.name}
                 str = 'Default set!'
               } else {
@@ -58,21 +59,22 @@ module.exports = new Command(
         }
         break
       case 'voice':
-        channel = bot.Channels.voiceForGuild(id)
+        channel = bot.guilds.get(id).channels
+        .filter((ch) => { return ch.type === 2 })
         .find((channel) => channel.name === fullParam)
         if (channel) {
           if (guildInfo.text.id !== channel.id) {
-            if (func.can(['CONNECT'], channel)) {
-              if (func.can(['SPEAK'], channel)) {
+            if (func.can(['voiceConnect'], channel)) {
+              if (func.can(['voiceSpeak'], channel)) {
                 guildInfo.voice = {id: channel.id, name: channel.name}
                 channel.join()
-                .then(() => { require('./music.js').checkPlayer(id) })
+                .then(() => { require('./music.js').checkPlayer(channel.guild) })
                 str = 'Default set!'
               } else {
-                str = 'Cannot speak in that channel!'
+                str = 'Cannot voiceSpeak in that channel!'
               }
             } else {
-              str = 'Cannot connect to that channel!'
+              str = 'Cannot voiceConnect to that channel!'
             }
           } else {
             str = 'Already default channel!'

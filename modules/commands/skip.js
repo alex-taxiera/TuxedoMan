@@ -8,7 +8,7 @@ module.exports = new Command(
   [],
   'Anyone in Voice',
   function (msg) {
-    let str = music.skip(msg.guild.id)
+    let str = music.skip(msg.channel.guild.id)
     return new Response(msg, str)
   }
 )

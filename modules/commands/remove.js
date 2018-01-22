@@ -8,7 +8,7 @@ module.exports = new Command(
   ["Request index or 'last'"],
   'VIP',
   function (msg, params) {
-    let str = music.remove(msg.guild.id, params[0])
+    let str = music.remove(msg.channel.guild.id, params[0])
     return new Response(msg, str)
   }
 )

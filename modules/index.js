@@ -1,0 +1,6 @@
+module.exports.common = require('./common.js')
+module.exports.commands = require('./commands.js')
+module.exports.database = require('./database.js')
+module.exports.gameRoles = require('./gameRoles.js')
+module.exports.memes = require('./memes.js')
+module.exports.music = require('./music.js')

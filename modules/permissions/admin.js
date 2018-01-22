@@ -2,11 +2,11 @@ const Permission = require('../classes/Permission.js')
 const Response = require('../classes/Response.js')
 
 module.exports = new Permission(
-  'VIP',
+  'Admin',
   function (info, member, msg) {
-    require('../../TuxedoMan.js').User.getApplication()
-    .then((admin) => {
-      if (member.id === admin.owner.id) {
+    require('../../TuxedoMan.js').getOAuthApplication()
+    .then((app) => {
+      if (member.id === app.owner.id) {
         return true
       } else {
         return false
@@ -14,7 +14,7 @@ module.exports = new Permission(
     })
   },
   function (msg) {
-    let str = 'Must be guild owner!'
+    let str = 'Must be bot owner!'
     return new Response(msg, str)
   }
 )

@@ -9,7 +9,7 @@ module.exports = new Command(
   'Anyone',
   function (msg) {
     let str = 'Now playing: '
-    str += music.np(msg.guild.id)
+    str += music.np(msg.channel.guild.id)
     return new Response(msg, str)
   }
 )

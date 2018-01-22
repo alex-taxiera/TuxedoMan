@@ -7,19 +7,17 @@ const Response = require('../classes/Response.js')
 module.exports = new Command(
   'toggle',
   'Toggle various settings',
-  [`Alias: auto|np|autonp|gameroles|memes`],
+  [`Alias: auto|np|autonp|gameroles|gamrolesother|memes`],
   'VIP',
   function (msg, params) {
-    let id = msg.guild.id
-    let guildInfo = db.getGuildInfo(id)
-    let gameRolesInfo = db.getGameRolesInfo(id)
-    let playerInfo = db.getPlayerInfo(id)
+    let id = msg.channel.guild.id
+    let { guildInfo, playerInfo, gameRolesInfo } = db.getClient(id)
     let str = ''
 
     switch (params[0]) {
       case 'auto':
         playerInfo.autoplay = !playerInfo.autoplay
-        music.checkPlayer(id)
+        music.checkPlayer(msg.channel.guild)
         str = `Autoplay set to ${playerInfo.autoplay}!`
         break
       case 'np':

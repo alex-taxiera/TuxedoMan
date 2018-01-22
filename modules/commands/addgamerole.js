@@ -7,13 +7,14 @@ module.exports = new Command(
   'Add game roles',
   ['role name, should be as game appears on discord statuses'],
   'VIP',
-  function (msg, params) {
+  async function (msg, params) {
     let fullParam = params.join(' ')
+    let str
     if (fullParam.length > 100) {
-      let str = 'Role name is too long!'
-      return new Response(msg, str)
+      str = 'Role name is too long!'
     } else {
-      return gameRoles.addRole(msg, fullParam)
+      str = await gameRoles.addRole(msg, fullParam)
     }
+    return new Response(msg, str)
   }
 )

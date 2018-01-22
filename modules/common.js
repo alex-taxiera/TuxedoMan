@@ -14,37 +14,33 @@ module.exports = {
     }
   },
   findChannel: function (type, guildId) {
-    let botChannels = require('../TuxedoMan.js').Channels
+    let botChannels = require('../TuxedoMan.js').guilds.get(guildId).channels
     if (type === 'text') {
-      let channels = botChannels.textForGuild(guildId)
+      let channels = botChannels.filter((ch) => { return ch.type === 0 })
       .filter((channel) => {
-        if (module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], channel)) {
-          return channel
-        }
+        return module.exports.can(['sendMessages', 'readMessages'], channel)
       })
       if (channels[0]) {
         return { id: channels[0].id, name: channels[0].name }
       }
     } else if (type === 'voice') {
-      let channels = botChannels.voiceForGuild(guildId)
+      let channels = botChannels.filter((ch) => { return ch.type === 2 })
       .filter((channel) => {
-        if (module.exports.can(['SPEAK', 'CONNECT'], channel)) {
-          return channel
-        }
+        return module.exports.can(['voiceSpeak', 'voiceConnect'], channel)
       })
 
       if (channels[0]) {
         channels[0].join()
-        .then(() => { require('./music.js').checkPlayer(guildId) })
+        .then(() => { require('./music.js').checkPlayer(channels[0].guild) })
         return { id: channels[0].id, name: channels[0].name }
       }
     }
     return null
   },
   getTextChannel: function (id) {
-    let text = require('../TuxedoMan.js').Channels
-              .get(require('./database').getGuildInfo(id).text.id)
-    if (!module.exports.can(['SEND_MESSAGES', 'READ_MESSAGES'], text)) {
+    let text = require('../TuxedoMan.js')
+              .getChannel(require('./database').getGuildInfo(id).text.id)
+    if (!module.exports.can(['sendMessages', 'readMessages'], text)) {
       return module.exports.findChannel('text', id)
     } else {
       return text
@@ -52,47 +48,41 @@ module.exports = {
   },
   messageHandler: function (res) {
     if (res && res.message) {
+      /*
       if (typeof res.message === 'string') {
         let id = res.message
         let textChannel = module.exports.getTextChannel(id)
         if (textChannel) {
-          textChannel.sendMessage(res.content)
+          textChannel.createMessage(res.content)
           .then((m) => {
-            setTimeout(() => { m.delete() }, res.delay)
+            setTimeout(m.delete, res.delay)
           })
         }
       } else {
-        let id = res.message.guild.id
-        if (!res.embed) {
-          res.message.reply(res.content)
+      */
+      let id = res.message.channel.guild.id
+      let content
+      if (res.content.embed) {
+        let embed = res.content.embed
+        let string = res.message.author.mention + res.content.string
+        content = { string, embed }
+      } else {
+        content = `${res.message.author.mention}, ${res.content}`
+      }
+      res.message.channel.createMessage(content)
+      .then((m) => {
+        setTimeout(() => { m.delete() }, res.delay)
+      })
+      .catch(() => {
+        let textChannel = module.exports.getTextChannel(id)
+        if (textChannel) {
+          textChannel.createMessage(content)
           .then((m) => {
             setTimeout(() => { m.delete() }, res.delay)
-          })
-          .catch(() => {
-            let textChannel = module.exports.getTextChannel(id)
-            if (textChannel) {
-              textChannel.sendMessage(res.content)
-              .then((m) => {
-                setTimeout(() => { m.delete() }, res.delay)
-              })
-            }
-          })
-        } else {
-          res.message.channel.sendMessage(res.content, false, res.embed)
-          .then((m) => {
-            setTimeout(() => { m.delete() }, res.delay)
-          })
-          .catch(() => {
-            let textChannel = module.exports.getTextChannel(id)
-            if (textChannel) {
-              textChannel.sendMessage(res.content, false, res.embed)
-              .then((m) => {
-                setTimeout(() => { m.delete() }, res.delay)
-              })
-            }
           })
         }
-      }
+      })
+      // }
     }
   },
   can: function (needs, context) {
@@ -101,23 +91,17 @@ module.exports = {
     }
 
     return needs.every((need) => {
-      let permission = require('../TuxedoMan.js').User.permissionsFor(context)
-      if (context.isGuildText) {
-        return permission.Text[need]
-      } else if (context.isGuildVoice) {
-        return permission.Voice[need]
-      }
+      return context.permissionsOf(require('../TuxedoMan.js').user.id).has(need)
     })
   },
-  dmWarn: function (id, text, voice) {
-    let guild = require('../TuxedoMan.js').Guilds.get(id)
-    let owner = guild.members.find(m => m.id === guild.owner_id)
+  dmWarn: function (guild, text, voice) {
+    let owner = guild.members.get(guild.ownerID)
     let str = ''
 
     if (!text && !voice) {
       str = 'There are no text channels or voice channels that are suitable for me! ' +
-      'I would like sending and reading permissions in a text channel and connect ' +
-      'and speak permissions in a voice channel'
+      'I would like sending and reading permissions in a text channel and voiceConnect ' +
+      'and voiceSpeak permissions in a voice channel'
     } else if (!text) {
       str = 'There are no text channels that are suitable for me! ' +
       'I would like sending and reading permissions'
@@ -125,9 +109,9 @@ module.exports = {
       str = 'There are no voice channels that are suitable for me! ' +
       'I would like speaking and connecting permissions'
     }
-    owner.openDM()
+    owner.user.getDMChannel()
     .then(dm => {
-      dm.sendMessage(str)
+      dm.createMessage(str)
       .catch((e) => {
         module.exports.log('cannot send dm', e)
       })

@@ -1,12 +1,15 @@
 module.exports = class Response {
-  constructor (message, content, delay, embed) {
+  constructor (message, string, delay, embed) {
     this.message = message
-    this.content = content
+    if (embed) {
+      this.content = { string, embed }
+    } else {
+      this.content = string
+    }
     if (delay) {
       this.delay = delay
     } else {
       this.delay = 10000
     }
-    this.embed = embed
   }
 }

@@ -18,8 +18,10 @@ module.exports = {
       playerMap.set(guild.id, new Player())
     })
   },
-  checkPlayer: function (id, start = false) {
-    let voiceMembers = require('../TuxedoMan.js').User.getVoiceChannel(id).members.length
+  checkPlayer: function (guild, start = false) {
+    let bot = require('../TuxedoMan.js')
+    let id = guild.id
+    let voiceMembers = guild.channels.get(bot.voiceConnections.get(id).channelID).voiceMembers.length
     let player = playerMap.get(id)
     if (start) {
       if (voiceMembers > 1) {
@@ -29,7 +31,7 @@ module.exports = {
       }
     } else {
       if (player.isPlaying &&
-      player.encoder.voiceConnection.channel.members.length === 1 &&
+      player.encoder.voiceConnection.channel.voiceMembers.length === 1 &&
       !player.paused) {
         player.paused = true
         player.encoder.voiceConnection.getEncoderStream().cork()
@@ -171,7 +173,7 @@ module.exports = {
         func.log(null, 'red', `${video} ${error}`)
         module.exports.autoQueue(id)
       } else {
-        player.queue.push({ title: info.title, link: video, user: require('../TuxedoMan.js').User })
+        player.queue.push({ title: info.title, link: video, user: require('../TuxedoMan.js').user })
         playNextSong(id)
       }
     })
@@ -179,7 +181,7 @@ module.exports = {
   addToQueue: function (video, msg, mute = false, done = false) {
     ytdl.getInfo(video, [], {maxBuffer: Infinity}, (error, info) => {
       let str = ''
-      let id = msg.guild.id
+      let id = msg.channel.guild.id
       let player = playerMap.get(id)
 
       if (done) {
@@ -293,12 +295,12 @@ function playNextSong (id, msg) {
 
     video.once('end', () => {
       if ((playerInfo.informNowPlaying && playerInfo.informAutoPlaying) ||
-      (playerInfo.informNowPlaying && user.id !== require('../TuxedoMan.js').User.id)) {
+      (playerInfo.informNowPlaying && user.id !== require('../TuxedoMan.js').user.id)) {
         str = `Now playing: "${title}" (requested by ${user.username})`
         func.messageHandler(new Response(id, str, 10000))
       }
 
-      let info = require('../TuxedoMan.js').VoiceConnections.getForGuild(id)
+      let info = require('../TuxedoMan.js').voiceConnections.get(id)
       player.encoder = info.voiceConnection
       .createExternalEncoder({
         type: 'ffmpeg',
@@ -308,8 +310,8 @@ function playNextSong (id, msg) {
 
       player.encoder.play()
       player.encoder.voiceConnection.getEncoder().setVolume(playerInfo.volume / 2)
-
-      if (player.encoder.voiceConnection.channel.members.length === 1) {
+      console.log('play')
+      if (player.encoder.voiceConnection.channel.voiceMembers.length === 1) {
         player.paused = true
         player.encoder.voiceConnection.getEncoderStream().cork()
       }

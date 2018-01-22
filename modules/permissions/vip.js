@@ -4,7 +4,7 @@ const Response = require('../classes/Response.js')
 module.exports = new Permission(
   'VIP',
   function (info, member, msg) {
-    if (info.vip && member.hasRole(info.vip)) {
+    if (info.vip && member.roles.includes(info.vip)) {
       return true
     }
     return false

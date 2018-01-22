@@ -17,6 +17,6 @@ module.exports = new Command(
         str += fullParam[i]
       }
     }
-    msg.channel.sendMessage(str)
+    msg.channel.createMessage(str)
   }
 )
