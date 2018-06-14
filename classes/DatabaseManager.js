@@ -35,7 +35,6 @@ class DatabaseManager {
    * @return {(Number|undefined)}    Returns 0 on success or undefined.
    */
   async addClient (id) {
-    if (await this._select({ table: 'guild_settings', columns: 'id', where: { id } })) return
     return this._insert({ table: 'guild_settings', data: { id } })
       .then(() => { this._insert({ table: 'guild_toggles', data: { id } }) })
   }
@@ -79,7 +78,6 @@ class DatabaseManager {
   async initialize (guilds) {
     let tmpGuilds = new Map(guilds)
     const saved = await this._select({ table: 'guild_settings' })
-    // console.log
     if (saved.length > 0) {
       for (let i = 0; i < saved.length; i++) {
         const id = saved[i].id
