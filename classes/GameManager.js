@@ -106,7 +106,7 @@ class GameManager {
   }
   _clearRole (guild, role) {
     guild.members.forEach((member) => {
-      if (!member.roles.includes(role.id)) return
+      if (member.bot || !member.roles.includes(role.id)) return
       this._removeRole(member, role.id)
       const { gameRole } = this._findOtherRoles(guild.roles)
       if (member.game) this._addRole(member, gameRole.id)
@@ -131,7 +131,7 @@ class GameManager {
   }
   _setRole (guild, role) {
     guild.members.forEach((member) => {
-      if (!member.game || member.game.name !== role.name) return
+      if (member.bot || !member.game || member.game.name !== role.name) return
       const { gameRole } = this._findOtherRoles(guild.roles)
       if (member.roles.includes(gameRole.id)) this._removeRole(member, gameRole.id)
       this._addRole(member, role.id)
