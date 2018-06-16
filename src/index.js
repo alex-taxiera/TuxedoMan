@@ -6,11 +6,10 @@ const path = require('path')
 const bot = new DataClient(config)
 
 /* call start function for an async wrapper */
-start()
-  .then(() => {
-    /* log bot into Discord */
-    bot.connect()
-  })
+start().then(() => {
+  /* log bot into Discord */
+  bot.connect()
+})
 
 async function start () {
   /* set up database */
