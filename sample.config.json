@@ -16,7 +16,7 @@
     }
   },
   "ROLES": {
-    "otherRole": "Other Games",
+    "gameRole": "Other Games",
     "listenRole": "Listening",
     "watchRole": "Watching",
     "streamRole": "Streaming"
