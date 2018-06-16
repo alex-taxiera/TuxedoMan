@@ -58,6 +58,11 @@ class DatabaseManager {
     return this._get({ table: 'guild_settings', where: { id } })
   }
 
+  /**
+   * Get data on a guild from the guild_toggles table
+   * @param  {String} id The ID of the guild.
+   * @return {Object}    The guild data.
+   */
   getToggles (id) {
     return this._get({ table: 'guild_toggles', where: { id } })
   }
@@ -238,9 +243,11 @@ class DatabaseManager {
   /**
    * Get the first entry from a table matching a condition.
    * @private
-   * @param  {String} table The name of the table to get from.
-   * @param  {Object} where The column names and values to match.
-   * @return {Object}       The first matching row.
+   * @param   {Object}            data               The query data.
+   * @param   {String}            data.table         The name of the table.
+   * @param   {(String[]|String)} [data.columns='*'] The column(s) to select.
+   * @param   {Object}            [data.where=true]  The column names and values to match.
+   * @return  {Object}                               The first matching row.
    */
   async _get ({ table, columns = '*', where = true }) {
     return (await this._select({ table, columns, limit: 1, where }))[0]

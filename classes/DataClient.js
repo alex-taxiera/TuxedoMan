@@ -57,6 +57,10 @@ class DataClient extends require('eris') {
      * @type {DatabaseManager}
      */
     this.dbm = new DatabaseManager(config.DB_CREDENTIALS, Logger)
+    /**
+     * The GameManager.
+     * @type {GameManager}
+     */
     this.gm = new GameManager(config.ROLES, Logger)
     /**
      * The Status handler.
