@@ -1,9 +1,9 @@
-const DataClient = require('./classes/DataClient.js')
+const TuxedoMan = require('./TuxedoMan/TuxedoMan.js')
 const { readdir } = require('fs').promises
 const config = require('./config.json')
 const path = require('path')
 
-const bot = new DataClient(config)
+const bot = new TuxedoMan(config)
 
 /* call start function for an async wrapper */
 start().then(() => {
