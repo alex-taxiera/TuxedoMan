@@ -73,7 +73,7 @@ class GameManager {
       this._addTrackedRole(bot, guild, trackedRoles, role)
       return `"${fullParam}" added to tracking list!`
     }
-    const newRole = this._createRole(guild, fullParam)
+    const newRole = await this._createRole(guild, fullParam)
     if (!newRole) return `Could not create role "${fullParam}"`
     this._addTrackedRole(bot, guild, trackedRoles, newRole)
     return `"${fullParam}" created and added to tracking list!`
@@ -91,7 +91,7 @@ class GameManager {
     return `"${fullParam}" removed!`
   }
 
-  updateTrackedRoles (bot, id, trackedRoles) {
+  async updateTrackedRoles (bot, id, trackedRoles) {
     return bot.dbm.updateSettings(id, { trackedRoles: JSON.stringify(trackedRoles) })
   }
   /* private */
@@ -100,7 +100,7 @@ class GameManager {
     this.updateTrackedRoles(bot, guild.id, trackedRoles)
     this._setRole(guild, role)
   }
-  _addRole (member, id) {
+  async _addRole (member, id) {
     return member.addRole(id)
       .catch(this._logger.error)
   }
@@ -112,7 +112,7 @@ class GameManager {
       if (member.game) this._addRole(member, gameRole.id)
     })
   }
-  _createRole (guild, name) {
+  async _createRole (guild, name) {
     return guild.createRole({ name, hoist: true })
       .catch(this._logger.error)
   }
@@ -137,7 +137,7 @@ class GameManager {
       this._addRole(member, role.id)
     })
   }
-  _removeRole (member, id) {
+  async _removeRole (member, id) {
     return member.removeRole(id)
       .catch(this._logger.error)
   }
