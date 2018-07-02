@@ -17,7 +17,7 @@ module.exports = (bot) => new Command(
 
       const trackedRoles = await bot.gm.getTrackedRoles(bot, guild.id)
       const trackedGames = trackedRoles.length > 0
-        ? trackedRoles.map((id) => guild.roles.has(id) ? guild.roles.get(id).name : null).join('\n')
+        ? trackedRoles.map((id) => guild.roles.get(id).name).join('\n')
         : 'None'
 
       const vipRole = bot.guilds.get(guild.id).roles.get(vip)
