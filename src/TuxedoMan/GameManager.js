@@ -1,3 +1,4 @@
+// test
 class GameManager {
   constructor (ROLES, Logger) {
     this._logger = new Logger()
