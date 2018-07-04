@@ -57,9 +57,9 @@ class GameManager {
   }
 
   async setup (bot, guild) {
-    for (const name of Object.values(this.ROLES)) {
-      const otherRoles = this._findOtherRoles(guild.roles).map((r) => r.name)
-      if (!otherRoles.includes(name)) await this._createRole(guild, name)
+    const otherRoles = this._findOtherRoles(guild.roles)
+    for (const role in this.ROLES) {
+      if (!otherRoles[role]) await this._createRole(guild, this.ROLES[role])
     }
     guild.members.forEach((member) => this.checkMember(bot, member))
   }
