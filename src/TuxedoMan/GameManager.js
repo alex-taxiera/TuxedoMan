@@ -21,8 +21,6 @@ class GameManager {
 
     const trackedRoles = await this.getTrackedRoles(bot, member.guild.id)
     const otherRoles = this._findOtherRoles(member.guild.roles)
-    console.log(typeof trackedRoles, trackedRoles)
-    console.log(typeof trackedRoles.concat(Object.values(otherRoles).map((val) => val.id)), trackedRoles.concat(Object.values(otherRoles).map((val) => val.id)))
     for (let id of trackedRoles.concat(Object.values(otherRoles).map((val) => val.id))) {
       if (member.roles.includes(id)) await this._removeRole(member, id)
     }
