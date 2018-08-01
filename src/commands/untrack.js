@@ -1,4 +1,4 @@
-const Command = require('../classes/Command.js')
+const { Command } = require('eris-boiler')
 
 module.exports = (bot) => new Command(
   bot,

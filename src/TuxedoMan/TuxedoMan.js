@@ -1,10 +1,10 @@
 const GameManager = require('./GameManager.js')
-const Logger = require('../classes/Logger.js')
+const { DataClient, Logger } = require('eris-boiler')
 /**
  * Class representing a DataClient.
  * @extends {DataClient}
  */
-class TuxedoMan extends require('../classes/DataClient.js') {
+class TuxedoMan extends DataClient {
   /**
    * Create a client.
    * @param {Object}  config                         The bot config data.
@@ -28,13 +28,13 @@ class TuxedoMan extends require('../classes/DataClient.js') {
    * @param {String}  config.ROLES.streamRole        The Streaming role name.
    * @param {Object}  options                        Same as Client.
    */
-  constructor (config, options) {
-    super(config, options)
+  constructor (options = {}) {
+    super(options)
     /**
      * The GameManager.
      * @type {GameManager}
      */
-    this.gm = new GameManager(config.ROLES, Logger)
+    this.gm = new GameManager(Logger)
   }
 }
 

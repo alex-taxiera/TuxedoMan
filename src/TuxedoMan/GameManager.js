@@ -1,8 +1,19 @@
 // test
 class GameManager {
-  constructor (ROLES, Logger) {
+  constructor (Logger) {
     this._logger = new Logger()
-    this.ROLES = ROLES
+    const {
+      gameRole,
+      listenRole,
+      watchRole,
+      streamRole
+    } = process.env
+    this.ROLES = {
+      gameRole,
+      listenRole,
+      watchRole,
+      streamRole
+    }
   }
 
   async checkMember (bot, member, oldGame) {
@@ -10,6 +21,8 @@ class GameManager {
 
     const trackedRoles = await this.getTrackedRoles(bot, member.guild.id)
     const otherRoles = this._findOtherRoles(member.guild.roles)
+    console.log(typeof trackedRoles, trackedRoles)
+    console.log(typeof trackedRoles.concat(Object.values(otherRoles).map((val) => val.id)), trackedRoles.concat(Object.values(otherRoles).map((val) => val.id)))
     for (let id of trackedRoles.concat(Object.values(otherRoles).map((val) => val.id))) {
       if (member.roles.includes(id)) await this._removeRole(member, id)
     }
@@ -42,10 +55,7 @@ class GameManager {
 
   getTrackedRoles (bot, id) {
     return bot.dbm.getSettings(id)
-      .then((val) => val.trackedRoles
-        ? JSON.parse(val.trackedRoles)
-        : []
-      )
+      .then((val) => val.trackedRoles || [])
   }
 
   async initialize (bot, guilds) {

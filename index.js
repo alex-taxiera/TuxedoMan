@@ -1,0 +1,8 @@
+const TuxedoMan = require('./src/TuxedoMan/TuxedoMan.js')
+const tables = require('./config/database.json')
+const defaultSettings = require('./config/settings.json')
+require('dotenv').load()
+console.log(tables)
+console.log(defaultSettings)
+const bot = new TuxedoMan({sourceFolder: './src', tables})
+bot.connect()
