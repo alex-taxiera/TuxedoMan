@@ -23,6 +23,9 @@
     "url": "https://github.com/alex-taxiera/TuxedoMan/issues"
   },
   "homepage": "https://github.com/alex-taxiera/TuxedoMan#readme",
+  "engines": {
+    "node": "10.5.0"
+  },
   "dependencies": {
     "dateformat": "^3.0.3",
     "eris-boiler": "github:alex-taxiera/eris-boiler#master",
