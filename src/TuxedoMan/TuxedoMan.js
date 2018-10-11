@@ -1,5 +1,5 @@
 const GameManager = require('./GameManager.js')
-const { DataClient, Logger } = require('eris-boiler')
+const { DataClient, Logger, Orator } = require('eris-boiler')
 /**
  * Class representing a DataClient.
  * @extends {DataClient}
@@ -35,6 +35,8 @@ class TuxedoMan extends DataClient {
      * @type {GameManager}
      */
     this.gm = new GameManager(Logger)
+
+    this.ora = new Orator(Logger)
   }
 }
 
