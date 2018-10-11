@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "dateformat": "^3.0.3",
-    "eris-boiler": "alex-taxiera/eris-boiler#642f2b0",
+    "eris-boiler": "alex-taxiera/eris-boiler#1cec795",
     "mysql": "github:mysqljs/mysql",
     "pg": "^7.5.0",
     "simple-knex": "^1.0.0-beta.5"
