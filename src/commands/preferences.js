@@ -24,7 +24,7 @@ module.exports = (bot) => new Command(
       const embed = {
         description: ':heartbeat: [**Preferences**](https://github.com/alex-taxiera/TuxedoMan)',
         thumbnail: { url: bot.user.avatarURL },
-        timestamp: require('moment'),
+        timestamp: require('dateformat')(Date.now(), 'isoDateTime'),
         color: 0x3498db,
         footer: {
           icon_url: bot.user.avatarURL,
