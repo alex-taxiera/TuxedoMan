@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/alex-taxiera/TuxedoMan#readme",
   "dependencies": {
+    "dateformat": "^3.0.3",
     "eris-boiler": "github:alex-taxiera/eris-boiler#master",
     "mysql": "github:mysqljs/mysql",
     "pg": "^7.5.0",
