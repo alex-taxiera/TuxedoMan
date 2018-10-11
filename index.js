@@ -1,6 +1,6 @@
 const TuxedoMan = require('./src/TuxedoMan/TuxedoMan.js')
 const tables = require('./config/database.json')
 const defaultSettings = require('./config/settings.json')
-require('dotenv').load()
+if (process.env.NODE_ENV !== 'production') require('dotenv').load()
 const bot = new TuxedoMan({sourceFolder: './src', tables, defaultSettings})
 bot.connect()

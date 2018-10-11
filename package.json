@@ -24,11 +24,11 @@
   },
   "homepage": "https://github.com/alex-taxiera/TuxedoMan#readme",
   "dependencies": {
-    "dotenv": "^6.0.0",
     "eris-boiler": "github:alex-taxiera/eris-boiler#master",
-    "mysql": "github:mysqljs/mysql"
+    "mysql": "github:mysqljs/mysql",
+    "pg": "^7.5.0"
   },
   "devDependencies": {
-    "standard": "^11.0.1"
+    "dotenv": "^6.0.0"
   }
 }
