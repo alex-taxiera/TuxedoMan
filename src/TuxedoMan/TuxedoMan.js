@@ -1,5 +1,5 @@
 const GameManager = require('./GameManager.js')
-const { DataClient, Logger, Orator } = require('eris-boiler')
+const { DataClient, Logger } = require('eris-boiler')
 /**
  * Class representing a DataClient.
  * @extends {DataClient}
@@ -8,7 +8,7 @@ class TuxedoMan extends DataClient {
   /**
    * Create a client.
    * @param {Object}  config                         The bot config data.
-   * @param {String}  config.TOKEN                   The bot token.
+   * @param {String}  config.token                   The bot token.
    * @param {Object}  config.DB_CREDENTIALS          The database credentials.
    * @param {String}  config.DB_CREDENTIALS.database The name of the database.
    * @param {String}  config.DB_CREDENTIALS.host     The host address of the server.
@@ -35,8 +35,6 @@ class TuxedoMan extends DataClient {
      * @type {GameManager}
      */
     this.gm = new GameManager(Logger)
-
-    this.ora = new Orator(Logger)
   }
 }
 
