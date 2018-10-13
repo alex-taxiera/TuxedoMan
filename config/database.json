@@ -1,35 +1,41 @@
-{
-  "guild_settings": {
-    "trackedRoles": {
-      "name": "trackedRoles",
-      "type": "text",
-      "primary": "false"
-    }
+[
+  {
+    "name": "guild_settings",
+    "columns": [
+      {
+        "name": "trackedRoles",
+        "type": "text",
+        "primary": "false"
+      }
+    ]
   },
-  "guild_toggles": {
-    "game": {
-      "name": "game",
-      "type": "boolean",
-      "primary": false,
-      "default": true
-    },
-    "watch": {
-      "name": "watch",
-      "type": "boolean",
-      "primary": false,
-      "default": true
-    },
-    "listen": {
-      "name": "listen",
-      "type": "boolean",
-      "primary": false,
-      "default": true
-    },
-    "stream": {
-      "name": "stream",
-      "type": "boolean",
-      "primary": false,
-      "default": true
-    }
+  {
+    "name": "guild_toggles",
+    "columns": [
+      {
+        "name": "game",
+        "type": "boolean",
+        "primary": false,
+        "default": true
+      },
+      {
+        "name": "watch",
+        "type": "boolean",
+        "primary": false,
+        "default": true
+      },
+      {
+        "name": "listen",
+        "type": "boolean",
+        "primary": false,
+        "default": true
+      },
+      {
+        "name": "stream",
+        "type": "boolean",
+        "primary": false,
+        "default": true
+      }
+    ]
   }
-}
+]
