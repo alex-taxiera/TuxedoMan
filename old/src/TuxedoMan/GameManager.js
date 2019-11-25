@@ -1,6 +1,5 @@
 class GameManager {
-  constructor (Logger) {
-    this._logger = new Logger()
+  constructor () {
     const {
       gameRole,
       listenRole,

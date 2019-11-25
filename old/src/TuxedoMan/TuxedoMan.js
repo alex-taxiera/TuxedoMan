@@ -1,4 +1,4 @@
-const GameManager = require('./GameManager.js')
+const GameManager = require('./GameManager.js.js')
 const { DataClient, Logger } = require('eris-boiler')
 /**
  * Class representing a DataClient.

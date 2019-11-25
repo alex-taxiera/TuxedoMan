@@ -54,12 +54,8 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
+# ts
+dist
 
-# docs
-docs
-jsdoc-theme
-
-# project
-config.json
+# vscode
+.vscode
