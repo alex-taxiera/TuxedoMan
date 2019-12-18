@@ -1,3 +1,4 @@
+import { GuildChannel } from 'eris'
 import { Command, CommandResults } from 'eris-boiler'
 import TuxedoMan from '../modules/tuxedoman'
 
@@ -13,6 +14,11 @@ export default new Command<TuxedoMan>({
     if (rest.length > 100) {
       return 'Role name is too long!'
     }
-    return bot.gm.trackGame(bot, msg.channel.guild, rest.join(' '), gameName)
+    return bot.gm.trackGame(
+      bot,
+      (msg.channel as GuildChannel).guild,
+      rest.join(' '),
+      gameName
+    )
   }
 })

@@ -25,20 +25,21 @@ type GuildGameRoles = {
 }
 
 export default class GameManager {
-  constructor (private roleNames: CommonRoleNames = {
+  constructor (private readonly roleNames: CommonRoleNames = {
     playing: 'Other Games',
     listening: 'Listening',
     watching: 'Watching',
     streaming: 'Streaming'
   }) {}
 
-  async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
+  public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
+    console.log('yeet')
     await Promise.all(
       guild.members.map((member) => this.checkMember(bot, member))
     )
   }
 
-  async checkMember (
+  public async checkMember (
     bot: TuxedoMan,
     member: Member,
     oldGame?: GamePresence
@@ -106,7 +107,7 @@ export default class GameManager {
     return gameRole
   }
 
-  async checkRole (bot: TuxedoMan, guild: Guild, role: Role): Promise<void> {
+  public async checkRole (bot: TuxedoMan, guild: Guild, role: Role): Promise<void> {
     if (!guild.roles.has(role.id)) {
       const [ gameRole ] = await bot.dbm.newQuery('role')
         .equalTo('guild', guild.id)
@@ -130,7 +131,7 @@ export default class GameManager {
     }
   }
 
-  async getRolesForGuild (
+  public async getRolesForGuild (
     bot: TuxedoMan,
     guild: Guild
   ): Promise<GuildGameRoles> {
@@ -159,7 +160,7 @@ export default class GameManager {
     }
   }
 
-  getRoleFromRecord (
+  public getRoleFromRecord (
     bot: TuxedoMan,
     gameRole: DatabaseObject
   ): Role | Promise<void> {
@@ -171,7 +172,7 @@ export default class GameManager {
     return gameRole.delete()
   }
 
-  async startup (bot: TuxedoMan): Promise<void> {
+  public async startup (bot: TuxedoMan): Promise<void> {
     await Promise.all(bot.guilds.map(async (guild) => {
       await Promise.all(
         guild.roles.map((role) => this.checkRole(bot, guild, role))
@@ -182,7 +183,7 @@ export default class GameManager {
     }))
   }
 
-  async setupMiscRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
+  public async setupMiscRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
     const { commonRoles } = await this.getRolesForGuild(bot, guild)
     await Promise.all(
       (Object.keys(commonRoles) as Array<CommonRoleType>).map(async (key) => {
@@ -195,7 +196,7 @@ export default class GameManager {
     await this.checkAllMembers(bot, guild)
   }
 
-  async trackGame (
+  public async trackGame (
     bot: TuxedoMan,
     guild: Guild,
     roleName: string,
@@ -220,7 +221,7 @@ export default class GameManager {
     return `"${gameName}" created and added to tracking list!`
   }
 
-  async untrackGame (
+  public async untrackGame (
     bot: TuxedoMan,
     guild: Guild,
     gameName: string
