@@ -4,7 +4,11 @@ import {
   SQLManager
 } from 'eris-boiler'
 
-import TuxedoMan from './modules/tuxedoman'
+import { TuxedoMan } from './modules/tuxedoman'
+import { ENV } from './types/env'
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 
 const {
   DISCORD_TOKEN,
@@ -13,7 +17,7 @@ const {
   TS_DB_USER,
   TS_DB_PASS,
   TS_DB_HOST
-} = process.env
+} = (process.env as unknown) as ENV
 
 /* create DataClient instance */
 const bot = new TuxedoMan(DISCORD_TOKEN, {
@@ -29,9 +33,6 @@ const bot = new TuxedoMan(DISCORD_TOKEN, {
 })
 
 bot
-  .addCommands(join(__dirname, 'commands')) // load commands in commands folder
+  .addCommands(join(__dirname, 'commands'))
   .addEvents(join(__dirname, 'events'))
-  .connect()                                // login to discord
-  .then(() => {
-    console.log(bot)
-  })
+  .connect()

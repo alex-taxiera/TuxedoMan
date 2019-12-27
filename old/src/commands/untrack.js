@@ -6,7 +6,7 @@ module.exports = (bot) => new Command(
     name: 'untrack',
     description: 'Untrack a game',
     options: {
-      parameters: ['game name as appears on discord statuses'],
+      parameters: [ 'game name as appears on discord statuses' ],
       permission: 'VIP'
     },
     run: async function ({ bot, msg, params }) {

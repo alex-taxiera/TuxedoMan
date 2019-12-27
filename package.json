@@ -4,11 +4,9 @@
   "description": "Discord presence based role manager",
   "main": "./index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "ts-node ./src/index.ts",
     "lint": "eslint src/**/*.ts",
-    "build": "npx tsc",
-    "dev": "node --inspect-brk=5858 -r ./bin/ts-node.js ./src/index.ts",
-    "dev:watch": "nodemon"
+    "dev": "nodemon --exec ts-node ./src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -28,36 +26,24 @@
   },
   "homepage": "https://github.com/alex-taxiera/TuxedoMan#readme",
   "engines": {
-    "node": "10.5.0"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "**/*.test.ts",
-      "**/*.spec.ts",
-      ".git",
-      "node_modules"
-    ],
-    "watch": [
-      "src"
-    ],
-    "exec": "npm run dev",
-    "ext": "ts"
+    "node": ">=12.13.0"
   },
   "devDependencies": {
-    "@types/node": "^12.12.6",
-    "@typescript-eslint/eslint-plugin": "^2.9.0",
-    "@typescript-eslint/parser": "^2.9.0",
-    "eslint": "^6.7.1",
+    "@typescript-eslint/eslint-plugin": "^2.12.0",
+    "@typescript-eslint/parser": "^2.12.0",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.7.2",
     "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "nodemon": "^1.19.4",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.7.2"
+    "nodemon": "^2.0.2"
   },
   "dependencies": {
-    "eris-boiler": "github:alex-taxiera/eris-boiler#release/3.0.0"
+    "@types/node": "^12.12.20",
+    "eris-boiler": "github:alex-taxiera/eris-boiler#release/3.0.0",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
   }
 }

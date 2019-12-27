@@ -3,7 +3,9 @@ const TuxedoMan = require('./src/TuxedoMan/TuxedoMan.js')
 const tables = require('./config/database.json')
 const defaultSettings = require('./config/settings.json')
 
-if (process.env.NODE_ENV !== 'production') require('dotenv').load()
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').load()
+}
 const {
   TOKEN,
   DATABASE_URL,

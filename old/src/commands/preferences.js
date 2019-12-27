@@ -6,7 +6,7 @@ module.exports = (bot) => new Command(
     name: 'preferences',
     description: 'Display guild-wide options',
     options: {
-      aliases: ['prefs', 'settings'],
+      aliases: [ 'prefs', 'settings' ],
       permission: 'VIP'
     },
     run: async function ({ msg, bot }) {
