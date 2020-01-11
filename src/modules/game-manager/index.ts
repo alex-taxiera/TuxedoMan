@@ -11,7 +11,7 @@ import {
   ExtendedMap
 } from 'eris-boiler/util'
 
-import { TuxedoMan } from '../tuxedoman'
+import { TuxedoMan } from '@tuxedoman'
 
 type CommonRoleType = 'playing' | 'streaming' | 'watching' | 'listening'
 type CommonRoleNames = {
@@ -59,18 +59,15 @@ export default class GameManager {
     } = await this.getRolesForGuild(bot, member.guild)
     let toAdd = ''
 
-    if (activity !== undefined) {
-      const role = member.guild.roles
-        .find((role) => role.name === activity.name) // FIXME: use saved ID instead of name
+    if (activity) {
       const [ guildOptions ] = await bot.dbm.newQuery('guild')
         .equalTo('id', member.guild.id)
         .find()
 
       switch (activity.type) {
         case 0:
-          if (trackedRoles.has(role?.id)) {
-            toAdd = role.id
-          } else if (guildOptions.get('game')) {
+          toAdd = trackedRoles.get(activity.name)?.get('role')
+          if (!toAdd && guildOptions.get('game')) {
             toAdd = commonRoles.playing?.get('role')
           }
           break
@@ -96,16 +93,12 @@ export default class GameManager {
       this.addRole(member, toAdd)
     }
 
-    console.log('toAdd :', toAdd)
-    console.log('member.roles :', member.roles)
-
     await Promise.all(
       Object.values(commonRoles).concat(Array.from(trackedRoles.values()))
-        .map((role) => {
-          console.log('role :', role)
-          return role?.get('role') === toAdd
+        .map((dbo) => {
+          return dbo?.get('role') === toAdd
             ? Promise.resolve()
-            : this.removeRole(member, role?.get('role'))
+            : this.removeRole(member, dbo?.get('role'))
         })
     )
   }
@@ -123,20 +116,17 @@ export default class GameManager {
     return gameRole
   }
 
-  public async checkRole (
+  public checkRole (
     bot: TuxedoMan,
     guild: Guild,
     role: Role
-  ): Promise<void> {
+  ): Promise<void> | void {
     if (!guild.roles.has(role.id)) {
-      const [ gameRole ] = await bot.dbm.newQuery('role')
+      return bot.dbm.newQuery('role')
         .equalTo('guild', guild.id)
         .equalTo('role', role.id)
         .find()
-
-      if (gameRole) {
-        await gameRole.delete()
-      }
+        .then(([ gameRole ]) => gameRole ? gameRole.delete() : undefined)
     }
   }
 
@@ -174,6 +164,8 @@ export default class GameManager {
       }
     }
 
+    await this.fillDefaultRoles(bot, guild, commonRoles)
+
     return {
       commonRoles,
       trackedRoles
@@ -205,15 +197,37 @@ export default class GameManager {
 
   public async setupMiscRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
     const { commonRoles } = await this.getRolesForGuild(bot, guild)
+    await this.fillDefaultRoles(bot, guild, commonRoles)
+    await this.checkAllMembers(bot, guild)
+  }
+
+  private async fillDefaultRoles (
+    bot: TuxedoMan,
+    guild: Guild,
+    commonRoles: CommonGameRoles
+  ): Promise<CommonGameRoles> {
+    const clone: CommonGameRoles = JSON.parse(JSON.stringify(commonRoles))
     await Promise.all(
       (Object.keys(commonRoles) as Array<CommonRoleType>).map(async (key) => {
         if (!commonRoles[key]) {
-          const newRole = await this.createRole(bot, guild, this.roleNames[key])
-          await this.upsertTrackedRole(bot, guild, key, newRole, key)
+          const name = this.roleNames[key]
+          const existingRole = guild.roles
+            .find((role) => role.name === name)
+
+          const gameRole = await this.upsertTrackedRole(
+            bot,
+            guild,
+            key,
+            existingRole || await this.createRole(bot, guild, name),
+            key
+          )
+
+          clone[gameRole.get('type') as CommonRoleType] = gameRole
         }
       })
     )
-    await this.checkAllMembers(bot, guild)
+
+    return clone
   }
 
   public async trackGame (
@@ -247,12 +261,12 @@ export default class GameManager {
     gameName: string
   ): Promise<string> {
     const { trackedRoles } = await this.getRolesForGuild(bot, guild)
-
-    if (!trackedRoles.has(gameName)) {
+    const role = trackedRoles.get(gameName)
+    if (!role) {
       return 'Not found in tracking list!'
     }
 
-    await this.removeTrackedRole(bot, guild, trackedRoles.get(gameName))
+    await this.removeTrackedRole(bot, guild, role)
 
     return 'Untracked!'
   }
@@ -294,18 +308,16 @@ export default class GameManager {
   private clearRole (
     bot: TuxedoMan,
     guild: Guild,
-    role?: Role
+    role: Role
   ): Promise<void> | void {
-    if (role) {
-      return Promise.all(guild.members.map(async (member) => {
-        if (member.bot || !member.roles.includes(role.id)) {
-          return
-        }
+    return Promise.all(guild.members.map(async (member) => {
+      if (member.bot || !member.roles.includes(role.id)) {
+        return
+      }
 
-        await this.removeRole(member, role.id)
-        await this.checkMember(bot, member)
-      })).then(() => Promise.resolve())
-    }
+      await this.removeRole(member, role.id)
+      await this.checkMember(bot, member)
+    })).then(() => Promise.resolve())
   }
 
   private async createRole (
@@ -336,25 +348,22 @@ export default class GameManager {
   private removeTrackedRole (
     bot: TuxedoMan,
     guild: Guild,
-    gameRole?: DatabaseObject
+    gameRole: DatabaseObject
   ): Promise<void> | void {
-    if (gameRole) {
-      return Promise.all([
-        gameRole.delete(),
-        this.clearRole(bot, guild, guild.roles.get(gameRole.get('role')))
-      ]).then(() => Promise.resolve())
-    }
+    const role = guild.roles.get(gameRole.get('role'))
+    return Promise.all([
+      gameRole.delete(),
+      role ? this.clearRole(bot, guild, role) : Promise.resolve()
+    ]).then(() => Promise.resolve())
   }
 
-  private removeRole (member: Member, id?: string): Promise<void> | void {
-    if (id && member.roles.includes(id)) {
+  private removeRole (member: Member, id: string): Promise<void> | void {
+    if (member.roles.includes(id)) {
       return member.removeRole(id)
     }
   }
 
-  private addRole (member: Member, id?: string): Promise<void> | void {
-    if (id) {
-      return member.addRole(id)
-    }
+  private addRole (member: Member, id: string): Promise<void> | void {
+    return member.addRole(id)
   }
 }

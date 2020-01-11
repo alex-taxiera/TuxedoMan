@@ -1,19 +1,26 @@
-require('dotenv').config()
+console.log(process.env)
+
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
+
 const {
-  NODE_ENV,
-  TS_DB_CLIENT,
-  TS_DB_NAME,
-  TS_DB_USER,
-  TS_DB_PASS
+  TUX_DB_CLIENT,
+  TUX_DB_NAME,
+  TUX_DB_USER,
+  TUX_DB_PASS,
+  TUX_DB_HOST,
+  TUX_DB_CONNECTION
 } = process.env
 
 module.exports = {
   [NODE_ENV]: {
-    client: TS_DB_CLIENT,
-    connection: {
-      database: TS_DB_NAME,
-      user: TS_DB_USER,
-      password: TS_DB_PASS
+    client: TUX_DB_CLIENT,
+    connection: TUX_DB_CONNECTION || {
+      host: TUX_DB_HOST,
+      database: TUX_DB_NAME,
+      user: TUX_DB_USER,
+      password: TUX_DB_PASS
     },
     pool: {
       min: 2,
@@ -24,5 +31,3 @@ module.exports = {
     }
   }
 }
-
-console.log(module.exports)

@@ -20,5 +20,11 @@
     "alwaysStrict": true,
     "noImplicitReturns": true,
     "esModuleInterop": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@*": [
+        "modules/*",
+      ]
+    }
   }
 }

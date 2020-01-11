@@ -6,33 +6,36 @@ import {
 
 import { TuxedoMan } from './modules/tuxedoman'
 import { ENV } from './types/env'
+console.log('process.env :', process.env)
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
 const {
-  DISCORD_TOKEN,
-  TS_DB_CLIENT,
-  TS_DB_NAME,
-  TS_DB_USER,
-  TS_DB_PASS,
-  TS_DB_HOST
+  TUX_DISCORD_TOKEN,
+  TUX_DB_CLIENT,
+  TUX_DB_NAME,
+  TUX_DB_USER,
+  TUX_DB_PASS,
+  TUX_DB_HOST,
+  TUX_DB_CONNECTION
 } = (process.env as unknown) as ENV
 
 /* create DataClient instance */
-const bot = new TuxedoMan(DISCORD_TOKEN, {
+const bot = new TuxedoMan(TUX_DISCORD_TOKEN, {
   databaseManager: new SQLManager({
-    connectionInfo: {
-      database: TS_DB_NAME,
-      user: TS_DB_USER,
-      password: TS_DB_PASS,
-      host: TS_DB_HOST
+    connectionInfo: TUX_DB_CONNECTION || {
+      database: TUX_DB_NAME,
+      user: TUX_DB_USER,
+      password: TUX_DB_PASS,
+      host: TUX_DB_HOST
     },
-    client: TS_DB_CLIENT
+    client: TUX_DB_CLIENT
   })
 })
 
 bot
   .addCommands(join(__dirname, 'commands'))
+  .addSettingCommands(join(__dirname, 'settings'))
   .addEvents(join(__dirname, 'events'))
   .connect()

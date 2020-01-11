@@ -1,22 +1,22 @@
 import {
   DataClient,
+  DiscordEvent as BaseDiscordEvent,
   Command as BaseCommand,
   GuildCommand as BaseGuildCommand,
   PrivateCommand as BasePrivateCommand,
+  SettingCommand as BaseSettingCommand,
+  ToggleCommand as BaseToggleCommand,
   CommandContext
 } from 'eris-boiler'
-import {
-  admin,
-  owner,
-  vip,
-  createGeneric
-} from 'eris-boiler/permissions'
 
-import GameManager from '../game-manager'
+import GameManager from '@game-manager'
 export class TuxedoMan extends DataClient {
   public readonly gm: GameManager = new GameManager()
 }
 
+export class DiscordEvent<
+  T extends DataClient = TuxedoMan
+> extends BaseDiscordEvent<T> {}
 export class Command<
   C extends CommandContext = CommandContext,
   T extends DataClient = TuxedoMan
@@ -27,9 +27,9 @@ export class GuildCommand<
 export class PrivateCommand<
   T extends DataClient = TuxedoMan
 > extends BasePrivateCommand<T> {}
-
-export const permissions = {
-  admin: createGeneric<TuxedoMan>(admin),
-  owner: createGeneric<TuxedoMan>(owner),
-  vip: createGeneric<TuxedoMan>(vip)
-}
+export class SettingCommand<
+  T extends DataClient = TuxedoMan
+> extends BaseSettingCommand<T> {}
+export class ToggleCommand<
+  T extends DataClient = TuxedoMan
+> extends BaseToggleCommand<T> {}

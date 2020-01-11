@@ -3,9 +3,8 @@ import {
   admin as baseAdmin,
   owner as baseOwner,
   vip as baseVip
-} from "eris-boiler/permissions"
-import { TuxedoMan } from ".."
-
+} from 'eris-boiler/permissions'
+import { TuxedoMan } from '@tuxedoman'
 
 export const admin = createGeneric<TuxedoMan>(baseAdmin)
 export const owner = createGeneric<TuxedoMan>(baseOwner)

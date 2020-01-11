@@ -1,7 +1,6 @@
-import { DiscordEvent } from 'eris-boiler'
-import { TuxedoMan } from '../modules/tuxedoman'
+import { DiscordEvent } from '@tuxedoman'
 
-export default new DiscordEvent<TuxedoMan>({
+export default new DiscordEvent({
   name: 'ready',
   run: (bot): void => {
     bot.gm.startup(bot)
