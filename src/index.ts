@@ -5,8 +5,12 @@ import {
 } from 'eris-boiler'
 
 import { TuxedoMan } from './modules/tuxedoman'
+import {
+  oratorOptions,
+  statusManagerOptions
+} from './config'
 import { ENV } from './types/env'
-console.log('process.env :', process.env)
+
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
@@ -23,6 +27,8 @@ const {
 
 /* create DataClient instance */
 const bot = new TuxedoMan(TUX_DISCORD_TOKEN, {
+  oratorOptions,
+  statusManagerOptions,
   databaseManager: new SQLManager({
     connectionInfo: TUX_DB_CONNECTION || {
       database: TUX_DB_NAME,
