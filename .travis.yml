@@ -5,10 +5,10 @@ jobs:
     -
       stage: build
       script:
-        - docker build -t alextaxiera/tux-bot${TRAVIS_BUILD_NUMBER} .
+        - docker build -t alextaxiera/tux-bot:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER .
       after_script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker push alextaxiera/tux-bot${TRAVIS_BUILD_NUMBER}
+        - docker push alextaxiera/tux-bot:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
 stages:
   -
     name: build
