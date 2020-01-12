@@ -1,7 +1,7 @@
 FROM node:12-alpine
 
-RUN mkdir -p $HOME/bot
-WORKDIR $HOME/bot
+RUN apk add --no-cache git; mkdir -p /tuxedo
+WORKDIR /tuxedo
 
 COPY src src
 COPY migrations migrations
