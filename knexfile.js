@@ -1,10 +1,9 @@
-console.log(process.env)
-
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
 const {
+  NODE_ENV,
   TUX_DB_CLIENT,
   TUX_DB_NAME,
   TUX_DB_USER,
