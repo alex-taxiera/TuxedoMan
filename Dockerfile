@@ -10,6 +10,5 @@ COPY package-lock.json .
 COPY tsconfig.json .
 COPY knexfile.js .
 RUN npm install --only=prod
-#RUN npx eris-boiler migrations latestdocke
 
 CMD ["npm", "start"]
