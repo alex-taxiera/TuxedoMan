@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:12-alpine
 
 RUN mkdir -p $HOME/bot
 WORKDIR $HOME/bot
