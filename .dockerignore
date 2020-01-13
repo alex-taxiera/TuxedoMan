@@ -1,0 +1,5 @@
+.*
+Dockerfile
+dist
+images
+node_modules
