@@ -164,8 +164,6 @@ export default class GameManager {
       }
     }
 
-    await this.fillDefaultRoles(bot, guild, commonRoles)
-
     return {
       commonRoles,
       trackedRoles
@@ -198,7 +196,6 @@ export default class GameManager {
   public async setupMiscRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
     const { commonRoles } = await this.getRolesForGuild(bot, guild)
     await this.fillDefaultRoles(bot, guild, commonRoles)
-    await this.checkAllMembers(bot, guild)
   }
 
   private async fillDefaultRoles (
