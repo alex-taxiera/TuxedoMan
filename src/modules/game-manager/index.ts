@@ -49,7 +49,7 @@ export default class GameManager {
     const oldGame = oldPresence?.activities
       ?.find((a) => a.type > -1 && a.type < 4)
 
-    if (member.bot || activity?.id === oldGame?.id) {
+    if (member.bot || (oldGame && activity?.id === oldGame.id)) {
       return
     }
 
@@ -95,11 +95,10 @@ export default class GameManager {
 
     await Promise.all(
       Object.values(commonRoles).concat(Array.from(trackedRoles.values()))
-        .map((dbo) => {
-          return dbo?.get('role') === toAdd
-            ? Promise.resolve()
-            : this.removeRole(member, dbo?.get('role'))
-        })
+        .map((dbo) => dbo?.get('role') === toAdd
+          ? Promise.resolve()
+          : this.removeRole(member, dbo?.get('role'))
+        )
     )
   }
 
