@@ -7,10 +7,10 @@ jobs:
     -
       stage: build
       script:
-        - echo $DOCKER_USERNAME/$REPO:${TAGS[@]} | xargs -n 1 docker build .
+        - printf "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs -I {} docker build {} .
       after_script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - echo $DOCKER_USERNAME/$REPO:${TAGS[@]} | xargs -n 1 docker push
+        - printf  "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs docker push
 stages:
   -
     name: build
