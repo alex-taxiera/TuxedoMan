@@ -10,6 +10,7 @@ jobs:
         - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
         - chmod +x send.sh
       script:
+        - printf "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]}
         - printf "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs -I {} docker build -t {} .
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - printf  "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs docker push
