@@ -22,6 +22,10 @@ export default new GuildCommand({
       return 'Member is not doing anything!'
     }
 
-    return '```\n' + target.activities.map((act) => act.name) + '\n```'
+    return '```\nGame:\n' +
+    target.game?.name +
+    '\n\nActivities:\n' +
+    target.activities.map((act) => act.name).join('\n') +
+    '\n```'
   }
 })
