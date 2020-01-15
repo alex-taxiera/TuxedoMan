@@ -8,7 +8,7 @@ jobs:
         - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
         - chmod +x send.sh
       script:
-        - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER)
+        - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER $NAME-$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER)
         - printf "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker build -t {} .
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - printf  "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker push {}
