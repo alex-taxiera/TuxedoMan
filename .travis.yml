@@ -9,12 +9,9 @@ jobs:
         - chmod +x send.sh
       script:
         - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER)
-        - echo "${TAGS[0]}"
-        - echo "${TAGS}"
-        - printf "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}"
         - printf "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker build -t {} .
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - printf  "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs docker push
+        - printf  "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker push {}
       after_success:
         - ./send.sh success $HOOK
       after_failure:
