@@ -1,8 +1,6 @@
 services:
   - docker
 env:
-  - NAME=tuxedoman
-  - REPO=bots
   - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER)
 jobs:
   include:
