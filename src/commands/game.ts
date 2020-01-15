@@ -4,8 +4,8 @@ import {
 import { GuildCommand } from '@tuxedoman'
 
 export default new GuildCommand({
-  name: 'setup',
-  description: 'Setup default roles.',
+  name: 'game',
+  description: 'Check what game someone is playing.',
   options: {
     parameters: [
       '<user> (mention or id)'
