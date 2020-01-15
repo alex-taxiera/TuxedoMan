@@ -7,10 +7,16 @@ jobs:
     -
       stage: build
       script:
-        - printf "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs -I {} docker build {} .
-      after_script:
+        - printf "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs -I {} docker build -t {} .
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - printf  "$DOCKER_USERNAME/$REPO:%s\n" ${TAGS[@]} | xargs docker push
+      after_script:
+        - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+        - chmod +x send.sh
+      after_success:
+        - ./send.sh success $HOOK
+      after_failure:
+        - ./send.sh failure $HOOK
 stages:
   -
     name: build
