@@ -1,14 +1,18 @@
 services:
   - docker
+env:
+  - NAME=tuxedoman
+  - REPO=bots
+  - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER)
 jobs:
   include:
     -
       stage: build
       script:
-        - docker build -t alextaxiera/tux-bot:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER .
+        - echo $DOCKER_USERNAME/$REPO:${TAGS[@]} | xargs -n 1 docker build .
       after_script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - docker push alextaxiera/tux-bot:$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER
+        - echo $DOCKER_USERNAME/$REPO:${TAGS[@]} | xargs -n 1 docker push
 stages:
   -
     name: build
