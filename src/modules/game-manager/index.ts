@@ -1,7 +1,7 @@
 import {
   Member,
   Guild,
-  OldPresence,
+  Presence,
   Role
 } from 'eris'
 import {
@@ -43,14 +43,32 @@ export default class GameManager {
   public async checkMember (
     bot: TuxedoMan,
     member: Member,
-    oldPresence?: OldPresence
+    oldPresence?: Presence
   ): Promise<void> {
-    const activity = member.activities?.find((a) => a.type > -1 && a.type < 4)
-    const oldGame = oldPresence?.activities
-      ?.find((a) => a.type > -1 && a.type < 4)
-
-    if (member.bot || (oldGame && activity?.id === oldGame.id)) {
+    if (member.bot) {
       return
+    }
+
+    if (oldPresence) {
+      if (oldPresence.game?.id === member.game?.id) {
+        return
+      }
+      if (
+        member.activities?.length === oldPresence.activities?.length &&
+        member.activities
+          ?.every((act, i) => act.id === oldPresence.activities?.[i].id)
+      ) {
+        return
+      }
+    }
+
+    let activity = member.game
+
+    if (
+      activity && activity.type > 3 &&
+      member.activities && member.activities?.length > 1
+    ) {
+      activity = member.activities.find((activity) => activity.type < 4)
     }
 
     const {
@@ -140,6 +158,29 @@ export default class GameManager {
     }
   }
 
+  public async getGameRolesByRoleID (
+    bot: TuxedoMan,
+    roleId: string
+  ): Promise<Array<DatabaseObject>> {
+    const gameRoles = await bot.dbm.newQuery('role')
+      .equalTo('role', roleId)
+      .find()
+
+    return gameRoles
+  }
+
+  public async getGameRoleByGameName (
+    bot: TuxedoMan,
+    gameName: string
+  ): Promise<Array<DatabaseObject>> {
+    const gameRoles = await bot.dbm.newQuery('role')
+      .equalTo('game', gameName)
+      .limit(1)
+      .find()
+
+    return gameRoles
+  }
+
   public async getRolesForGuild (
     bot: TuxedoMan,
     guild: Guild
@@ -152,7 +193,7 @@ export default class GameManager {
     const trackedRoles: TrackedRoles = new ExtendedMap<string, DatabaseObject>()
 
     for (const gameRole of gameRoles) {
-      const role = await this.getRoleFromRecord(bot, gameRole)
+      const role = this.getRoleFromRecord(bot, gameRole)
       if (!role) {
         continue
       }
@@ -172,13 +213,13 @@ export default class GameManager {
   public getRoleFromRecord (
     bot: TuxedoMan,
     gameRole: DatabaseObject
-  ): Role | Promise<void> {
+  ): Role | void {
     const guild = bot.guilds.get(gameRole.get('guild'))
     if (guild?.roles.has(gameRole.get('role'))) {
       return (guild.roles.get(gameRole.get('role')) as Role)
     }
 
-    return gameRole.delete()
+    gameRole.delete()
   }
 
   public async startup (bot: TuxedoMan): Promise<void> {
@@ -322,20 +363,36 @@ export default class GameManager {
     name: string
   ): Promise<Role> {
     const {
-      trackedRoles
+      trackedRoles,
+      commonRoles
     } = await this.getRolesForGuild(bot, guild)
-    const [ lowRole ] = trackedRoles.size === 0
-      ? (guild.members.get(bot.user.id) as Member).roles
-        .map((id) => guild.roles.get(id) as Role)
-        .sort((a, b) => a.position - b.position)
-      : Array.from(trackedRoles.values())
+    let position = 0
+    if (trackedRoles.size) {
+      const [ lowestTrackedRole ] = [ ...trackedRoles.values() ]
         .map((dbo) => guild.roles.get(dbo.get('role')) as Role)
-        .filter((r) => r)
         .sort((a, b) => a.position - b.position)
+      position = lowestTrackedRole.position - 1
+    } else {
+      const commonRolelist = Object.values(commonRoles).filter((r) => r)
+      if (commonRolelist.length) {
+        const [ highestMiscRole ] = commonRolelist
+          .map((dbo) => guild.roles.get(dbo?.get('role')) as Role)
+          .sort((a, b) => b.position - a.position)
+        position = highestMiscRole.position + 1
+      } else {
+        const member = guild.members.get(bot.user.id)
+        if (member) {
+          const [ lowestControlRole ] = member.roles
+            .map((id) => guild.roles.get(id) as Role)
+            .sort((a, b) => a.position - b.position)
+          position = lowestControlRole.position - 1
+        }
+      }
+    }
 
     const role = await guild.createRole({ name, hoist: true })
-    if (lowRole) {
-      await role.editPosition(lowRole.position - 1)
+    if (position) {
+      await role.editPosition(position)
     }
 
     return role
