@@ -4,8 +4,8 @@ import {
 import { GuildCommand } from '@tuxedoman'
 
 export default new GuildCommand({
-  name: 'game',
-  description: 'Check what game someone is playing.',
+  name: 'wyd',
+  description: 'Check what someone is doing.',
   options: {
     parameters: [
       '<user> (mention or id)'
@@ -23,9 +23,9 @@ export default new GuildCommand({
     }
 
     return '```\nGame:\n' +
-    target.game?.name +
-    '\n\nActivities:\n' +
-    target.activities.map((act) => act.name).join('\n') +
-    '\n```'
+      target.game?.name +
+      '\n\nActivities:\n' +
+      target.activities.map((act) => act.name) +
+      '\n```'
   }
 })
