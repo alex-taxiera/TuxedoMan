@@ -8,8 +8,8 @@ export default new ToggleCommand({
   displayName: 'Watching',
   setting: 'watch',
   options: {
-    postHook: (bot, { channel }): void => {
-      bot.gm.checkAllMembers(bot, channel.guild)
+    postHook: (bot, { msg }): void => {
+      bot.gm.checkAllMembers(bot, msg.channel.guild)
     }
   }
 })

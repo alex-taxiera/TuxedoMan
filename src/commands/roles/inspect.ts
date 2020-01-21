@@ -6,15 +6,25 @@ import {
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
 
+const getCount = (guild: Guild, roleId: string): string => {
+  return guild.members.reduce((ax, dx) => {
+    if (dx.roles.includes(roleId)) {
+      ax++
+    }
+
+    return ax
+  }, 0).toString()
+}
+
 export default new GuildCommand({
   name: 'inspect',
   description: 'Get details about a specific tracked role.',
   options: {
     parameters: [ '<roleId>' ]
   },
-  run: (bot, { channel, params }): CommandResults => {
+  run: (bot, { msg, params }): CommandResults => {
     const roleId = params[0]
-    const role = channel.guild.roles.get(roleId)
+    const role = msg.channel.guild.roles.get(roleId)
 
     if (!role) {
       return 'No role found for ID.'
@@ -36,7 +46,7 @@ export default new GuildCommand({
           fields: [
             {
               name: 'Members with this Role',
-              value: getCount(channel.guild, roleId),
+              value: getCount(msg.channel.guild, roleId),
               inline: true
             }
           ]
@@ -45,13 +55,3 @@ export default new GuildCommand({
     })
   }
 })
-
-function getCount (guild: Guild, roleId: string): string {
-  return guild.members.reduce((ax, dx) => {
-    if (dx.roles.includes(roleId)) {
-      ax++
-    }
-
-    return ax
-  }, 0).toString()
-}

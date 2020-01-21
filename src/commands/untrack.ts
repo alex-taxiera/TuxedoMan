@@ -10,7 +10,7 @@ export default new GuildCommand({
     parameters: [ 'game name as appears on discord statuses' ],
     permission
   },
-  run: (bot, { channel, params }): CommandResults => {
-    return bot.gm.untrackGame(bot, channel.guild, params.join(' '))
+  run: (bot, { msg, params }): CommandResults => {
+    return bot.gm.untrackGame(bot, msg.channel.guild, params.join(' '))
   }
 })

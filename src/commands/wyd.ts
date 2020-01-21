@@ -11,8 +11,8 @@ export default new GuildCommand({
       '<user> (mention or id)'
     ]
   },
-  run: (bot, { channel, params }): CommandResults => {
-    const target = channel.guild.members.get(params[0])
+  run: (bot, { msg, params }): CommandResults => {
+    const target = msg.channel.guild.members.get(params[0])
 
     if (!target) {
       return 'Member not found!'

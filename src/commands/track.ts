@@ -12,12 +12,12 @@ export default new GuildCommand({
       '[role name] (defaults to game name)'
     ]
   },
-  run: (bot, { params, channel }): CommandResults => {
+  run: (bot, { params, msg }): CommandResults => {
     const [ gameName, ...rest ] = params
     const roleName = rest.length ? rest.join(' ') : gameName
     if (roleName.length > 100) {
       return 'Name is too long!'
     }
-    return bot.gm.trackGame(bot, channel.guild, roleName, gameName)
+    return bot.gm.trackGame(bot, msg.channel.guild, roleName, gameName)
   }
 })

@@ -10,6 +10,7 @@ import {
 import {
   ExtendedMap
 } from 'eris-boiler/util'
+import * as logger from 'eris-boiler/util/logger'
 
 import { TuxedoMan } from '@tuxedoman'
 
@@ -35,6 +36,7 @@ export default class GameManager {
   }) { }
 
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
+    logger.info('CHECK ALL MEMBERS')
     await Promise.all(
       guild.members.map((member) => this.checkMember(bot, member))
     )
@@ -45,19 +47,19 @@ export default class GameManager {
     member: Member,
     oldPresence?: Presence
   ): Promise<void> {
+    logger.info(`-------------- CHECKING ${member.id} --------------`)
     if (member.bot) {
+      logger.info('BOT')
       return
     }
 
     if (oldPresence) {
-      if (oldPresence.game?.id === member.game?.id) {
-        return
-      }
       if (
         member.activities?.length === oldPresence.activities?.length &&
         member.activities
           ?.every((act, i) => act.id === oldPresence.activities?.[i].id)
       ) {
+        logger.info('ACTIVITIES ARE EQUAL')
         return
       }
     }
@@ -108,15 +110,20 @@ export default class GameManager {
     }
 
     if (toAdd) {
+      logger.info(`ADD ROLE ${toAdd}`)
       this.addRole(member, toAdd)
     }
 
     await Promise.all(
       Object.values(commonRoles).concat(Array.from(trackedRoles.values()))
-        .map((dbo) => dbo?.get('role') === toAdd
-          ? Promise.resolve()
-          : this.removeRole(member, dbo?.get('role'))
-        )
+        .map((dbo) => {
+          if (dbo?.get('role') === toAdd) {
+            return Promise.resolve()
+          }
+
+          logger.info(`REMOVE ROLE ${dbo?.get('role')}`)
+          return this.removeRole(member, dbo?.get('role'))
+        })
     )
   }
 
