@@ -1,21 +1,44 @@
+dist: xenial
+
+language: node_js
+node_js:
+  - lts/erbium
+
+install:
+  - npm ci
+cache:
+  directories:
+    - $HOME/.npm
+
 services:
   - docker
+
+notifications:
+  webhooks:
+    - $HOOK
+
+stages:
+  -
+    name: test
+  -
+    name: publish
+
 jobs:
   include:
     -
-      stage: build
-      before_script:
-        - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
-        - chmod +x send.sh
+      name: "Lint"
+      stage: test
+      script: npm run lint
+    -
+      name: "Compile"
+      stage: test
+      script: npx tsc
+    -
+      stage: publish
+      install: skip
       script:
         - TAGS=($NAME $NAME-$TRAVIS_BRANCH $NAME-$TRAVIS_BUILD_NUMBER $NAME-$TRAVIS_BRANCH-$TRAVIS_BUILD_NUMBER)
         - printf "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker build -t {} .
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - printf  "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker push {}
-      after_success:
-        - ./send.sh success $HOOK
-      after_failure:
-        - ./send.sh failure $HOOK
-stages:
-  -
-    name: build
+
