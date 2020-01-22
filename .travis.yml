@@ -13,10 +13,6 @@ cache:
 services:
   - docker
 
-notifications:
-  webhooks:
-    - $HOOK
-
 stages:
   -
     name: test
@@ -42,3 +38,11 @@ jobs:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - printf  "$DOCKER_USERNAME/$REPO:%s\n" "${TAGS[@]}" | xargs -I {} docker push {}
 
+after_success:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh success $HOOK
+after_failure:
+  - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh failure $HOOK
