@@ -30,6 +30,7 @@ jobs:
       stage: test
       script: npx tsc
     -
+      name: "Build Image and Docker Push"
       stage: publish
       install: skip
       before_script:
