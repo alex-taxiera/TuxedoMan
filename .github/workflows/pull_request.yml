@@ -1,4 +1,4 @@
-name: Lint and Compile
+name: PR
 
 on: [pull_request]
 
@@ -7,30 +7,34 @@ jobs:
     name: Compile
     runs-on: ubuntu-latest
     steps:
-    -
-      uses: actions/cache@v1
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    -
-      run: npm ci
-    -
-      run: npx tsc
+      -
+        uses: actions/checkout@master
+      -
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      -
+        run: npm ci
+      -
+        run: npx tsc
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    -
-      uses: actions/cache@v1
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    -
-      run: npm ci
-    -
-      run: npm run lint
+      -
+        uses: actions/checkout@master
+      -
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      -
+        run: npm ci
+      -
+        run: npm run lint
