@@ -15,7 +15,7 @@ jobs:
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
-        name: alextaxiera/bots
+        name: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPO }}
         tags: "${{ secrets.NAME }}-$BUILD_NUMBER,${{ secrets.NAME }}-$BRANCH_NAME,${{ secrets.NAME }}-$BRANCH_NAME-$BUILD_NUMBER"
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
