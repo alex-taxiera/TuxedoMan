@@ -47,7 +47,6 @@ export default class GameManager {
     member: Member,
     oldPresence?: Presence
   ): Promise<void> {
-    logger.info(`-------------- CHECKING ${member.id} --------------`)
     if (member.bot) {
       logger.info('BOT')
       return
@@ -59,7 +58,7 @@ export default class GameManager {
         member.activities
           ?.every((act, i) => act.id === oldPresence.activities?.[i].id)
       ) {
-        logger.info('ACTIVITIES ARE EQUAL')
+        logger.info(`${member.id}'S ACTIVITIES ARE EQUAL`)
         return
       }
     }
@@ -109,21 +108,16 @@ export default class GameManager {
       }
     }
 
-    if (toAdd) {
-      logger.info(`ADD ROLE ${toAdd}`)
+    if (toAdd && !member.roles.includes(toAdd)) {
       this.addRole(member, toAdd)
     }
 
     await Promise.all(
       Object.values(commonRoles).concat(Array.from(trackedRoles.values()))
-        .map((dbo) => {
-          if (dbo?.get('role') === toAdd) {
-            return Promise.resolve()
-          }
-
-          logger.info(`REMOVE ROLE ${dbo?.get('role')}`)
-          return this.removeRole(member, dbo?.get('role'))
-        })
+        .map((dbo) => dbo?.get('role') === toAdd
+          ? Promise.resolve()
+          : this.removeRole(member, dbo?.get('role'))
+        )
     )
   }
 
@@ -419,11 +413,13 @@ export default class GameManager {
 
   private removeRole (member: Member, id: string): Promise<void> | void {
     if (member.roles.includes(id)) {
+      logger.info(`REMOVE ROLE ${id} FROM ${member.id}`)
       return member.removeRole(id)
     }
   }
 
   private addRole (member: Member, id: string): Promise<void> | void {
+    logger.info(`ADD ROLE ${id} TO ${member.id}`)
     return member.addRole(id)
   }
 }
