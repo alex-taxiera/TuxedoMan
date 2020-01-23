@@ -1,0 +1,28 @@
+name: Lint and Compile
+
+on: [pull_request]
+
+jobs:
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+    -
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    -
+      run: npx tsc
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    -
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    -
+      run: npm ci
+    -
+      run: npm run lint
