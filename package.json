@@ -1,8 +1,4 @@
 {
-  "name": "tuxedoman",
-  "version": "1.0.0",
-  "description": "Discord presence based role manager",
-  "main": "./index.js",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register ./src/index.ts",
     "prestart": "eris-boiler migrations latest",
@@ -10,23 +6,6 @@
     "dev": "ts-node-dev -r tsconfig-paths/register ./src/index.ts",
     "debug": "node --inspect-brk=0.0.0.0:9229 -r ts-node/register -r tsconfig-paths/register ./src/index.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/alex-taxiera/TuxedoMan.git"
-  },
-  "keywords": [
-    "discord",
-    "bot",
-    "roles",
-    "community",
-    "gaming"
-  ],
-  "author": "Alex Taxiera",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/alex-taxiera/TuxedoMan/issues"
-  },
-  "homepage": "https://github.com/alex-taxiera/TuxedoMan#readme",
   "engines": {
     "node": ">=12.13.0"
   },

@@ -409,7 +409,7 @@ export default class GameManager {
     bot: TuxedoMan,
     guild: Guild,
     gameRole: DatabaseObject
-  ): Promise<void> | void {
+  ): Promise<void> {
     const role = guild.roles.get(gameRole.get('role'))
     return Promise.all([
       gameRole.delete(),
