@@ -16,6 +16,6 @@ jobs:
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPO }}
-        tags: "${{ secrets.NAME }}-${BUILD_NUMBER},${{ secrets.NAME }}-${BRANCH_NAME},${{ secrets.NAME }}-${BRANCH_NAME}-${BUILD_NUMBER}"
+        tags: "${{ secrets.NAME }}-${ {BUILD_NUMBER }},${{ secrets.NAME }}-${{ BRANCH_NAME }},${{ secrets.NAME }}-${{ BRANCH_NAME }}-${{ BUILD_NUMBER }}"
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
