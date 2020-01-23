@@ -86,24 +86,24 @@ export default class GameManager {
 
       switch (activity.type) {
         case 0:
-          toAdd = trackedRoles.get(activity.name)?.get('role')
+          toAdd = trackedRoles.get(activity.name)?.get('role') ?? ''
           if (!toAdd && guildOptions.get('game')) {
-            toAdd = commonRoles.playing?.get('role')
+            toAdd = commonRoles.playing?.get('role') ?? ''
           }
           break
         case 1:
           if (guildOptions.get('stream')) {
-            toAdd = commonRoles.streaming?.get('role')
+            toAdd = commonRoles.streaming?.get('role') ?? ''
           }
           break
         case 2:
           if (guildOptions.get('listen')) {
-            toAdd = commonRoles.listening?.get('role')
+            toAdd = commonRoles.listening?.get('role') ?? ''
           }
           break
         case 3:
           if (guildOptions.get('watch')) {
-            toAdd = commonRoles.watching?.get('role')
+            toAdd = commonRoles.watching?.get('role') ?? ''
           }
           break
       }
