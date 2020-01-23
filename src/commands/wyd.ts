@@ -1,6 +1,7 @@
 import {
   CommandResults
 } from 'eris-boiler'
+import * as logger from 'eris-boiler/util/logger'
 import { GuildCommand } from '@tuxedoman'
 
 export default new GuildCommand({
@@ -21,6 +22,9 @@ export default new GuildCommand({
     if (!target.activities?.length) {
       return 'Member is not doing anything!'
     }
+
+    logger.info(`ACTIVITIES FOR ${target.id}`)
+    logger.info(JSON.stringify(target.activities, null, 2))
 
     return '```\nGame:\n' +
       target.game?.name +
