@@ -2,6 +2,9 @@ name: PR
 
 on: [pull_request]
 
+env:
+  NODE_VERSION: '12.x'
+
 jobs:
   compile:
     name: Compile
@@ -9,6 +12,9 @@ jobs:
     steps:
       -
         uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: $NODE_VERSION
       -
         uses: actions/cache@v1
         with:
@@ -27,6 +33,9 @@ jobs:
     steps:
       -
         uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+        with:
+          node-version: $NODE_VERSION
       -
         uses: actions/cache@v1
         with:
