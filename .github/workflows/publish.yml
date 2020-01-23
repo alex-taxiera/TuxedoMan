@@ -1,0 +1,21 @@
+name: Publish Docker
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: nelonoel/branch-name@v1
+    - name: Generate Build Number
+      uses: einaregilsson/build-number@v2 
+      with:
+        token: ${{ secrets.github_token }}
+    - name: Print new build number
+      run: echo "Build number is $BUILD_NUMBER"
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: alextaxiera/bots
+        tags: "${{ secrets.NAME }}-$BUILD_NUMBER,${{ secrets.NAME }}-$BRANCH_NAME,${{ secrets.NAME }}-$BRANCH_NAME-$BUILD_NUMBER"
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
