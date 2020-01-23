@@ -114,10 +114,11 @@ export default class GameManager {
 
     await Promise.all(
       Object.values(commonRoles).concat(Array.from(trackedRoles.values()))
-        .map((dbo) => dbo?.get('role') === toAdd
-          ? Promise.resolve()
-          : this.removeRole(member, dbo?.get('role'))
-        )
+        .map(async (dbo) => {
+          if ((dbo?.get('role') ?? '') !== toAdd) {
+            return this.removeRole(member, dbo?.get('role'))
+          }
+        })
     )
   }
 
