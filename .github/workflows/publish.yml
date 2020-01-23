@@ -5,17 +5,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - uses: nelonoel/branch-name@v1
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
     - name: Generate Build Number
       uses: einaregilsson/build-number@v2 
       with:
         token: ${{ secrets.github_token }}
     - name: Print details
-      run: echo "Branch=$BRANCH_NAME, Build=$BUILD_NUMBER"
+      run: echo "Branch=${{ steps.extract_branch.outputs.branch }}, Build=${{ steps.buildnumber.outputs.build_number }}"
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPO }}
-        tags: "${{ secrets.NAME }}-${ {BUILD_NUMBER }},${{ secrets.NAME }}-${{ BRANCH_NAME }},${{ secrets.NAME }}-${{ BRANCH_NAME }}-${{ BUILD_NUMBER }}"
+        tags: "${{ secrets.NAME }}-${{ steps.buildnumber.outputs.build_number }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }}-${{ steps.buildnumber.outputs.build_number }}"
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
