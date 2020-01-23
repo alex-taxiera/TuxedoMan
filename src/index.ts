@@ -36,7 +36,10 @@ const bot = new TuxedoMan(TUX_DISCORD_TOKEN, {
       password: TUX_DB_PASS,
       host: TUX_DB_HOST
     },
-    client: TUX_DB_CLIENT
+    client: TUX_DB_CLIENT,
+    pool: {
+      min: 0
+    }
   })
 })
 
