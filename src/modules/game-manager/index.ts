@@ -48,7 +48,6 @@ export default class GameManager {
     oldPresence?: Presence
   ): Promise<void> {
     if (member.bot) {
-      logger.info('BOT')
       return
     }
 
@@ -79,12 +78,16 @@ export default class GameManager {
     let toAdd = ''
 
     if (activity) {
+      logger.info(`${member.id} HAS ACTIVITY '${activity.name}'`)
       const [ guildOptions ] = await bot.dbm.newQuery('guild')
         .equalTo('id', member.guild.id)
         .find()
 
       switch (activity.type) {
         case 0:
+          if (activity.name.toLowerCase().startsWith('modern')) {
+            logger.info(`MODERN WARFARE LOGS\n${JSON.stringify(trackedRoles.values(), null, 2)}`)
+          }
           toAdd = trackedRoles.get(activity.name)?.get('role') ?? ''
           if (!toAdd && guildOptions.get('game')) {
             toAdd = commonRoles.playing?.get('role') ?? ''
