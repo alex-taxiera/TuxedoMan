@@ -57,7 +57,6 @@ export default class GameManager {
         member.activities
           ?.every((act, i) => act.id === oldPresence.activities?.[i].id)
       ) {
-        logger.info(`${member.id}'S ACTIVITIES ARE EQUAL`)
         return
       }
     }
@@ -85,9 +84,6 @@ export default class GameManager {
 
       switch (activity.type) {
         case 0:
-          if (activity.name.toLowerCase().includes('modern warfare')) {
-            logger.info(`MODERN WARFARE LOGS\n${JSON.stringify(trackedRoles.values(), null, 2)}`)
-          }
           toAdd = trackedRoles.get(activity.name)?.get('role') ?? ''
           if (!toAdd && guildOptions.get('game')) {
             toAdd = commonRoles.playing?.get('role') ?? ''
