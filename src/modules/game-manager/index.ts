@@ -2,7 +2,8 @@ import {
   Member,
   Guild,
   Presence,
-  Role
+  Role,
+  Activity
 } from 'eris'
 import {
   DatabaseObject
@@ -61,13 +62,21 @@ export default class GameManager {
       }
     }
 
-    let activity = member.game
+    let activity: Activity | undefined
 
-    if (
-      activity && activity.type > 3 &&
-      member.activities && member.activities?.length > 1
-    ) {
-      activity = member.activities.find((activity) => activity.type < 4)
+    for (const act of member.activities ?? []) {
+      if (act.type < 4) {
+        if (
+          !activity ||
+          (!activity.assets && act.assets) ||
+          (
+            activity.created_at > act.created_at &&
+            !(activity.assets && !act.assets)
+          )
+        ) {
+          activity = act
+        }
+      }
     }
 
     const {
@@ -85,6 +94,7 @@ export default class GameManager {
       switch (activity.type) {
         case 0:
           toAdd = trackedRoles.get(activity.name)?.get('role') ?? ''
+
           if (!toAdd && guildOptions.get('game')) {
             toAdd = commonRoles.playing?.get('role') ?? ''
           }
