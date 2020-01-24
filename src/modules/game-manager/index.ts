@@ -85,7 +85,7 @@ export default class GameManager {
 
       switch (activity.type) {
         case 0:
-          if (activity.name.toLowerCase().startsWith('modern')) {
+          if (activity.name.toLowerCase().includes('modern warfare')) {
             logger.info(`MODERN WARFARE LOGS\n${JSON.stringify(trackedRoles.values(), null, 2)}`)
           }
           toAdd = trackedRoles.get(activity.name)?.get('role') ?? ''
