@@ -2,8 +2,9 @@ name: Publish
 
 on:
   push:
-    - master
-    - dev
+    branches:
+      - master
+      - dev
 
 jobs:
   run:
