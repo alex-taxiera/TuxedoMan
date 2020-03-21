@@ -87,9 +87,9 @@ export default class GameManager {
 
     if (activity) {
       logger.info(`${member.id} HAS ACTIVITY '${activity.name}'`)
-      const [ guildOptions ] = await bot.dbm.newQuery('guild')
-        .equalTo('id', member.guild.id)
-        .find()
+      const guildOptions = (
+        await bot.dbm.newQuery('guild').get(member.guild.id)
+      ) as DatabaseObject
 
       switch (activity.type) {
         case 0:
