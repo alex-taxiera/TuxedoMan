@@ -11,32 +11,33 @@ import {
 } from './config'
 import { ENV } from './types/env'
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV === 'production') {
+  require('docker-secret-env').load()
+} else {
   require('dotenv').config()
 }
 
 const {
-  TUX_DISCORD_TOKEN,
-  TUX_DB_CLIENT,
-  TUX_DB_NAME,
-  TUX_DB_USER,
-  TUX_DB_PASS,
-  TUX_DB_HOST,
-  TUX_DB_CONNECTION
+  DISCORD_TOKEN,
+  DB_CLIENT,
+  DB_NAME,
+  DB_USER,
+  DB_PASS,
+  DB_HOST
 } = (process.env as unknown) as ENV
 
 /* create DataClient instance */
-const bot = new TuxedoMan(TUX_DISCORD_TOKEN, {
+const bot = new TuxedoMan(DISCORD_TOKEN, {
   oratorOptions,
   statusManagerOptions,
   databaseManager: new SQLManager({
-    connectionInfo: TUX_DB_CONNECTION || {
-      database: TUX_DB_NAME,
-      user: TUX_DB_USER,
-      password: TUX_DB_PASS,
-      host: TUX_DB_HOST
+    connectionInfo: {
+      database: DB_NAME,
+      user: DB_USER,
+      password: DB_PASS,
+      host: DB_HOST
     },
-    client: TUX_DB_CLIENT,
+    client: DB_CLIENT,
     pool: {
       min: 0
     }

@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@types/node": "^13.9.2",
+    "docker-secret-env": "^0.2.1",
     "eris-boiler": "github:alex-taxiera/eris-boiler#release/3.0.0",
     "pg": "^7.18.2",
     "simple-knex": "^1.0.0-beta.5",
