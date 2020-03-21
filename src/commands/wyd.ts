@@ -23,7 +23,9 @@ export default new GuildCommand({
       return 'Member is not doing anything!'
     }
 
-    logger.info(`ACTIVITIES FOR ${target.id}\n${JSON.stringify(target.activities, null, 2)}`)
+    logger.info(`ACTIVITIES FOR ${target.id}\n${
+      JSON.stringify(target.activities, null, 2)
+    }`)
 
     return '```\nGame:\n' +
       target.game?.name +
