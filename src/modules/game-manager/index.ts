@@ -65,12 +65,12 @@ export default class GameManager {
     let activity: Activity | undefined
 
     for (const act of member.activities ?? []) {
-      if (act.type < 4) {
+      if (act.type < 4 && activity?.type !== 1) {
         if (
-          !activity ||
+          !activity || act.type === 1 ||
           (!activity.assets && act.assets) ||
           (
-            activity.created_at > act.created_at &&
+            activity.created_at < act.created_at &&
             !(activity.assets && !act.assets)
           )
         ) {
