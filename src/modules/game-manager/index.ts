@@ -14,6 +14,7 @@ import {
 import * as logger from 'eris-boiler/util/logger'
 
 import { TuxedoMan } from '@tuxedoman'
+import { activitiesAreEqual } from '@util/activity'
 
 type CommonRoleType = 'playing' | 'streaming' | 'watching' | 'listening'
 type CommonRoleNames = {
@@ -52,14 +53,11 @@ export default class GameManager {
       return
     }
 
-    if (oldPresence) {
-      if (
-        member.activities?.length === oldPresence.activities?.length &&
-        member.activities
-          ?.every((act, i) => act.id === oldPresence.activities?.[i].id)
-      ) {
-        return
-      }
+    if (activitiesAreEqual(
+      member.activities ?? [],
+      oldPresence?.activities ?? []
+    )) {
+      return
     }
 
     let activity: Activity | undefined
