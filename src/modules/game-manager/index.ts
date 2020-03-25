@@ -371,6 +371,8 @@ export default class GameManager {
     guild: Guild,
     name: string
   ): Promise<Role> {
+    const role = await guild.createRole({ name, hoist: true })
+
     const {
       trackedRoles,
       commonRoles
@@ -378,18 +380,17 @@ export default class GameManager {
     let position = 0
     if (trackedRoles.size) {
       const [ lowestTrackedRole ] = [ ...trackedRoles.values() ]
+        .filter((dbo) => dbo.get('role') !== role.id)
         .map((dbo) => guild.roles.get(dbo.get('role')) as Role)
         .sort((a, b) => a.position - b.position)
       position = lowestTrackedRole.position - 1
-      logger.info('position 1', position)
     } else {
       const commonRolelist = Object.values(commonRoles).filter((r) => r)
       if (commonRolelist.length) {
         const [ highestMiscRole ] = commonRolelist
           .map((dbo) => guild.roles.get(dbo?.get('role')) as Role)
           .sort((a, b) => b.position - a.position)
-        position = highestMiscRole.position + 1
-        logger.info('position 2', position)
+        position = highestMiscRole.position
       } else {
         const member = guild.members.get(bot.user.id)
         if (member) {
@@ -397,16 +398,16 @@ export default class GameManager {
             .map((id) => guild.roles.get(id) as Role)
             .sort((a, b) => a.position - b.position)
           position = lowestControlRole.position - 1
-          logger.info('position 3', position)
         }
       }
     }
 
-    logger.info(guild.roles.map((r) => [ r.name, r.position ]))
-
-    const role = await guild.createRole({ name, hoist: true })
     if (position) {
-      await role.editPosition(position)
+      try {
+        await role.editPosition(position)
+      } catch (error) {
+        logger.warn(`Problem setting role position to ${position}:`, error)
+      }
     }
 
     return role
