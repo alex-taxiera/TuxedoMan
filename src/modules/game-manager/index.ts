@@ -381,6 +381,7 @@ export default class GameManager {
         .map((dbo) => guild.roles.get(dbo.get('role')) as Role)
         .sort((a, b) => a.position - b.position)
       position = lowestTrackedRole.position - 1
+      logger.info('position 1', position)
     } else {
       const commonRolelist = Object.values(commonRoles).filter((r) => r)
       if (commonRolelist.length) {
@@ -388,6 +389,7 @@ export default class GameManager {
           .map((dbo) => guild.roles.get(dbo?.get('role')) as Role)
           .sort((a, b) => b.position - a.position)
         position = highestMiscRole.position + 1
+        logger.info('position 2', position)
       } else {
         const member = guild.members.get(bot.user.id)
         if (member) {
@@ -395,11 +397,13 @@ export default class GameManager {
             .map((id) => guild.roles.get(id) as Role)
             .sort((a, b) => a.position - b.position)
           position = lowestControlRole.position - 1
+          logger.info('position 3', position)
         }
       }
     }
 
-    logger.info('position', position)
+    logger.info(guild.roles.map((r) => [ r.name, r.position ]))
+
     const role = await guild.createRole({ name, hoist: true })
     if (position) {
       await role.editPosition(position)

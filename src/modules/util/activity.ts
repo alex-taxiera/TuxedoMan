@@ -3,19 +3,23 @@ import {
 } from 'eris'
 
 export const activitiesAreEqual = (
-  activitiesA: Array<Activity>,
-  activitiesB: Array<Activity>
+  ...activities: Array<Array<Activity>>
 ): boolean => {
-  return activitiesA.length === activitiesB.length &&
-    activitiesA.every(({
+  const [
+    first,
+    ...rest
+  ] = activities
+
+  return rest.every((acts) => acts.length === first.length) &&
+    activities.every((acts) => acts.every(({
       created_at: newCreatedAt,
       name: newName
     }, i) => {
       const {
         created_at: oldCreatedAt,
         name: oldName
-      } = activitiesB[i]
+      } = first[i]
 
       return newName === oldName && newCreatedAt === oldCreatedAt
-    })
+    }))
 }
