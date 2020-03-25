@@ -53,27 +53,27 @@ export default class GameManager {
       return
     }
 
-    if (activitiesAreEqual(
+    if (activitiesAreEqual([
       member.activities ?? [],
       oldPresence?.activities ?? []
-    )) {
+    ])) {
       return
     }
 
     let activity: Activity | undefined
 
     for (const act of member.activities ?? []) {
-      if (act.type < 4 && activity?.type !== 1) {
-        if (
+      if (act.type < 4 && activity?.type !== 1 &&
+        (
           !activity || act.type === 1 ||
           (!activity.assets && act.assets) ||
           (
             activity.created_at < act.created_at &&
             !(activity.assets && !act.assets)
           )
-        ) {
-          activity = act
-        }
+        )
+      ) {
+        activity = act
       }
     }
 
@@ -371,7 +371,7 @@ export default class GameManager {
     guild: Guild,
     name: string
   ): Promise<Role> {
-    const role = await guild.createRole({ name, hoist: true })
+    const role = await guild.createRole({ name, hoist: true, permissions: 0 })
 
     const {
       trackedRoles,

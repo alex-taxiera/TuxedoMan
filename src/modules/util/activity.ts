@@ -3,7 +3,7 @@ import {
 } from 'eris'
 
 export const activitiesAreEqual = (
-  ...activities: Array<Array<Activity>>
+  activities: Array<Array<Activity>>
 ): boolean => {
   const [
     first,
@@ -11,7 +11,7 @@ export const activitiesAreEqual = (
   ] = activities
 
   return rest.every((acts) => acts.length === first.length) &&
-    activities.every((acts) => acts.every(({
+    rest.every((acts) => acts.every(({
       created_at: newCreatedAt,
       name: newName
     }, i) => {
