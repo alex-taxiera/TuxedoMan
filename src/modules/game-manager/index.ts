@@ -399,6 +399,7 @@ export default class GameManager {
       }
     }
 
+    logger.info('position', position)
     const role = await guild.createRole({ name, hoist: true })
     if (position) {
       await role.editPosition(position)
