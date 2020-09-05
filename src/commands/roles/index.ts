@@ -11,13 +11,13 @@ export default new GuildCommand({
   options: {
     subCommands: [ inspect ]
   },
-  run: (bot, { msg }): CommandResults => {
+  run: (bot, { msg }): Promise<CommandResults> => {
     return bot.gm.getRolesForGuild(bot, msg.channel.guild)
       .then(({ trackedRoles }) => {
         const fields = []
         for (const dbo of trackedRoles.values()) {
           fields.push({
-            name: dbo.get('game'),
+            name: dbo.get('game') as string,
             value: msg.channel.guild.roles.get(dbo.get('role'))?.name ?? 'ERR',
             inline: true
           })

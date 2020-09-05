@@ -22,7 +22,7 @@ export default new GuildCommand({
   options: {
     parameters: [ '<roleId>' ]
   },
-  run: (bot, { msg, params }): CommandResults => {
+  run: (bot, { msg, params }): Promise<CommandResults> | CommandResults => {
     const roleId = params[0]
     const role = msg.channel.guild.roles.get(roleId)
 
@@ -37,7 +37,7 @@ export default new GuildCommand({
 
       let description = 'Games:\n'
       for (const dbo of gameRoles) {
-        description += `${dbo.get('game')}\n`
+        description += `${dbo.get('game') as string}\n`
       }
       return {
         embed: {

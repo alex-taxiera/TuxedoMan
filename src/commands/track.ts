@@ -12,7 +12,7 @@ export default new GuildCommand({
       '[role name] (defaults to game name)'
     ]
   },
-  run: (bot, { params, msg }): CommandResults => {
+  run: (bot, { params, msg }): Promise<CommandResults> | CommandResults => {
     const [ gameName, ...rest ] = params
     const roleName = rest.length ? rest.join(' ') : gameName
     if (roleName.length > 100) {

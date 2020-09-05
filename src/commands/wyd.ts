@@ -28,9 +28,9 @@ export default new GuildCommand({
     }`)
 
     return '```\nGame:\n' +
-      target.game?.name +
+      (target.game?.name ?? 'N/A') +
       '\n\nActivities:\n' +
-      target.activities.map((act) => act.name) +
+      target.activities.map((act) => act.name).join(', ') +
       '\n```'
   }
 })

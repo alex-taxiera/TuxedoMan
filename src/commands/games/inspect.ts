@@ -22,7 +22,7 @@ export default new GuildCommand({
   options: {
     parameters: [ '<game name>' ]
   },
-  run: (bot, { msg, params }): CommandResults => {
+  run: (bot, { msg, params }): Promise<CommandResults> => {
     const gameName = params[0]
 
     return bot.gm.getGameRoleByGameName(bot, gameName).then(([ gameRole ]) => {
@@ -30,7 +30,8 @@ export default new GuildCommand({
         return 'Game not being tracked.'
       }
 
-      const role = gameRole.get('role')
+      const roleName = gameRole.get('role') as string
+      const roleId = gameRole.get('id') as string
 
       return {
         embed: {
@@ -38,12 +39,12 @@ export default new GuildCommand({
           fields: [
             {
               name: 'Members playing this Game',
-              value: getCount(msg.channel.guild, role.id),
+              value: getCount(msg.channel.guild, roleId),
               inline: true
             },
             {
               name: 'Role for Game',
-              value: `'${role.name}' (${role.id})`
+              value: `'${roleName}' (${roleId})`
             }
           ]
         }

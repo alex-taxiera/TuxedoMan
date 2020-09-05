@@ -10,7 +10,7 @@ export default new GuildCommand({
   options: {
     permission
   },
-  run: (bot, { msg }): CommandResults => {
+  run: (bot, { msg }): Promise<CommandResults> => {
     return bot.gm.setupMiscRoles(bot, msg.channel.guild)
       .then(() =>
         'Setup complete! Make sure the roles are in the order you prefer :)'
