@@ -1,0 +1,14 @@
+exports.up = (knex) => {
+  return knex.schema.createTable('room', (t) => {
+    t.increments('id').primary().notNull()
+    t.string('guild').notNull()
+    t.string('role').notNull()
+    t.string('channel')
+
+    t.unique(['guild', 'role'])
+  })
+}
+
+exports.down = (knex) => {
+  return knex.schema.dropTable('room')
+}

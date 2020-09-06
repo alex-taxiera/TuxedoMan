@@ -9,8 +9,8 @@ export default new GuildCommand({
     permission,
     parameters: [
       '<game name> (as appears on discord statuses)',
-      '[role name] (defaults to game name)'
-    ]
+      '[role name] (defaults to game name)',
+    ],
   },
   run: (bot, { params, msg }): Promise<CommandResults> | CommandResults => {
     const [ gameName, ...rest ] = params
@@ -19,5 +19,5 @@ export default new GuildCommand({
       return 'Name is too long!'
     }
     return bot.gm.trackGame(bot, msg.channel.guild, roleName, gameName)
-  }
+  },
 })

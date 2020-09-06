@@ -7,5 +7,5 @@ export default new DiscordEvent({
   name: 'guildCreate',
   run: (bot, guild: Guild): void => {
     bot.gm.checkAllMembers(bot, guild).catch(logger.error)
-  }
+  },
 })

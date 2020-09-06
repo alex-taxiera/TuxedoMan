@@ -1,32 +1,18 @@
-if (process.env.NODE_ENV === 'production') {
-  require('docker-secret-env').load()
-} else {
-  require('dotenv').config()
-}
-
-const {
-  DB_CLIENT,
-  DB_NAME,
-  DB_USER,
-  DB_PASS,
-  DB_HOST,
-  ADMIN_DB_USER,
-  ADMIN_DB_PASS
-} = process.env
+const config = require('config')
 
 const baseConfig = {
-  client: DB_CLIENT,
+  client: config.DB_CLIENT,
   connection: {
-    host: DB_HOST,
-    database: DB_NAME
+    host: config.DB_HOST,
+    database: config.DB_NAME,
   },
   pool: {
     min: 2,
-    max: 10
+    max: 10,
   },
   migrations: {
-    tableName: 'knex_migrations'
-  }
+    tableName: 'knex_migrations',
+  },
 }
 
 module.exports = {
@@ -34,16 +20,16 @@ module.exports = {
     ...baseConfig,
     connection: {
       ...baseConfig.connection,
-      user: ADMIN_DB_USER,
-      password: ADMIN_DB_PASS
-    }
+      user: config.ADMIN_DB_USER,
+      password: config.ADMIN_DB_PASS,
+    },
   },
   development: {
     ...baseConfig,
     connection: {
       ...baseConfig.connection,
-      user: DB_USER,
-      password: DB_PASS
-    }
-  }
+      user: config.DB_USER,
+      password: config.DB_PASS,
+    },
+  },
 }

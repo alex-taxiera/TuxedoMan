@@ -1,0 +1,10 @@
+oratorOptions:
+  defaultPrefix: 'tx'
+
+statusManagerOptions:
+  mode: random
+  defaultStatus:
+    name: you sleep
+    type: 3
+
+NODE_ENV: development

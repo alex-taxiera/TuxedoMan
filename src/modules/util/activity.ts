@@ -1,9 +1,9 @@
 import {
-  Activity
+  Activity,
 } from 'eris'
 
 export const activitiesAreEqual = (
-  activities: Array<Array<Activity>>
+  activities: Array<Array<Activity>>,
 ): boolean => {
   const [
     first,
@@ -13,13 +13,21 @@ export const activitiesAreEqual = (
   return rest.every((acts) => acts.length === first.length) &&
     rest.every((acts) => acts.every(({
       created_at: newCreatedAt,
-      name: newName
+      name: newName,
+      details: newDetails,
+      state: newState,
     }, i) => {
       const {
         created_at: oldCreatedAt,
-        name: oldName
+        name: oldName,
+        details: oldDetails,
+        state: oldState,
       } = first[i]
 
-      return newName === oldName && newCreatedAt === oldCreatedAt
+      return (newName === oldName && newCreatedAt === oldCreatedAt) ||
+        (
+          newName === 'Spotify' &&
+          newDetails === oldDetails && newState === oldState
+        )
     }))
 }

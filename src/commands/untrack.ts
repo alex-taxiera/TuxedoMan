@@ -8,9 +8,9 @@ export default new GuildCommand({
   description: 'Untrack a game',
   options: {
     parameters: [ 'game name as appears on discord statuses' ],
-    permission
+    permission,
   },
   run: (bot, { msg, params }): Promise<CommandResults> => {
     return bot.gm.untrackGame(bot, msg.channel.guild, params.join(' '))
-  }
+  },
 })

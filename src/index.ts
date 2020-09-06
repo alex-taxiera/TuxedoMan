@@ -1,47 +1,28 @@
 import { join } from 'path'
 
+import config from 'config'
 import {
-  SQLManager
+  SQLManager,
 } from 'eris-boiler'
+import { logger } from 'eris-boiler/util'
 
 import { TuxedoMan } from './modules/tuxedoman'
-import {
-  oratorOptions,
-  statusManagerOptions
-} from './config'
-import { ENV } from './types/env'
 
-if (process.env.NODE_ENV === 'production') {
-  require('docker-secret-env').load()
-} else {
-  require('dotenv').config()
-}
-
-const {
-  DISCORD_TOKEN,
-  DB_CLIENT,
-  DB_NAME,
-  DB_USER,
-  DB_PASS,
-  DB_HOST
-} = (process.env as unknown) as ENV
-
-/* create DataClient instance */
-const bot = new TuxedoMan(DISCORD_TOKEN, {
-  oratorOptions,
-  statusManagerOptions,
+const bot = new TuxedoMan(config.get('DISCORD_TOKEN'), {
+  oratorOptions: config.get('oratorOptions'),
+  statusManagerOptions: config.get('statusManagerOptions'),
   databaseManager: new SQLManager({
     connectionInfo: {
-      database: DB_NAME,
-      user: DB_USER,
-      password: DB_PASS,
-      host: DB_HOST
+      database: config.get('DB_NAME'),
+      user: config.has('DB_USER') ? config.get('DB_USER') : '',
+      password: config.has('DB_PASS') ? config.get('DB_PASS') : '',
+      host: config.has('DB_HOST') ? config.get('DB_HOST') : '',
     },
-    client: DB_CLIENT,
+    client: config.get('DB_CLIENT'),
     pool: {
-      min: 0
-    }
-  })
+      min: 0,
+    },
+  }),
 })
 
 bot
@@ -49,3 +30,4 @@ bot
   .addSettingCommands(join(__dirname, 'settings'))
   .addEvents(join(__dirname, 'events'))
   .connect()
+  .catch(logger.error)

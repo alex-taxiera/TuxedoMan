@@ -1,5 +1,5 @@
 import {
-  CommandResults
+  CommandResults,
 } from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'
 import { GuildCommand } from '@tuxedoman'
@@ -9,8 +9,8 @@ export default new GuildCommand({
   description: 'Check what someone is doing.',
   options: {
     parameters: [
-      '<user> (mention or id)'
-    ]
+      '<user> (mention or id)',
+    ],
   },
   run: (bot, { msg, params }): CommandResults => {
     const target = msg.channel.guild.members.get(params[0])
@@ -32,5 +32,5 @@ export default new GuildCommand({
       '\n\nActivities:\n' +
       target.activities.map((act) => act.name).join(', ') +
       '\n```'
-  }
+  },
 })
