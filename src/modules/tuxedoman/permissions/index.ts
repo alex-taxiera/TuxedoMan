@@ -2,7 +2,7 @@ import {
   createGeneric,
   admin as baseAdmin,
   owner as baseOwner,
-  vip as baseVip
+  vip as baseVip,
 } from 'eris-boiler/permissions'
 import { TuxedoMan } from '@tuxedoman'
 

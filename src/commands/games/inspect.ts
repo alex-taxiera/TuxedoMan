@@ -1,8 +1,8 @@
 import {
-  Guild
+  Guild,
 } from 'eris'
 import {
-  CommandResults
+  CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
 
@@ -20,7 +20,7 @@ export default new GuildCommand({
   name: 'inspect',
   description: 'Get details about a specific tracked game.',
   options: {
-    parameters: [ '<game name>' ]
+    parameters: [ '<game name>' ],
   },
   run: (bot, { msg, params }): Promise<CommandResults> => {
     const gameName = params[0]
@@ -40,15 +40,15 @@ export default new GuildCommand({
             {
               name: 'Members playing this Game',
               value: getCount(msg.channel.guild, roleId),
-              inline: true
+              inline: true,
             },
             {
               name: 'Role for Game',
-              value: `'${roleName}' (${roleId})`
-            }
-          ]
-        }
+              value: `'${roleName}' (${roleId})`,
+            },
+          ],
+        },
       }
     })
-  }
+  },
 })

@@ -1,8 +1,8 @@
 import {
-  Guild
+  Guild,
 } from 'eris'
 import {
-  CommandResults
+  CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
 
@@ -20,7 +20,7 @@ export default new GuildCommand({
   name: 'inspect',
   description: 'Get details about a specific tracked role.',
   options: {
-    parameters: [ '<roleId>' ]
+    parameters: [ '<roleId>' ],
   },
   run: (bot, { msg, params }): Promise<CommandResults> | CommandResults => {
     const roleId = params[0]
@@ -47,11 +47,11 @@ export default new GuildCommand({
             {
               name: 'Members with this Role',
               value: getCount(msg.channel.guild, roleId),
-              inline: true
-            }
-          ]
-        }
+              inline: true,
+            },
+          ],
+        },
       }
     })
-  }
+  },
 })

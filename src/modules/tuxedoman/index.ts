@@ -6,12 +6,14 @@ import {
   PrivateCommand as BasePrivateCommand,
   SettingCommand as BaseSettingCommand,
   ToggleCommand as BaseToggleCommand,
-  CommandContext
+  CommandContext,
 } from 'eris-boiler'
 
 import GameManager from '@game-manager'
 export class TuxedoMan extends DataClient {
+
   public readonly gm: GameManager = new GameManager()
+
 }
 
 export class DiscordEvent<

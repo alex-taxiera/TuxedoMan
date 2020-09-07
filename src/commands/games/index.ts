@@ -1,5 +1,5 @@
 import {
-  CommandResults
+  CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
 
@@ -9,7 +9,7 @@ export default new GuildCommand({
   name: 'games',
   description: 'List tracked games.',
   options: {
-    subCommands: [ inspect ]
+    subCommands: [ inspect ],
   },
   run: (bot, { msg }): Promise<CommandResults> => {
     return bot.gm.getRolesForGuild(bot, msg.channel.guild)
@@ -19,15 +19,15 @@ export default new GuildCommand({
           fields.push({
             name: dbo.get('game') as string,
             value: msg.channel.guild.roles.get(dbo.get('role'))?.name ?? 'ERR',
-            inline: true
+            inline: true,
           })
         }
         return {
           embed: {
             title: 'Tracked Games',
-            fields
-          }
+            fields,
+          },
         }
       })
-  }
+  },
 })
