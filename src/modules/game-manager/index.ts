@@ -3,6 +3,7 @@ import {
   Guild,
   Role,
   Activity,
+  Overwrite,
 } from 'eris'
 import {
   DatabaseObject,
@@ -147,7 +148,7 @@ export default class GameManager {
     }
   }
 
-  private countMembersWithRole (
+  public static countMembersWithRole (
     members: Array<Member>,
     roleId: string,
   ): number {
@@ -166,7 +167,7 @@ export default class GameManager {
         promises.push(dbo.delete())
         continue
       }
-      const count = this.countMembersWithRole(
+      const count = GameManager.countMembersWithRole(
         [ ...guild.members.values() ],
         dbo.get('role'),
       )
@@ -200,23 +201,34 @@ export default class GameManager {
         .find(),
     )
 
-    const voiceThreshold = settings?.get('voiceChannelThreshold') as number
+    const guildVoiceThreshold = settings?.get('voiceChannelThreshold') as number
+    const guildVoiceLimit = settings?.get('voiceChannelLimit') as number
     const {
       trackedRoles,
     } = await this.getRolesForGuild(bot, guild)
 
     for (const roleDbo of trackedRoles.values()) {
+      if (!roleDbo.get('manageVoice')) {
+        continue
+      }
       const roleId = roleDbo.get('role') as string
+      const roleVoiceThreshold = roleDbo.get('voiceChannelThreshold') as number
+      const roleVoiceLimit = roleDbo.get('voiceChannelLimit') as number
+
       const existingChannelDbos = voiceRooms
         .filter((roomDbo) => roomDbo.get('role') === roleId)
-      const count = this.countMembersWithRole(
+      const count = GameManager.countMembersWithRole(
         [ ...guild.members.values() ],
         roleId,
       )
 
-      if (count >= voiceThreshold && existingChannelDbos.length === 0) {
+      if (
+        count >= (roleVoiceThreshold ?? guildVoiceThreshold) &&
+        existingChannelDbos.length === 0
+      ) {
         const parent = guild.channels.get(
-          settings.get('voiceChannelCategory'),
+          roleDbo.get('voiceChannelCategory') ??
+            settings?.get('voiceChannelCategory'),
         )
         const parentPermissions = {
           everyone: {
@@ -228,54 +240,50 @@ export default class GameManager {
             deny: parent?.permissionOverwrites.get(roleId)?.deny ?? 0,
           },
         }
+        const permissionOverwrites: Array<Overwrite> = [
+          ...parent?.permissionOverwrites.values() ?? [],
+          {
+            id: guild.id,
+            type: 'role',
+            allow: parentPermissions.everyone.allow,
+            deny: parentPermissions.everyone.deny & 0x100000
+              ? parentPermissions.everyone.deny
+              : parentPermissions.everyone.deny | 0x100000,
+          },
+          {
+            id: roleId,
+            type: 'role',
+            allow: parentPermissions.role.allow & 0x100000
+              ? parentPermissions.role.allow
+              : parentPermissions.role.allow | 0x100000,
+            deny: parentPermissions.role.deny,
+          },
+        ]
 
         const newRoomDbo = await bot.dbm.newObject('room', {
           guild: guild.id,
           role: roleId,
         }).save()
 
-        let vc
         try {
-          vc = await guild.createChannel(
+          const vc = await guild.createChannel(
             trackedRoles.find((dbo) => dbo.get('role') === roleId)?.get('game'),
             2,
             {
               parentID: parent?.id,
-              permissionOverwrites: [
-                ...parent?.permissionOverwrites.values() ?? [],
-                {
-                  id: guild.id,
-                  type: 'role',
-                  allow: parentPermissions.everyone.allow,
-                  deny: parentPermissions.everyone.deny & 0x100000
-                    ? parentPermissions.everyone.deny
-                    : parentPermissions.everyone.deny | 0x100000,
-                },
-                {
-                  id: roleId,
-                  type: 'role',
-                  allow: parentPermissions.role.allow & 0x100000
-                    ? parentPermissions.role.allow
-                    : parentPermissions.role.allow | 0x100000,
-                  deny: parentPermissions.role.deny,
-                },
-              ],
+              userLimit: roleVoiceLimit ?? guildVoiceLimit,
+              permissionOverwrites,
             },
           )
-        } catch (error) {
-          newRoomDbo.delete().catch(logger.error)
-          throw error
-        }
 
-        try {
           await newRoomDbo.save({
             channel: vc.id,
+          }).catch((error) => {
+            vc?.delete().catch(logger.error)
+            throw error
           })
         } catch (error) {
-          await Promise.all([
-            newRoomDbo.delete(),
-            vc?.delete(),
-          ])
+          newRoomDbo.delete().catch(logger.error)
           throw error
         }
       }
