@@ -8,3 +8,4 @@ statusManagerOptions:
     type: 3
 
 NODE_ENV: development
+DB_CLIENT: pg
