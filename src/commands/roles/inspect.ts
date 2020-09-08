@@ -1,20 +1,8 @@
 import {
-  Guild,
-} from 'eris'
-import {
   CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
-
-const getCount = (guild: Guild, roleId: string): string => {
-  return guild.members.reduce((ax, dx) => {
-    if (dx.roles.includes(roleId)) {
-      ax++
-    }
-
-    return ax
-  }, 0).toString()
-}
+import GameManager from '@game-manager'
 
 export default new GuildCommand({
   name: 'inspect',
@@ -46,8 +34,10 @@ export default new GuildCommand({
           fields: [
             {
               name: 'Members with this Role',
-              value: getCount(msg.channel.guild, roleId),
-              inline: true,
+              value: GameManager.countMembersWithRole(
+                [ ...msg.channel.guild.members.values() ],
+                roleId,
+              ).toString(),
             },
           ],
         },
