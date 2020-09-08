@@ -4,8 +4,6 @@ exports.up = (knex) => {
     t.string('guild').notNull()
     t.string('role').notNull()
     t.string('channel')
-
-    t.unique(['guild', 'role'])
   })
 }
 

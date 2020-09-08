@@ -1,15 +1,23 @@
-exports.up = (knex) => {
-  return knex.schema.table('guild', (t) => {
-    t.boolean('manageVoice').notNull().defaultTo(true)
-    t.integer('voiceChannelThreshold').notNull().defaultTo(1)
-    t.string('voiceChannelCategory').defaultTo(null)
-  })
+const up = (t) => {
+  t.boolean('manageVoice').notNull().defaultTo(true)
+  t.string('voiceChannelCategory').defaultTo(null)
+  t.integer('voiceChannelThreshold').notNull().defaultTo(1)
+  t.integer('voiceChannelLimit').defaultTo(null)
 }
 
-exports.down = (knex) => {
-  return knex.schema.table('guild', function (t) {
-    t.dropColumn('manageVoice')
-    t.dropColumn('voiceChannelThreshold')
-    t.dropColumn('voiceChannelCategory')
-  })
+const down = (t) => {
+  t.dropColumn('manageVoice')
+  t.dropColumn('voiceChannelCategory')
+  t.dropColumn('voiceChannelThreshold')
+  t.dropColumn('voiceChannelLimit')
+}
+
+exports.up = async (knex) => {
+  await knex.schema.table('guild', up)
+  await knex.schema.table('role', up)
+}
+
+exports.down = async (knex) => {
+  await knex.schema.table('guild', down)
+  await knex.schema.table('role', down)
 }
