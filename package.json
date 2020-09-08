@@ -3,7 +3,7 @@
     "start": "ts-node -r tsconfig-paths/register ./src/index.ts",
     "prestart": "eris-boiler migrations latest",
     "postinstall": "npm dedupe",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint .",
     "dev": "ts-node-dev -r tsconfig-paths/register ./src/index.ts",
     "debug": "node --inspect=0.0.0.0:9229 -r ts-node/register -r tsconfig-paths/register ./src/index.ts"
   },

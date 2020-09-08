@@ -3,9 +3,16 @@ env:
 parserOptions:
   ecmaVersion: 2020
   sourceType: module
-  project:
-    - ./tsconfig.json
+ignorePatterns:
+  - dist
 extends:
-  - '@alex-taxiera/eslint-config-ts'
-rules: {}
-
+  - '@alex-taxiera/eslint-config-cjs'
+overrides:
+  -
+    files:
+      - '*.ts'
+    parserOptions:
+      project:
+        - ./tsconfig.json
+    extends:
+      - '@alex-taxiera/eslint-config-ts'
