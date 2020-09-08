@@ -12,7 +12,7 @@ export default new GuildCommand({
       '<user> (mention or id)',
     ],
   },
-  run: (bot, { msg, params }): CommandResults => {
+  run: (_, { msg, params }): CommandResults => {
     const target = msg.channel.guild.members.get(params[0])
 
     if (!target) {
