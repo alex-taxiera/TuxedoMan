@@ -1,9 +1,8 @@
-
 exports.up = (knex) => {
   return knex.schema.createTable('guild', (t) => {
     t.string('id').primary().notNull()
-    t.string('prefix').defaultTo(null)
-    t.string('vip').defaultTo(null)
+    t.string('prefix')
+    t.string('vip')
   })
 }
 

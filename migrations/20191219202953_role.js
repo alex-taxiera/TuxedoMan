@@ -1,4 +1,3 @@
-
 exports.up = (knex) => {
   return knex.schema.createTable('role', (t) => {
     t.increments('id').primary().notNull()
