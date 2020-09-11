@@ -2,46 +2,60 @@ import {
   CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
-import GameManager from '@game-manager'
+import * as voiceCategory from '@voice-settings/voiceCategory'
+import { countMembersWithRole } from '@discord/roles'
 
 export default new GuildCommand({
   name: 'inspect',
   description: 'Get details about a specific tracked role.',
   options: {
-    parameters: [ '<roleId>' ],
+    parameters: [ '<roleId/roleName>' ],
   },
-  run: (bot, { msg, params }): Promise<CommandResults> | CommandResults => {
+  run: async (bot, { msg, params }): Promise<CommandResults> => {
     const roleId = params[0]
-    const role = msg.channel.guild.roles.get(roleId)
+    const role = msg.channel.guild.roles.get(roleId) ??
+      msg.channel.guild.roles.find((role) => role.name === roleId)
 
     if (!role) {
       return 'No role found for ID.'
     }
 
-    return bot.gm.getGameRolesByRoleID(bot, roleId).then((gameRoles) => {
-      if (!gameRoles.length) {
-        return 'Role not being tracked.'
-      }
+    const gameRole = await bot.gm.getGameRoleByRoleId(
+      bot,
+      msg.channel.guild.id,
+      role.id,
+    )
+    if (!gameRole) {
+      return 'Role not being tracked.'
+    }
+    const inline = true
 
-      let description = 'Games:\n'
-      for (const dbo of gameRoles) {
-        description += `${dbo.get('game') as string}\n`
-      }
-      return {
-        embed: {
-          title: `Role Info: '${role.name}' (${role.id})`,
-          description,
-          fields: [
-            {
-              name: 'Members with this Role',
-              value: GameManager.countMembersWithRole(
-                [ ...msg.channel.guild.members.values() ],
-                roleId,
-              ).toString(),
-            },
-          ],
-        },
-      }
-    })
+    return {
+      embed: {
+        title: `Role Info: '${role.name}' (${role.id})`,
+        fields: [
+          {
+            name: 'Games',
+            value: gameRole.games.join('\n'),
+          },
+          {
+            name: 'Members with this Role',
+            value: countMembersWithRole(
+              [ ...msg.channel.guild.members.values() ],
+              role.id,
+            ).toString(),
+          },
+          {
+            name: '\u200b',
+            value: '**--Settings**--',
+          },
+          {
+            name: voiceCategory.DISPLAY_NAME,
+            value: await voiceCategory.getValue(gameRole),
+            inline,
+          },
+        ],
+      },
+    }
   },
 })

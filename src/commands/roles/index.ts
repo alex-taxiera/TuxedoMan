@@ -11,23 +11,23 @@ export default new GuildCommand({
   options: {
     subCommands: [ inspect ],
   },
-  run: (bot, { msg }): Promise<CommandResults> => {
-    return bot.gm.getRolesForGuild(bot, msg.channel.guild)
-      .then(({ trackedRoles }) => {
-        const fields = []
-        for (const dbo of trackedRoles.values()) {
-          fields.push({
-            name: dbo.get('game') as string,
-            value: msg.channel.guild.roles.get(dbo.get('role'))?.name ?? 'ERR',
-            inline: true,
-          })
-        }
-        return {
-          embed: {
-            title: 'Tracked Roles',
-            fields,
-          },
-        }
+  run: async (bot, { msg }): Promise<CommandResults> => {
+    const { trackedRoles } = await bot.gm.getRolesForGuild(
+      bot, msg.channel.guild,
+    )
+    const fields = []
+    for (const tracked of trackedRoles) {
+      fields.push({
+        name: msg.channel.guild.roles.get(tracked.role)?.name ?? 'ERR',
+        value: tracked.games.join(', '),
+        inline: true,
       })
+    }
+    return {
+      embed: {
+        title: 'Tracked Roles',
+        fields,
+      },
+    }
   },
 })

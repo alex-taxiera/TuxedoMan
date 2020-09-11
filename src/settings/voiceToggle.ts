@@ -7,7 +7,7 @@ export default new ToggleCommand({
   name: 'voice',
   description: 'Toggle the voice room management.',
   displayName: 'Voice Rooms',
-  setting: 'voice',
+  setting: 'manageVoice',
   options: {
     postHook: (bot, { msg }): void => {
       bot.gm.checkVoiceForGuild(bot, msg.channel.guild).catch(logger.error)
