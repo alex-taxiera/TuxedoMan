@@ -1,4 +1,4 @@
-name: PR
+name: QA
 
 on: [pull_request]
 
