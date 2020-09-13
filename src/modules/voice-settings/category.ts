@@ -3,6 +3,7 @@ import { DatabaseObject } from 'eris-boiler'
 import { SettingCommand } from '@tuxedoman'
 import { GameRole } from '@game-manager'
 
+export const SETTING = 'voiceChannelCategory'
 export const DISPLAY_NAME = 'Voice Room Channel Category'
 export const SETTING_DESCRIPTION =
   'Set the category to create voice channels under.'
@@ -13,7 +14,7 @@ export const SETTING_PARAMS = [
 export function getValue (
   gameRole: GameRole,
 ): ReturnType<SettingCommand['getValue']> {
-  const channelId = gameRole.voiceChannelCategory ?? ''
+  const channelId = gameRole[SETTING] ?? ''
   if (!channelId) {
     return 'None'
   }
@@ -24,7 +25,7 @@ export function getValue (
 export async function setValue (
   guild: Guild,
   params: Array<string>,
-  dbo?: DatabaseObject,
+  dbo: DatabaseObject,
 ): Promise<ReturnType<SettingCommand['run']>> {
   const [ channelId ] = params
   const fullParam = params.join(' ')
@@ -38,10 +39,10 @@ export async function setValue (
     return `Channel "${fullParam}" is not a category`
   }
 
-  if (channel.id === dbo?.get('voiceChannelCategory')) {
+  if (channel.id === dbo.get('voiceChannelCategory')) {
     return 'Voice Category is already set to that channel!'
   }
 
-  await dbo?.save({ voiceChannelCategory: channel.id })
+  await dbo.save({ [SETTING]: channel.id })
   return 'Voice Room Category set!'
 }

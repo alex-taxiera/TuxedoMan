@@ -2,8 +2,10 @@ import {
   CommandResults,
 } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
-import * as voiceCategory from '@voice-settings/voiceCategory'
 import { countMembersWithRole } from '@discord/roles'
+import * as voiceCategory from '@voice-settings/category'
+import * as voiceThreshold from '@voice-settings/threshold'
+import * as voiceToggle from '@voice-settings/toggle'
 
 export default new GuildCommand({
   name: 'inspect',
@@ -17,7 +19,7 @@ export default new GuildCommand({
       msg.channel.guild.roles.find((role) => role.name === roleId)
 
     if (!role) {
-      return 'No role found for ID.'
+      return 'Role not found.'
     }
 
     const gameRole = await bot.gm.getGameRoleByRoleId(
@@ -47,7 +49,17 @@ export default new GuildCommand({
           },
           {
             name: '\u200b',
-            value: '**--Settings**--',
+            value: '**--Settings--**',
+          },
+          {
+            name: voiceToggle.DISPLAY_NAME,
+            value: await voiceToggle.getValue(gameRole),
+            inline,
+          },
+          {
+            name: voiceThreshold.DISPLAY_NAME,
+            value: await voiceThreshold.getValue(gameRole),
+            inline,
           },
           {
             name: voiceCategory.DISPLAY_NAME,

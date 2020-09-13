@@ -324,10 +324,7 @@ export default class GameManager {
     role: Role,
   ): Promise<void> {
     if (!guild.roles.has(role.id)) {
-      const [ gameRole ] = await bot.dbm.newQuery('role')
-        .equalTo('guild', guild.id)
-        .equalTo('role', role.id)
-        .find()
+      const gameRole = await this.getRoleDbo(bot, guild.id, role.id)
 
       await gameRole?.delete()
     }
@@ -342,6 +339,29 @@ export default class GameManager {
         return true
       default: return false
     }
+  }
+
+  private async getDbo (
+    bot: TuxedoMan,
+    type: 'game' | 'role',
+    guildId: string,
+    roleId: string,
+  ): Promise<DatabaseObject | undefined> {
+    const [ dbo ] = await bot.dbm.newQuery(type)
+      .equalTo('guild', guildId)
+      .equalTo('role', roleId)
+      .limit(1)
+      .find()
+
+    return dbo
+  }
+
+  public async getRoleDbo (
+    bot: TuxedoMan,
+    guildId: string,
+    roleId: string,
+  ): Promise<DatabaseObject | undefined> {
+    return this.getDbo(bot, 'role', guildId, roleId)
   }
 
   public async getGamesForGameRole (
@@ -608,11 +628,7 @@ export default class GameManager {
     bot: TuxedoMan,
     gameRole: GameRole,
   ): Promise<void> {
-    const [ dbo ] = await bot.dbm.newQuery('role')
-      .equalTo('guild', gameRole.guild)
-      .equalTo('role', gameRole.role)
-      .limit(1)
-      .find()
+    const dbo = await this.getRoleDbo(bot, gameRole.guild, gameRole.role)
 
     await dbo?.delete()
   }

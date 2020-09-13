@@ -4,12 +4,13 @@ import {
 import { GuildCommand } from '@tuxedoman'
 
 import inspect from './inspect'
+import set from './set'
 
 export default new GuildCommand({
   name: 'roles',
   description: 'List tracked roles.',
   options: {
-    subCommands: [ inspect ],
+    subCommands: [ inspect, set ],
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
     const { trackedRoles } = await bot.gm.getRolesForGuild(

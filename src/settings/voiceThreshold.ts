@@ -1,31 +1,32 @@
-import { logger } from 'eris-boiler/util'
 import {
   SettingCommand,
+  TuxedoMan,
 } from '@tuxedoman'
+import {
+  DISPLAY_NAME,
+  getValue,
+  SETTING,
+  SETTING_DESCRIPTION,
+  SETTING_PARAMS,
+  setValue,
+} from '@voice-settings/threshold'
 
 export default new SettingCommand({
-  name: 'voiceThreshold',
-  description: 'Set the number of minimum players before making a voice room.',
-  displayName: 'Voice Room Player Threshold',
-  setting: 'voiceThreshold',
+  name: SETTING,
+  description: SETTING_DESCRIPTION,
+  displayName: DISPLAY_NAME,
+  setting: SETTING,
   options: {
-    parameters: [
-      'threshold number',
-    ],
-    postHook: (bot, { msg }): void => {
-      bot.gm.checkVoiceForGuild(bot, msg.channel.guild).catch(logger.error)
-    },
+    parameters: SETTING_PARAMS,
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    postHook: TuxedoMan.checkVoicePostHook,
   },
   getValue: async (bot, { msg }) => {
     const dbGuild = await bot.dbm.newQuery('guild').get(msg.channel.guild.id)
-    return `${dbGuild?.get('voiceChannelThreshold') as number}` ?? ''
+    return getValue(dbGuild?.toJSON())
   },
   run: async (bot, { msg, params }) => {
-    const [ threshold ] = params
-
     const dbGuild = await bot.dbm.newQuery('guild').get(msg.channel.guild.id)
-
-    await dbGuild?.save({ voiceThreshold: threshold })
-    return 'Voice Room threshold set!'
+    return setValue(params, dbGuild!)
   },
 })

@@ -7,12 +7,21 @@ import {
   SettingCommand as BaseSettingCommand,
   ToggleCommand as BaseToggleCommand,
   CommandContext,
+  GuildCommandContext,
 } from 'eris-boiler'
 
 import GameManager from '@game-manager'
+import { logger } from 'eris-boiler/util'
 export class TuxedoMan extends DataClient {
 
   public readonly gm: GameManager = new GameManager()
+
+  public static checkVoicePostHook (
+    bot: TuxedoMan,
+    { msg }: Pick<GuildCommandContext, 'msg'>,
+  ): void {
+    bot.gm.checkVoiceForGuild(bot, msg.channel.guild).catch(logger.error)
+  }
 
 }
 
