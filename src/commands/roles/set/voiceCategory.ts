@@ -6,11 +6,10 @@ import {
   setValue,
   SETTING_DESCRIPTION,
   SETTING_PARAMS,
-  SETTING,
 } from '@voice-settings/category'
 
 export default new GuildCommand({
-  name: SETTING,
+  name: 'voiceCategory',
   description: SETTING_DESCRIPTION,
   options: {
     parameters: [

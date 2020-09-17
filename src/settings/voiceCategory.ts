@@ -12,7 +12,7 @@ import {
 } from '@voice-settings/category'
 
 export default new SettingCommand({
-  name: SETTING,
+  name: 'voiceCategory',
   description: SETTING_DESCRIPTION,
   displayName: DISPLAY_NAME,
   setting: SETTING,

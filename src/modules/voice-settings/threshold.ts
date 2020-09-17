@@ -13,7 +13,7 @@ export const SETTING_PARAMS = [
 export function getValue (
   gameRole: GameRole,
 ): ReturnType<SettingCommand['getValue']> {
-  return `${gameRole[SETTING] ?? 1}`
+  return `${gameRole[SETTING] ?? 'Unset'}`
 }
 
 export async function setValue (

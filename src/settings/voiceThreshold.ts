@@ -4,7 +4,6 @@ import {
 } from '@tuxedoman'
 import {
   DISPLAY_NAME,
-  getValue,
   SETTING,
   SETTING_DESCRIPTION,
   SETTING_PARAMS,
@@ -12,7 +11,7 @@ import {
 } from '@voice-settings/threshold'
 
 export default new SettingCommand({
-  name: SETTING,
+  name: 'voiceThreshold',
   description: SETTING_DESCRIPTION,
   displayName: DISPLAY_NAME,
   setting: SETTING,
@@ -23,7 +22,7 @@ export default new SettingCommand({
   },
   getValue: async (bot, { msg }) => {
     const dbGuild = await bot.dbm.newQuery('guild').get(msg.channel.guild.id)
-    return getValue(dbGuild?.toJSON())
+    return `${dbGuild?.get(SETTING) as number ?? 1}`
   },
   run: async (bot, { msg, params }) => {
     const dbGuild = await bot.dbm.newQuery('guild').get(msg.channel.guild.id)

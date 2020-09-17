@@ -9,7 +9,7 @@ export const SETTING_DESCRIPTION = 'Toggle the voice room management.'
 export function getValue (
   gameRole: GameRole,
 ): ReturnType<SettingCommand['getValue']> {
-  return gameRole[SETTING] === undefined
+  return gameRole[SETTING] == null
     ? 'Unset'
     : gameRole[SETTING]
       ? 'Enabled'
