@@ -4,6 +4,7 @@ import {
   Role,
   Activity,
   Overwrite,
+  VoiceChannel,
 } from 'eris'
 import {
   DatabaseObject,
@@ -184,10 +185,13 @@ export default class GameManager {
     const settings = await bot.dbm.newQuery('guild').get(guild.id)
 
     for (const dbo of dbos) {
-      const channel = guild.channels.get(dbo.get('channel'))
+      const channel = guild.channels.get(dbo.get('channel')) as VoiceChannel
       if (!channel) {
         promises.push(dbo.delete())
-      } else if (countMembersWithRole(guild.members, dbo.get('role')) === 0) {
+      } else if (
+        countMembersWithRole(guild.members, dbo.get('role')) === 0 &&
+        channel.voiceMembers.size === 0
+      ) {
         promises.push(dbo.delete(), channel.delete())
       } else {
         const gameRole = await this.getGameRoleByRoleId(
