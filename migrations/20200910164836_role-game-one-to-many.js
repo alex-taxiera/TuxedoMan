@@ -16,10 +16,8 @@ exports.up = async (knex) => {
     )
 
   await knex.schema.alterTable('role', (t) => {
-    t.dropPrimary()
-    t.dropColumn('id')
     t.dropColumn('game')
-    t.primary([ 'guild', 'role' ])
+    t.unique([ 'guild', 'role' ])
   })
 
   await knex.schema.createTable('game', (t) => {
