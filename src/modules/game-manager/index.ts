@@ -1,4 +1,5 @@
 import {
+  Collection,
   Member,
   Guild,
   Role,
@@ -166,19 +167,19 @@ export default class GameManager {
     bot: TuxedoMan,
     guild: Guild,
     dbos: Array<DatabaseObject>,
+    settings: DatabaseObject,
+    trackedRoles: Array<GameRole>,
   ): Promise<Array<DatabaseObject>> {
     const res: Array<DatabaseObject> = []
     const promises: Array<Promise<unknown>> = []
 
-    const settings = await bot.dbm.newQuery('guild').get(guild.id)
-
     for (const dbo of dbos) {
+      const role = trackedRoles.find((gr) => gr.role === dbo.get('role'))!
       const channel = guild.channels.get(dbo.get('channel')) as VoiceChannel
       if (!channel) {
         promises.push(dbo.delete())
       } else if (
-        countMembersWithRole(guild.members, dbo.get('role')) === 0 &&
-        channel.voiceMembers.size === 0
+        !this.voiceRoomShouldExist(guild.members, role, settings, channel)
       ) {
         promises.push(dbo.delete(), channel.delete())
       } else {
@@ -201,6 +202,17 @@ export default class GameManager {
     return res
   }
 
+  public voiceRoomShouldExist (
+    members: Collection<Member>,
+    role: TrackedRole,
+    settings: DatabaseObject,
+    channel?: VoiceChannel,
+  ): boolean {
+    return countMembersWithRole(members, role.role) >=
+          (role?.voiceChannelThreshold ?? settings.get('voiceThreshold')) ||
+        (channel?.voiceMembers.size ?? 0) > 0
+  }
+
   public async checkVoiceForGuild (
     bot: TuxedoMan,
     guild: Guild,
@@ -210,32 +222,32 @@ export default class GameManager {
     if (!settings?.get('manageVoice')) {
       return
     }
+
+    const guildVoiceLimit = settings?.get('voiceChannelLimit') as number
+    const { trackedRoles } = await this.getRolesForGuild(bot, guild)
+
     const voiceRooms = await this.fixVoiceRooms(
       bot,
       guild,
       await bot.dbm.newQuery('room')
         .equalTo('guild', guild.id)
         .find(),
+      settings,
+      trackedRoles,
     )
-
-    const guildVoiceThreshold = settings?.get('voiceChannelThreshold') as number
-    const guildVoiceLimit = settings?.get('voiceChannelLimit') as number
-    const { trackedRoles } = await this.getRolesForGuild(bot, guild)
 
     for (const tracked of trackedRoles) {
       if (tracked.manageVoice === false) {
         continue
       }
       const roleId = tracked.role
-      const roleVoiceThreshold = tracked.voiceChannelThreshold
       const roleVoiceLimit = tracked.voiceChannelLimit
       const discordRole = guild.roles.get(roleId)
 
       const existingChannelDbos = voiceRooms
         .filter((roomDbo) => roomDbo.get('role') === roleId)
-      const count = countMembersWithRole(guild.members, roleId)
       if (
-        count >= (roleVoiceThreshold ?? guildVoiceThreshold ?? 1) &&
+        this.voiceRoomShouldExist(guild.members, tracked, settings) &&
         existingChannelDbos.length === 0
       ) {
         const parent = guild.channels.get(
