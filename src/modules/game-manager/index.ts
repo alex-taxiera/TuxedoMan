@@ -66,6 +66,29 @@ export default class GameManager {
     },
   ) {}
 
+  public async checkVoiceChannel (
+    bot: TuxedoMan,
+    channel: VoiceChannel,
+  ): Promise<void> {
+    const dbo = await bot.dbm.newQuery('room').get(channel.id, 'channel')
+    if (dbo) {
+      const settings = await bot.dbm.newQuery('guild').get(channel.guild.id)
+      const gameRole = await this.getGameRoleByRoleId(
+        bot,
+        channel.guild.id,
+        dbo.get('role'),
+      )
+      if (
+        !this.voiceRoomShouldExist(channel.guild.members, gameRole!, settings!)
+      ) {
+        await Promise.all([
+          channel.delete(),
+          dbo.delete(),
+        ])
+      }
+    }
+  }
+
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL MEMBERS')
     await Promise.all(
@@ -174,18 +197,15 @@ export default class GameManager {
     const promises: Array<Promise<unknown>> = []
 
     for (const dbo of dbos) {
-      const role = trackedRoles.find((gr) => gr.role === dbo.get('role'))!
+      const gameRole = trackedRoles.find((gr) => gr.role === dbo.get('role'))!
       const channel = guild.channels.get(dbo.get('channel')) as VoiceChannel
       if (!channel) {
         promises.push(dbo.delete())
       } else if (
-        !this.voiceRoomShouldExist(guild.members, role, settings, channel)
+        !this.voiceRoomShouldExist(guild.members, gameRole, settings, channel)
       ) {
         promises.push(dbo.delete(), channel.delete())
       } else {
-        const gameRole = await this.getGameRoleByRoleId(
-          bot, guild.id, dbo.get('role'),
-        )
         const parentID = gameRole?.voiceChannelCategory ??
           settings?.get('voiceChannelCategory') as string
         if (channel?.parentID !== parentID) {
@@ -204,13 +224,18 @@ export default class GameManager {
 
   public voiceRoomShouldExist (
     members: Collection<Member>,
-    role: TrackedRole,
+    role: GameRole,
     settings: DatabaseObject,
     channel?: VoiceChannel,
   ): boolean {
-    return countMembersWithRole(members, role.role) >=
-          (role?.voiceChannelThreshold ?? settings.get('voiceThreshold')) ||
-        (channel?.voiceMembers.size ?? 0) > 0
+    return (
+      countMembersWithRole(members, role.role) >=
+        (
+          role?.voiceChannelThreshold ??
+          settings.get('voiceChannelThreshold')
+        )
+    ) ||
+    (channel?.voiceMembers.size ?? 0) > 0
   }
 
   public async checkVoiceForGuild (

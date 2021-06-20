@@ -1,0 +1,117 @@
+name: Build
+
+on: [push]
+
+jobs:
+
+  install:
+    name: Install Dependencies
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        node-version:
+          - 12.x
+    runs-on: ${{ matrix.os }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@master
+      -
+        name: Setup Node.JS
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      -
+        name: Dependency Cache
+        id: deps
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ matrix.os }}_node-v${{ matrix.node-version }}_${{ hashFiles('**/package-lock.json') }}
+      -
+        name: npm ci
+        if: steps.deps.outputs.cache-hit != 'true'
+        run: npm ci
+
+  compile:
+    name: Compile
+    needs: [install]
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        node-version:
+          - 12.x
+    runs-on: ${{ matrix.os }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@master
+      -
+        name: Setup Node.JS
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      -
+        name: Dependency Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ matrix.os }}_node-v${{ matrix.node-version }}_${{ hashFiles('**/package-lock.json') }}
+      -
+        name: npx tsc
+        run: npx tsc
+
+  lint:
+    name: Lint
+    needs: [install]
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+        node-version:
+          - 12.x
+    runs-on: ${{ matrix.os }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@master
+      -
+        name: Setup Node.JS
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      -
+        name: Dependency Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+            ~/.npm
+          key: ${{ matrix.os }}_node-v${{ matrix.node-version }}_${{ hashFiles('**/package-lock.json') }}
+      -
+        name: npm run lint
+        run: npm run lint
+
+  release:
+    name: Trigger Release
+    needs: [compile, lint]
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Extract Branch Name
+        id: extract_branch
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      -
+        name: Dispatch Release Event
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT }}
+          event-type: release
+          client-payload: '{"sha": "${{ github.sha }}", "branch": "${{ steps.extract_branch.outputs.branch }}"}'
