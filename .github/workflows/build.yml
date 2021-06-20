@@ -101,7 +101,6 @@ jobs:
   release:
     name: Trigger Release
     needs: [compile, lint]
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       -
