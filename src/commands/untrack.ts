@@ -8,9 +8,19 @@ export default new GuildCommand({
   description: 'Untrack a game',
   options: {
     parameters: [ 'game name as appears on discord statuses' ],
-    permission
+    permission,
   },
-  run: (bot, { msg, params }): CommandResults => {
-    return bot.gm.untrackGame(bot, msg.channel.guild, params.join(' '))
-  }
+  run: async (bot, { msg, params }): Promise<CommandResults> => {
+    const gameName = params.join(' ')
+    const guild = msg.channel.guild
+
+    const game = await bot.gm.getGameByName(bot, guild.id, gameName)
+    if (!game) {
+      return 'Not found in tracking list!'
+    }
+
+    await bot.gm.removeTrackedGame(bot, guild, gameName)
+
+    return 'Untracked!'
+  },
 })

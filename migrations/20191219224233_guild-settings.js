@@ -1,5 +1,5 @@
 exports.up = (knex) => {
-  return knex.schema.table('guild', (t) => {
+  return knex.schema.alterTable('guild', (t) => {
     t.boolean('game').notNull().defaultTo(true)
     t.boolean('stream').notNull().defaultTo(true)
     t.boolean('listen').notNull().defaultTo(true)
@@ -8,7 +8,7 @@ exports.up = (knex) => {
 }
 
 exports.down = (knex) => {
-  return knex.schema.table('guild', function (t) {
+  return knex.schema.alterTable('guild', function (t) {
     t.dropColumn('game')
     t.dropColumn('stream')
     t.dropColumn('listen')

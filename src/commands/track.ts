@@ -9,15 +9,23 @@ export default new GuildCommand({
     permission,
     parameters: [
       '<game name> (as appears on discord statuses)',
-      '[role name] (defaults to game name)'
-    ]
+      '[role name] (defaults to game name)',
+    ],
   },
-  run: (bot, { params, msg }): CommandResults => {
+  run: async (bot, { params, msg }): Promise<CommandResults> => {
     const [ gameName, ...rest ] = params
     const roleName = rest.length ? rest.join(' ') : gameName
     if (roleName.length > 100) {
-      return 'Name is too long!'
+      return 'Role name is too long!'
     }
-    return bot.gm.trackGame(bot, msg.channel.guild, roleName, gameName)
-  }
+    const guild = msg.channel.guild
+
+    const game = await bot.gm.getGameByName(bot, guild.id, gameName)
+    if (game) {
+      return 'Game already exists in tracking list!'
+    }
+
+    await bot.gm.addTrackedGame(bot, guild, gameName, roleName)
+    return 'Done, make sure the role is ordered how you like!'
+  },
 })

@@ -62,3 +62,4 @@ dist
 
 # project
 .env
+*local.yml
