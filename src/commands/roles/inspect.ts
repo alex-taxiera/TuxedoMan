@@ -43,7 +43,7 @@ export default new GuildCommand({
           {
             name: 'Members with this Role',
             value: countMembersWithRole(
-              [ ...msg.channel.guild.members.values() ],
+              msg.channel.guild.members,
               role.id,
             ).toString(),
           },
@@ -63,7 +63,7 @@ export default new GuildCommand({
           },
           {
             name: voiceCategory.DISPLAY_NAME,
-            value: await voiceCategory.getValue(gameRole),
+            value: await voiceCategory.getValue(msg.channel.guild, gameRole),
             inline,
           },
         ],

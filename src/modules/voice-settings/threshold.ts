@@ -3,7 +3,7 @@ import { SettingCommand } from '@tuxedoman'
 import { GameRole } from '@game-manager'
 
 export const SETTING = 'voiceChannelThreshold'
-export const DISPLAY_NAME = 'Voice Room Player Threshold'
+export const DISPLAY_NAME = 'Voice User Threshold'
 export const SETTING_DESCRIPTION =
   'Set the number of minimum players before making a voice room.'
 export const SETTING_PARAMS = [

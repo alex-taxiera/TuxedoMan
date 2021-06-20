@@ -20,6 +20,8 @@ export async function editRoles (
       member.roles.filter((id) => !roleIds.includes(id)).join(', ')
     }\nADDED: ${roleIds.filter((id) => !member.roles.includes(id)).join(', ')}`,
   )
+
+  member.roles = roleIds
   await member.edit({
     roles: roleIds,
   })

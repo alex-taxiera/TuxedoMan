@@ -6,6 +6,7 @@ import { DiscordEvent } from '@tuxedoman'
 export default new DiscordEvent({
   name: 'guildCreate',
   run: (bot, guild: Guild): void => {
-    bot.gm.checkAllMembers(bot, guild).catch(logger.error)
+    bot.gm.checkAllMembers(bot, guild)
+      .catch((error: Error) => logger.error(error, error.stack))
   },
 })

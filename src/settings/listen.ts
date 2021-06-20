@@ -10,7 +10,8 @@ export default new ToggleCommand({
   setting: 'listen',
   options: {
     postHook: (bot, { msg }): void => {
-      bot.gm.checkAllMembers(bot, msg.channel.guild).catch(logger.error)
+      bot.gm.checkAllMembers(bot, msg.channel.guild)
+        .catch((error: Error) => logger.error(error, error.stack))
     },
   },
 })

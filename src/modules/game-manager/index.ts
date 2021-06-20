@@ -17,6 +17,7 @@ import {
   editRoles,
   countMembersWithRole,
 } from '@discord/roles'
+import { computeActivity } from '@util/activity'
 
 export type CommonRoleType = 'playing' | 'streaming' | 'watching' | 'listening'
 export type TrackedRoleType = 'game' | CommonRoleType
@@ -67,7 +68,9 @@ export default class GameManager {
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL MEMBERS')
     await Promise.all(
-      guild.members.map((member) => this.checkMember(bot, member)),
+      guild.members.map(
+        (member) => this.checkMember(bot, member, computeActivity(member)),
+      ),
     )
 
     await this.checkVoiceForGuild(bot, guild)
@@ -76,6 +79,7 @@ export default class GameManager {
   public async checkMember (
     bot: TuxedoMan,
     member: Member,
+    activity: Pick<Activity, 'name' | 'type'> | undefined,
     runVoiceCheck: boolean = false,
   ): Promise<void> {
     if (member.bot) {
@@ -96,23 +100,7 @@ export default class GameManager {
         trackedRoles,
       } = await this.getRolesForGuild(bot, member.guild)
 
-      let activity: Activity | undefined
       let toAdd = ''
-
-      for (const act of member.activities ?? []) {
-        if (act.type < 4 && activity?.type !== 1 &&
-          (
-            !activity || act.type === 1 ||
-            (!activity.assets && act.assets) ||
-            (
-              activity.created_at < act.created_at &&
-              !(activity.assets && !act.assets)
-            )
-          )
-        ) {
-          activity = act
-        }
-      }
 
       if (activity) {
         logger.info(`${member.id} HAS ACTIVITY '${activity.name}'`)
@@ -245,7 +233,6 @@ export default class GameManager {
 
       const existingChannelDbos = voiceRooms
         .filter((roomDbo) => roomDbo.get('role') === roleId)
-
       const count = countMembersWithRole(guild.members, roleId)
       if (
         count >= (roleVoiceThreshold ?? guildVoiceThreshold ?? 1) &&
@@ -304,17 +291,20 @@ export default class GameManager {
           await newRoomDbo.save({
             channel: vc.id,
           }).catch((error) => {
-            vc?.delete().catch(logger.error)
+            vc?.delete()
+              .catch((error: Error) => logger.error(error, error.stack))
             throw error
           })
         } catch (error) {
-          newRoomDbo.delete().catch(logger.error)
+          newRoomDbo.delete()
+            .catch((error: Error) => logger.error(error, error.stack))
           throw error
         }
       }
     }
   }
 
+  // TODO: use this on startup
   public async checkAllRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL ROLES')
     await Promise.all(
@@ -471,7 +461,7 @@ export default class GameManager {
       return (guild.roles.get(gameRole.get('role')) as Role)
     }
 
-    gameRole.delete().catch(logger.error)
+    gameRole.delete().catch((error: Error) => logger.error(error, error.stack))
   }
 
   public async setupMiscRoles (bot: TuxedoMan, guild: Guild): Promise<void> {

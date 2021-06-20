@@ -18,12 +18,12 @@ export default new SettingCommand({
   setting: SETTING,
   options: {
     parameters: SETTING_PARAMS,
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    postHook: TuxedoMan.checkVoicePostHook,
+    postHook: (bot, context) =>
+      TuxedoMan.checkVoicePostHook(bot, context),
   },
   getValue: async (bot, { msg }) => {
     const dbGuild = await bot.dbm.newQuery('guild').get(msg.channel.guild.id)
-    return getValue(dbGuild?.toJSON())
+    return getValue(msg.channel.guild, dbGuild?.toJSON())
   },
   run: async (bot, { msg, params }) => {
     const guild = msg.channel.guild

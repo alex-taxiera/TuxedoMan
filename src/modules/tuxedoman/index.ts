@@ -20,7 +20,8 @@ export class TuxedoMan extends DataClient {
     bot: TuxedoMan,
     { msg }: Pick<GuildCommandContext, 'msg'>,
   ): void {
-    bot.gm.checkVoiceForGuild(bot, msg.channel.guild).catch(logger.error)
+    bot.gm.checkVoiceForGuild(bot, msg.channel.guild)
+      .catch((error: Error) => logger.error(error, error.stack))
   }
 
 }

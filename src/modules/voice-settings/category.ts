@@ -4,7 +4,7 @@ import { SettingCommand } from '@tuxedoman'
 import { GameRole } from '@game-manager'
 
 export const SETTING = 'voiceChannelCategory'
-export const DISPLAY_NAME = 'Voice Room Channel Category'
+export const DISPLAY_NAME = 'Voice Channel Category'
 export const SETTING_DESCRIPTION =
   'Set the category to create voice channels under.'
 export const SETTING_PARAMS = [
@@ -12,14 +12,17 @@ export const SETTING_PARAMS = [
 ]
 
 export function getValue (
+  guild: Guild,
   gameRole: GameRole,
 ): ReturnType<SettingCommand['getValue']> {
   const channelId = gameRole[SETTING] ?? ''
-  if (!channelId) {
+  const channel = guild.channels.get(channelId)
+
+  if (!channel) {
     return 'None'
   }
 
-  return `#${channelId}`
+  return `${channel.name} (${channel.id})`
 }
 
 export async function setValue (

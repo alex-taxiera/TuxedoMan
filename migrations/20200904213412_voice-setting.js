@@ -18,6 +18,10 @@ exports.up = async (knex) => {
     t.integer('voiceChannelThreshold')
     t.integer('voiceChannelLimit')
   })
+
+  await knex('guild').update({
+    manageVoice: false,
+  }).where(true)
 }
 
 exports.down = async (knex) => {
