@@ -176,7 +176,6 @@ export default class GameManager {
     for (const dbo of dbos) {
       const gameRole = trackedRoles.find((gr) => gr.role === dbo.get('role'))!
       const channel = guild.channels.get(dbo.get('channel')) as VoiceChannel
-      console.log('this.voiceRoomShouldExist(guild.members, gameRole, settings, channel) :', this.voiceRoomShouldExist(guild.members, gameRole, settings, channel))
       if (!channel) {
         promises.push(dbo.delete())
       } else if (
@@ -206,13 +205,14 @@ export default class GameManager {
     settings: DatabaseObject,
     channel?: VoiceChannel,
   ): boolean {
-    console.log('role.id :', role.id)
-    console.log('countMembersWithRole(members, role.role) :', countMembersWithRole(members, role.role))
-    console.log('role?.voiceChannelThreshold ?? settings.get(voiceThreshold) :', role?.voiceChannelThreshold ?? settings.get('voiceThreshold'))
-    console.log('channel?.voiceMembers.size ?? 0 :', channel?.voiceMembers.size ?? 0)
-    return countMembersWithRole(members, role.role) >=
-          (role?.voiceChannelThreshold ?? settings.get('voiceThreshold')) ||
-        (channel?.voiceMembers.size ?? 0) > 0
+    return (
+      countMembersWithRole(members, role.role) >=
+        (
+          role?.voiceChannelThreshold ??
+          settings.get('voiceChannelThreshold')
+        )
+    ) ||
+    (channel?.voiceMembers.size ?? 0) > 0
   }
 
   public async checkVoiceForGuild (
