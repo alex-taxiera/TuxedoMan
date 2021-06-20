@@ -18,16 +18,10 @@ jobs:
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
       -
-        name: Generate Build Number
-        id: buildnumber
-        uses: einaregilsson/build-number@v2
-        with:
-          token: ${{ secrets.github_token }}
-      -
         name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPO }}
-          tags: "${{ secrets.NAME }},${{ secrets.NAME }}-${{ steps.buildnumber.outputs.build_number }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }}-${{ steps.buildnumber.outputs.build_number }}"
+          tags: "${{ secrets.NAME }},${{ secrets.NAME }}-${{ github.RUN_NUMBER }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }},${{ secrets.NAME }}-${{ steps.extract_branch.outputs.branch }}-${{ github.RUN_NUMBER }}"
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
