@@ -1,23 +1,15 @@
 import {
-  Collection,
   Member,
   Guild,
   Role,
-  Activity,
-  Overwrite,
-  VoiceChannel,
+  Activity
 } from 'eris'
-import {
-  DatabaseObject,
-} from 'eris-boiler'
+import { DatabaseObject } from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'
 
 import { TuxedoMan } from '@tuxedoman'
 import { JobQueue } from '@util/job-queue'
-import {
-  editRoles,
-  countMembersWithRole,
-} from '@discord/roles'
+import { editRoles } from '@discord/roles'
 import { computeActivity } from '@util/activity'
 
 export type CommonRoleType = 'playing' | 'streaming' | 'watching' | 'listening'
@@ -39,7 +31,7 @@ export interface CommonRole extends TrackedRole {
 
 export interface GameRole extends TrackedRole {
   type: 'game'
-  games: Array<string>
+  games: string[]
 }
 
 export type CommonRoleNames = {
@@ -48,14 +40,14 @@ export type CommonRoleNames = {
 export type CommonGameRoles = {
   [key in CommonRoleType]?: CommonRole;
 }
-export type GuildGameRoles = {
+export interface GuildGameRoles {
   commonRoles: CommonGameRoles
-  trackedRoles: Array<GameRole>
+  trackedRoles: GameRole[]
 }
 
 export default class GameManager {
 
-  private readonly multiQueue = new Map<string, JobQueue<void>>();
+  private readonly multiQueue = new Map<string, JobQueue<void>>()
 
   constructor (
     private readonly roleNames: CommonRoleNames = {
@@ -66,45 +58,19 @@ export default class GameManager {
     },
   ) {}
 
-  public async checkVoiceChannel (
-    bot: TuxedoMan,
-    channel: VoiceChannel,
-  ): Promise<void> {
-    const dbo = await bot.dbm.newQuery('room').get(channel.id, 'channel')
-    if (dbo) {
-      const settings = await bot.dbm.newQuery('guild').get(channel.guild.id)
-      const gameRole = await this.getGameRoleByRoleId(
-        bot,
-        channel.guild.id,
-        dbo.get('role'),
-      )
-      if (
-        !this.voiceRoomShouldExist(channel.guild.members, gameRole!, settings!)
-      ) {
-        await Promise.all([
-          channel.delete(),
-          dbo.delete(),
-        ])
-      }
-    }
-  }
-
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL MEMBERS')
     await Promise.all(
       guild.members.map(
-        (member) => this.checkMember(bot, member, computeActivity(member)),
+        async (member) => await this.checkMember(bot, member, computeActivity(member)),
       ),
     )
-
-    await this.checkVoiceForGuild(bot, guild)
   }
 
   public async checkMember (
     bot: TuxedoMan,
     member: Member,
     activity: Pick<Activity, 'name' | 'type'> | undefined,
-    runVoiceCheck: boolean = false,
   ): Promise<void> {
     if (member.bot) {
       return
@@ -112,7 +78,7 @@ export default class GameManager {
 
     const queueKey = `${member.guild.id}-${member.id}`
     let queue = this.multiQueue.get(queueKey)
-    if (!queue) {
+    if (queue == null) {
       const newQueue = new JobQueue<void>()
       this.multiQueue.set(queueKey, newQueue)
       queue = newQueue
@@ -126,7 +92,7 @@ export default class GameManager {
 
       let toAdd = ''
 
-      if (activity) {
+      if (activity != null) {
         logger.info(`${member.id} HAS ACTIVITY '${activity.name}'`)
         const guildOptions = (
           await bot.dbm.newQuery('guild').get(member.guild.id)
@@ -169,14 +135,10 @@ export default class GameManager {
       const trackedIds = ([
         ...Object.values(commonRoles),
         ...trackedRoles,
-      ].filter((x) => x && x.role !== toAdd) as Array<GameRole | CommonRole>)
+      ].filter((x) => x && x.role !== toAdd))
         .map((tracked) => tracked.role)
 
       await editRoles(member, roleIds.filter((id) => !trackedIds.includes(id)))
-
-      if (runVoiceCheck) {
-        await this.checkVoiceForGuild(bot, member.guild)
-      }
     }).catch((res: { error: Error }) => {
       throw res.error
     })
@@ -186,166 +148,11 @@ export default class GameManager {
     }
   }
 
-  private async fixVoiceRooms (
-    bot: TuxedoMan,
-    guild: Guild,
-    dbos: Array<DatabaseObject>,
-    settings: DatabaseObject,
-    trackedRoles: Array<GameRole>,
-  ): Promise<Array<DatabaseObject>> {
-    const res: Array<DatabaseObject> = []
-    const promises: Array<Promise<unknown>> = []
-
-    for (const dbo of dbos) {
-      const gameRole = trackedRoles.find((gr) => gr.role === dbo.get('role'))!
-      const channel = guild.channels.get(dbo.get('channel')) as VoiceChannel
-      if (!channel) {
-        promises.push(dbo.delete())
-      } else if (
-        !this.voiceRoomShouldExist(guild.members, gameRole, settings, channel)
-      ) {
-        promises.push(dbo.delete(), channel.delete())
-      } else {
-        const parentID = gameRole?.voiceChannelCategory ??
-          settings?.get('voiceChannelCategory') as string
-        if (channel?.parentID !== parentID) {
-          promises.push(channel?.edit({
-            parentID,
-          }))
-        }
-        res.push(dbo)
-      }
-    }
-
-    await Promise.all(promises)
-
-    return res
-  }
-
-  public voiceRoomShouldExist (
-    members: Collection<Member>,
-    role: GameRole,
-    settings: DatabaseObject,
-    channel?: VoiceChannel,
-  ): boolean {
-    return (
-      countMembersWithRole(members, role.role) >=
-        (
-          role?.voiceChannelThreshold ??
-          settings.get('voiceChannelThreshold')
-        )
-    ) ||
-    (channel?.voiceMembers.size ?? 0) > 0
-  }
-
-  public async checkVoiceForGuild (
-    bot: TuxedoMan,
-    guild: Guild,
-  ): Promise<void> {
-    logger.info(`CHECK VOICE FOR GUILD ${guild.id}`)
-    const settings = await bot.dbm.newQuery('guild').get(guild.id)
-    if (!settings?.get('manageVoice')) {
-      return
-    }
-
-    const guildVoiceLimit = settings?.get('voiceChannelLimit') as number
-    const { trackedRoles } = await this.getRolesForGuild(bot, guild)
-
-    const voiceRooms = await this.fixVoiceRooms(
-      bot,
-      guild,
-      await bot.dbm.newQuery('room')
-        .equalTo('guild', guild.id)
-        .find(),
-      settings,
-      trackedRoles,
-    )
-
-    for (const tracked of trackedRoles) {
-      if (tracked.manageVoice === false) {
-        continue
-      }
-      const roleId = tracked.role
-      const roleVoiceLimit = tracked.voiceChannelLimit
-      const discordRole = guild.roles.get(roleId)
-
-      const existingChannelDbos = voiceRooms
-        .filter((roomDbo) => roomDbo.get('role') === roleId)
-      if (
-        this.voiceRoomShouldExist(guild.members, tracked, settings) &&
-        existingChannelDbos.length === 0
-      ) {
-        const parent = guild.channels.get(
-          tracked.voiceChannelCategory ??
-            settings?.get('voiceChannelCategory'),
-        )
-        const parentPermissions = {
-          everyone: {
-            allow: parent?.permissionOverwrites.get(guild.id)?.allow ?? 0,
-            deny: parent?.permissionOverwrites.get(guild.id)?.deny ?? 0,
-          },
-          role: {
-            allow: parent?.permissionOverwrites.get(roleId)?.allow ?? 0,
-            deny: parent?.permissionOverwrites.get(roleId)?.deny ?? 0,
-          },
-        }
-        const permissionOverwrites: Array<Overwrite> = [
-          ...parent?.permissionOverwrites.values() ?? [],
-          {
-            id: guild.id,
-            type: 'role',
-            allow: parentPermissions.everyone.allow,
-            deny: parentPermissions.everyone.deny & 0x100000
-              ? parentPermissions.everyone.deny
-              : parentPermissions.everyone.deny | 0x100000,
-          },
-          {
-            id: roleId,
-            type: 'role',
-            allow: parentPermissions.role.allow & 0x100000
-              ? parentPermissions.role.allow
-              : parentPermissions.role.allow | 0x100000,
-            deny: parentPermissions.role.deny,
-          },
-        ]
-
-        const newRoomDbo = await bot.dbm.newObject('room', {
-          guild: guild.id,
-          role: roleId,
-        }).save()
-
-        try {
-          const vc = await guild.createChannel(
-            discordRole?.name ?? tracked.id,
-            2,
-            {
-              parentID: parent?.id,
-              userLimit: roleVoiceLimit ?? guildVoiceLimit,
-              permissionOverwrites,
-            },
-          )
-
-          await newRoomDbo.save({
-            channel: vc.id,
-          }).catch((error) => {
-            vc?.delete()
-              .catch((error: Error) => logger.error(error, error.stack))
-            throw error
-          })
-        } catch (error) {
-          newRoomDbo.delete()
-            .catch((error: Error) => logger.error(error, error.stack))
-          throw error
-        }
-      }
-    }
-  }
-
   // TODO: use this on startup
   public async checkAllRoles (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL ROLES')
     await Promise.all(
-      guild.roles.map((role) => this.checkRole(bot, guild, role)),
+      guild.roles.map(async (role) => await this.checkRole(bot, guild, role)),
     )
   }
 
@@ -392,13 +199,13 @@ export default class GameManager {
     guildId: string,
     roleId: string,
   ): Promise<DatabaseObject | undefined> {
-    return this.getDbo(bot, 'role', guildId, roleId)
+    return await this.getDbo(bot, 'role', guildId, roleId)
   }
 
   public async getGamesForGameRole (
     bot: TuxedoMan,
     gameRole: DatabaseObject,
-  ): Promise<Array<string>> {
+  ): Promise<string[]> {
     const games = await bot.dbm.newQuery('game')
       .equalTo('guild', gameRole.get('guild'))
       .equalTo('role', gameRole.get('role'))
@@ -422,10 +229,12 @@ export default class GameManager {
       return
     }
 
-    return {
-      ...gameRole.toJSON(),
+    const x = {
+      ...gameRole.toJSON() as GameRole,
       games: await this.getGamesForGameRole(bot, gameRole),
-    } as GameRole
+    }
+
+    return x
   }
 
   public async getGameByName (
@@ -449,11 +258,11 @@ export default class GameManager {
   ): Promise<GameRole | undefined> {
     const game = await this.getGameByName(bot, guildId, gameName)
 
-    if (!game) {
+    if (game == null) {
       return
     }
 
-    return this.getGameRoleByRoleId(bot, guildId, game.get('role'))
+    return await this.getGameRoleByRoleId(bot, guildId, game.get('role'))
   }
 
   public async getRolesForGuild (
@@ -465,11 +274,11 @@ export default class GameManager {
       .find()
 
     const commonRoles: CommonGameRoles = this.getEmptyCommonRoles()
-    const trackedRoles: Array<GameRole> = []
+    const trackedRoles: GameRole[] = []
 
     for (const gameRole of gameRoles) {
       const role = this.getRoleFromRecord(bot, gameRole)
-      if (!role) {
+      if (role == null) {
         continue
       }
       if (this.dbRoleIsCommon(gameRole)) {
@@ -477,9 +286,9 @@ export default class GameManager {
           gameRole.toJSON() as CommonRole
       } else {
         trackedRoles.push({
-          ...gameRole.toJSON(),
+          ...gameRole.toJSON() as GameRole,
           games: await this.getGamesForGameRole(bot, gameRole),
-        } as GameRole)
+        })
       }
     }
 
@@ -492,7 +301,7 @@ export default class GameManager {
   public getRoleFromRecord (
     bot: TuxedoMan,
     gameRole: DatabaseObject,
-  ): Role | void {
+  ): Role | undefined {
     const guild = bot.guilds.get(gameRole.get('guild'))
     if (guild?.roles.has(gameRole.get('role'))) {
       return (guild.roles.get(gameRole.get('role')) as Role)
@@ -516,8 +325,8 @@ export default class GameManager {
     ) as CommonGameRoles
 
     await Promise.all(
-      (Object.keys(commonRoles) as Array<CommonRoleType>).map(async (key) => {
-        if (!commonRoles[key]) {
+      (Object.keys(commonRoles) as CommonRoleType[]).map(async (key) => {
+        if (commonRoles[key] == null) {
           clone[key] = await this.addCommonRole(bot, guild, key)
         }
       }),
@@ -527,11 +336,11 @@ export default class GameManager {
   }
 
   private getEmptyCommonRoles (): CommonGameRoles {
-    return (Object.keys(this.roleNames) as Array<CommonRoleType>)
-      .reduce((ax, dx) => {
-        ax[dx] = undefined
-        return ax
-      }, {} as CommonGameRoles)
+    return (Object.keys(this.roleNames) as CommonRoleType[])
+      .reduce<CommonGameRoles>((ax, dx) => {
+      ax[dx] = undefined
+      return ax
+    }, {})
   }
 
   private async addCommonRole (
@@ -548,9 +357,9 @@ export default class GameManager {
         guild: guild.id,
         role: existingRole?.id ?? this.createRole(bot, guild, name),
         type,
-      }).save()).toJSON(),
+      }).save()).toJSON() as CommonRole,
       games: [],
-    } as CommonRole
+    }
 
     return commonRole
   }
@@ -562,20 +371,20 @@ export default class GameManager {
     roleName: string,
   ): Promise<void> {
     let role = guild.roles.find((role) => role.name === roleName)
-    if (!role) {
+    if (role == null) {
       role = await this.createRole(bot, guild, roleName)
     }
 
     let gameRole = await this.getGameRoleByRoleId(bot, guild.id, role.id)
-    if (!gameRole) {
+    if (gameRole == null) {
       gameRole = {
         ...(await bot.dbm.newObject('role', {
           guild: guild.id,
           role: role.id,
           type: 'game',
-        }).save()).toJSON(),
+        }).save()).toJSON() as GameRole,
         games: [],
-      } as GameRole
+      }
     }
 
     if (!gameRole.games.includes(gameName)) {
@@ -603,8 +412,8 @@ export default class GameManager {
       commonRoles,
     } = await this.getRolesForGuild(bot, guild)
 
-    let position = 0
-    if (trackedRoles.length) {
+    let position
+    if (trackedRoles.length > 0) {
       const [ lowestTrackedRole ] = trackedRoles
         .filter((tracked) => tracked.role !== role.id)
         .map((tracked) => guild.roles.get(tracked.role) as Role)
@@ -612,14 +421,14 @@ export default class GameManager {
       position = lowestTrackedRole.position - 1
     } else {
       const commonRolelist = Object.values(commonRoles).filter((r) => r)
-      if (commonRolelist.length) {
+      if (commonRolelist.length > 0) {
         const [ highestMiscRole ] = commonRolelist
           .map((common) => guild.roles.get(common?.role ?? '') as Role)
           .sort((a, b) => b.position - a.position)
         position = highestMiscRole.position
       } else {
         const member = guild.members.get(bot.user.id)
-        if (member) {
+        if (member != null) {
           const [ lowestControlRole ] = member.roles
             .map((id) => guild.roles.get(id) as Role)
             .sort((a, b) => a.position - b.position)
@@ -628,7 +437,7 @@ export default class GameManager {
       }
     }
 
-    if (position) {
+    if (position != null) {
       try {
         await role.editPosition(position)
       } catch (error) {

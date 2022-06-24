@@ -16,7 +16,7 @@ export default new DiscordEvent({
     const newActivity = computeActivity(member)
 
     if (oldActivity?.name !== newActivity?.name) {
-      bot.gm.checkMember(bot, member, newActivity, true)
+      bot.gm.checkMember(bot, member, newActivity)
         .catch((error: Error) => logger.error(error, error.stack))
     }
   },
