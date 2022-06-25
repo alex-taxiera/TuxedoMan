@@ -6,7 +6,7 @@ import { logger } from 'eris-boiler/util'
 
 export async function editRoles (
   member: Member,
-  roleIds: Array<string>,
+  roleIds: string[],
 ): Promise<void> {
   if (
     member.roles.every((role) => roleIds.includes(role)) &&
@@ -30,17 +30,17 @@ export async function editRoles (
 export async function removeRole (member: Member, id: string): Promise<void> {
   if (member.roles.includes(id)) {
     logger.info(`REMOVE ROLE ${id} FROM ${member.id}`)
-    return member.removeRole(id)
+    return await member.removeRole(id)
   }
 }
 
-export function addRole (member: Member, id: string): Promise<void> {
+export async function addRole (member: Member, id: string): Promise<void> {
   logger.info(`ADD ROLE ${id} TO ${member.id}`)
-  return member.addRole(id)
+  return await member.addRole(id)
 }
 
 export function countMembersWithRole (
-  members: Collection<Member> | Array<Member>,
+  members: Collection<Member> | Member[],
   roleId: string,
 ): number {
   return members.filter((member) => member.roles.includes(roleId)).length

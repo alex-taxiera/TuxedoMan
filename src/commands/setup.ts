@@ -1,6 +1,4 @@
-import {
-  CommandResults,
-} from 'eris-boiler'
+import { CommandResults } from 'eris-boiler'
 import { GuildCommand } from '@tuxedoman'
 import { vip as permission } from '@tuxedoman/permissions'
 
@@ -10,8 +8,8 @@ export default new GuildCommand({
   options: {
     permission,
   },
-  run: (bot, { msg }): Promise<CommandResults> => {
-    return bot.gm.setupMiscRoles(bot, msg.channel.guild)
+  run: async (bot, { msg }): Promise<CommandResults> => {
+    return await bot.gm.setupMiscRoles(bot, msg.channel.guild)
       .then(() =>
         'Setup complete! Make sure the roles are in the order you prefer :)',
       )

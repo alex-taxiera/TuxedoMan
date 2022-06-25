@@ -14,13 +14,9 @@ export default new DiscordEvent({
     user: User | Uncached,
   ): Promise<void> => {
     logger.info('guildScheduledEventUserAdd', event)
-    try {
-      await bot.em.addUserToEventRole(
-        bot, event.guild.id, user.id, event.id,
-      )
-    } catch (e) {
-      console.error(e)
-    }
+    await bot.em.addUserToEventRole(
+      bot, event.guild.id, user.id, event.id,
+    )
     logger.info('finished adding user')
   },
 })

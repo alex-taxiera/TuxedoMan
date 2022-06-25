@@ -1,7 +1,5 @@
 import { logger } from 'eris-boiler/util'
-import {
-  ToggleCommand,
-} from '@tuxedoman'
+import { ToggleCommand } from '@tuxedoman'
 
 export default new ToggleCommand({
   name: 'listen',
