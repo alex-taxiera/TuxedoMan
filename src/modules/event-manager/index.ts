@@ -27,7 +27,7 @@ export default class EventManager {
   ): Promise<DatabaseObject> {
     const queue = this.getQueue(event.id)
 
-    return await queue.push(async () => {
+    const { data } = await queue.push(async () => {
       const role = await bot.createRole(event.guild.id, {
         name: event.name,
         permissions: 0,
@@ -40,6 +40,8 @@ export default class EventManager {
         event: event.id,
       }).save()
     }, 3)
+
+    return data
   }
 
   public async updateEventRole (
@@ -49,10 +51,10 @@ export default class EventManager {
     const queue = this.getQueue(event.id)
 
     await queue.push(async () => {
-      const dbo = await this.getEventRoleDbo(bot, event.guild.id, event.id)
+      let dbo = await this.getEventRoleDbo(bot, event.guild.id, event.id)
 
       if (!dbo) {
-        return
+        dbo = await this.createEventRole(bot, event)
       }
 
       await bot.editRole(event.guild.id, dbo.get('role'), {
