@@ -21,11 +21,11 @@ overrides:
       '@typescript-eslint/strict-boolean-expressions':
         - 'error'
         -
-          allowString: true,
-          allowNumber: false,
-          allowNullableObject: true,
-          allowNullableBoolean: true,
-          allowNullableString: true,
-          allowNullableNumber: false,
+          allowString: true
+          allowNumber: false
+          allowNullableObject: true
+          allowNullableBoolean: true
+          allowNullableString: true
+          allowNullableNumber: false
           allowAny: true
 

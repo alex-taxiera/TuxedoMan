@@ -47,7 +47,7 @@ export interface GuildGameRoles {
 
 export default class GameManager {
 
-  private readonly multiQueue = new Map<string, JobQueue<void>>()
+  private readonly multiQueue = new Map<string, JobQueue>()
 
   constructor (
     private readonly roleNames: CommonRoleNames = {
@@ -79,7 +79,7 @@ export default class GameManager {
     const queueKey = `${member.guild.id}-${member.id}`
     let queue = this.multiQueue.get(queueKey)
     if (queue == null) {
-      const newQueue = new JobQueue<void>()
+      const newQueue = new JobQueue()
       this.multiQueue.set(queueKey, newQueue)
       queue = newQueue
     }
