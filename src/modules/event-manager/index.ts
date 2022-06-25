@@ -10,11 +10,11 @@ export interface EventRole {
 }
 export default class EventManager {
 
-  private readonly multiQueue = new Map<string, PriorityJobQueue<void>>()
+  private readonly multiQueue = new Map<string, PriorityJobQueue>()
 
-  private getQueue (eventId: string): PriorityJobQueue<void> {
+  private getQueue (eventId: string): PriorityJobQueue {
     if (!this.multiQueue.has(eventId)) {
-      this.multiQueue.set(eventId, new PriorityJobQueue<void>(3))
+      this.multiQueue.set(eventId, new PriorityJobQueue(3))
     }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -24,17 +24,17 @@ export default class EventManager {
   public async createEventRole (
     bot: TuxedoMan,
     event: GuildScheduledEvent,
-  ): Promise<void> {
+  ): Promise<DatabaseObject> {
     const queue = this.getQueue(event.id)
 
-    await queue.push(async () => {
+    return await queue.push(async () => {
       const role = await bot.createRole(event.guild.id, {
         name: event.name,
         permissions: 0,
         mentionable: true,
       })
 
-      await bot.dbm.newObject('eventRole', {
+      return await bot.dbm.newObject('eventRole', {
         guild: event.guild.id,
         role: role.id,
         event: event.id,

@@ -4,7 +4,7 @@ export interface JobResult<T> {
   priority?: number
   data: T
 }
-export interface Job<T> {
+export interface Job<T = any> {
   id: number
   priority?: number
   handlePromise: {
@@ -13,22 +13,22 @@ export interface Job<T> {
   }
   job: JobFunction<T>
 }
-export type JobList<T> = Array<Job<T>>
-export type PriorityJobList<T> = Array<JobList<T>>
+export type JobList = Job[]
+export type PriorityJobList = JobList[]
 
-abstract class AbstractJobQueue<T> {
+abstract class AbstractJobQueue {
 
   protected totalJobs: number = 0
 
-  protected currentJob?: Job<T>
+  protected currentJob?: Job
 
-  protected abstract queue: JobList<T> | PriorityJobList<T>
+  protected abstract queue: JobList | PriorityJobList
 
-  protected abstract getNextJob (): Job<T> | undefined
+  protected abstract getNextJob (): Job | undefined
 
   public abstract get length (): number
 
-  public abstract push (job: JobFunction<T>): Promise<JobResult<T>>
+  public abstract push<T> (job: JobFunction<T>): Promise<JobResult<T>>
 
   protected run (): void {
     setTimeout(() => {
@@ -48,6 +48,7 @@ abstract class AbstractJobQueue<T> {
 
       job()
         .then((data) => handlePromise.resolve({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           id, priority, data,
         }))
         .catch((error: Error) => handlePromise.reject({
@@ -62,15 +63,15 @@ abstract class AbstractJobQueue<T> {
 
 }
 
-export class JobQueue<T> extends AbstractJobQueue<T> {
+export class JobQueue extends AbstractJobQueue {
 
-  protected queue: JobList<T> = []
+  protected queue: JobList = []
 
   public get length (): number {
     return this.queue.length
   }
 
-  public async push (job: JobFunction<T>): Promise<JobResult<T>> {
+  public async push<T> (job: JobFunction<T>): Promise<JobResult<T>> {
     return await new Promise<JobResult<T>>((resolve, reject) => {
       this.queue.push({
         id: ++this.totalJobs, job, handlePromise: { resolve, reject },
@@ -80,15 +81,15 @@ export class JobQueue<T> extends AbstractJobQueue<T> {
     })
   }
 
-  protected getNextJob (): Job<T> | undefined {
+  protected getNextJob (): Job | undefined {
     return this.queue.shift()
   }
 
 }
 
-export class PriorityJobQueue<T> extends AbstractJobQueue<T> {
+export class PriorityJobQueue extends AbstractJobQueue {
 
-  protected queue: PriorityJobList<T>
+  protected queue: PriorityJobList
 
   constructor (levels: number) {
     super()
@@ -99,7 +100,7 @@ export class PriorityJobQueue<T> extends AbstractJobQueue<T> {
     return this.queue.reduce((ax, dx) => ax + dx.length, 0)
   }
 
-  protected getNextJob (): Job<T> | undefined {
+  protected getNextJob (): Job | undefined {
     for (let i = this.queue.length; i > 0;) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const queue = this.queue[--i]!
@@ -109,7 +110,7 @@ export class PriorityJobQueue<T> extends AbstractJobQueue<T> {
     }
   }
 
-  public async push (
+  public async push<T> (
     job: JobFunction<T>,
     priority: number = 1,
   ): Promise<JobResult<T>> {
