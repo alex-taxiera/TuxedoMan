@@ -58,29 +58,6 @@ export default class GameManager {
     },
   ) {}
 
-  public async checkVoiceChannel (
-    bot: TuxedoMan,
-    channel: VoiceChannel,
-  ): Promise<void> {
-    const dbo = await bot.dbm.newQuery('room').get(channel.id, 'channel')
-    if (dbo) {
-      const settings = await bot.dbm.newQuery('guild').get(channel.guild.id)
-      const gameRole = await this.getGameRoleByRoleId(
-        bot,
-        channel.guild.id,
-        dbo.get('role'),
-      )
-      if (
-        !this.voiceRoomShouldExist(channel.guild.members, gameRole!, settings!)
-      ) {
-        await Promise.all([
-          channel.delete(),
-          dbo.delete(),
-        ])
-      }
-    }
-  }
-
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL MEMBERS')
     await Promise.all(
