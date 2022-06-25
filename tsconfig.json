@@ -8,7 +8,7 @@
     "sourceMap": true,
     "removeComments": true,
     "strict": true,
-    "noImplicitReturns": true,
+    "noImplicitReturns": false,
     "esModuleInterop": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": "./src",

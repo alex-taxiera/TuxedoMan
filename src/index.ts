@@ -1,9 +1,7 @@
 import { join } from 'path'
 
 import config from 'config'
-import {
-  SQLManager,
-} from 'eris-boiler'
+import { SQLManager } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 
 import { TuxedoMan } from './modules/tuxedoman'

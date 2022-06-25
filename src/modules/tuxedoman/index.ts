@@ -10,9 +10,12 @@ import {
 } from 'eris-boiler'
 
 import GameManager from '@game-manager'
+import EventManager from '@event-manager'
 export class TuxedoMan extends DataClient {
 
   public readonly gm: GameManager = new GameManager()
+
+  public readonly em: EventManager = new EventManager()
 
 }
 

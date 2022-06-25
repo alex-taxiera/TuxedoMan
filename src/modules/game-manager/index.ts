@@ -2,7 +2,7 @@ import {
   Member,
   Guild,
   Role,
-  Activity
+  Activity,
 } from 'eris'
 import { DatabaseObject } from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'
@@ -61,8 +61,8 @@ export default class GameManager {
   public async checkAllMembers (bot: TuxedoMan, guild: Guild): Promise<void> {
     logger.info('CHECK ALL MEMBERS')
     await Promise.all(
-      guild.members.map(
-        async (member) => await this.checkMember(bot, member, computeActivity(member)),
+      guild.members.map(async (member) =>
+        await this.checkMember(bot, member, computeActivity(member)),
       ),
     )
   }
@@ -135,7 +135,7 @@ export default class GameManager {
       const trackedIds = ([
         ...Object.values(commonRoles),
         ...trackedRoles,
-      ].filter((x) => x && x.role !== toAdd))
+      ].filter((x) => x != null && x.role !== toAdd))
         .map((tracked) => tracked.role)
 
       await editRoles(member, roleIds.filter((id) => !trackedIds.includes(id)))
@@ -418,21 +418,24 @@ export default class GameManager {
         .filter((tracked) => tracked.role !== role.id)
         .map((tracked) => guild.roles.get(tracked.role) as Role)
         .sort((a, b) => a.position - b.position)
-      position = lowestTrackedRole.position - 1
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      position = lowestTrackedRole!.position - 1
     } else {
       const commonRolelist = Object.values(commonRoles).filter((r) => r)
       if (commonRolelist.length > 0) {
         const [ highestMiscRole ] = commonRolelist
           .map((common) => guild.roles.get(common?.role ?? '') as Role)
           .sort((a, b) => b.position - a.position)
-        position = highestMiscRole.position
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        position = highestMiscRole!.position
       } else {
         const member = guild.members.get(bot.user.id)
         if (member != null) {
           const [ lowestControlRole ] = member.roles
             .map((id) => guild.roles.get(id) as Role)
             .sort((a, b) => a.position - b.position)
-          position = lowestControlRole.position - 1
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          position = lowestControlRole!.position - 1
         }
       }
     }
