@@ -18,12 +18,14 @@ overrides:
       - '@alex-taxiera/eslint-config-ts'
     rules:
       comma-dangle: off
-      '@typescript-eslint/strict-boolean-expressions': ['error', {
-        allowString: true,
-        allowNumber: false,
-        allowNullableObject: true,
-        allowNullableBoolean: true,
-        allowNullableString: true,
-        allowNullableNumber: false,
-        allowAny: true
-      }]
+      '@typescript-eslint/strict-boolean-expressions':
+        - 'error'
+        -
+          allowString: true,
+          allowNumber: false,
+          allowNullableObject: true,
+          allowNullableBoolean: true,
+          allowNullableString: true,
+          allowNullableNumber: false,
+          allowAny: true
+
