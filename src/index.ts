@@ -15,7 +15,7 @@ const bot = new DataClient(config.get('DISCORD_TOKEN'), {
       'guildPresences',
       'guildScheduledEvents',
       'guildMembers',
-      'guildMessages',
+      'guildMessages', // deprecated for application commands
     ],
   },
   oratorOptions: config.get('oratorOptions'),
