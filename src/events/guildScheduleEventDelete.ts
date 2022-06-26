@@ -5,8 +5,12 @@ import { logger } from 'eris-boiler/util'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventDelete',
-  run: (bot, event: GuildScheduledEvent): void => {
-    queueDeleteEventRole(bot, event)
-      .catch((error: Error) => logger.error(error, error.stack))
+  run: async (bot, event: GuildScheduledEvent): Promise<void> => {
+    const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
+
+    if (settings?.get('events')) {
+      queueDeleteEventRole(bot, event)
+        .catch((error: Error) => logger.error(error, error.stack))
+    }
   },
 })

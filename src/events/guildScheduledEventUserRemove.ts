@@ -9,16 +9,20 @@ import { logger } from 'eris-boiler/util'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUserRemove',
-  run: (
+  run: async (
     bot,
     event: PossiblyUncachedGuildScheduledEvent,
     user: User | Uncached,
-  ): void => {
-    removeUserFromEventRole(
-      bot,
-      event.guild.id,
-      user.id,
-      event.id,
-    ).catch((error: Error) => logger.error(error, error.stack))
+  ): Promise<void> => {
+    const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
+
+    if (settings?.get('events')) {
+      removeUserFromEventRole(
+        bot,
+        event.guild.id,
+        user.id,
+        event.id,
+      ).catch((error: Error) => logger.error(error, error.stack))
+    }
   },
 })

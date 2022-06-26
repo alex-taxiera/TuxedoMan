@@ -172,6 +172,12 @@ export async function handleGuildCreate (
   const oldDbos = await getAllEventRoleDboForGuild(bot, guildId)
   await Promise.all(oldDbos.map(async (dbo) => await dbo.delete()))
 
+  const settings = await bot.dbm.newQuery('guild').get(guildId)
+
+  if (!settings?.get('events')) {
+    return
+  }
+
   const currentEvents = await bot.getGuildScheduledEvents(guildId)
   await Promise.all(
     currentEvents.map(async (event) => {
@@ -193,10 +199,24 @@ export async function handleStartup (
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 ): Promise<void[]> {
   return await Promise.all(bot.guilds.map(async (guild) => {
+    const settings = await bot.dbm.newQuery('guild').get(guild.id)
+
     const [ existingDbos, currentEvents ] = await Promise.all([
       getAllEventRoleDboForGuild(bot, guild.id),
       bot.getGuildScheduledEvents(guild.id),
     ])
+
+    if (!settings?.get('events')) {
+      if (existingDbos.length > 0) {
+        await Promise.all(
+          existingDbos.map(async (dbo) => {
+            await deleteRoleAndIgnoreUnknown(bot, guild.id, dbo.get('role'))
+            await dbo.delete()
+          }),
+        )
+      }
+      return
+    }
 
     await Promise.all([
       ...currentEvents.map(async (event) => {
@@ -252,6 +272,12 @@ export async function handleEventRoleDeleted (
   guild: Guild,
   role: Role,
 ): Promise<void> {
+  const settings = await bot.dbm.newQuery('guild').get(guild.id)
+
+  if (!settings?.get('events')) {
+    return
+  }
+
   const dbo = await getEventRoleDbo(bot, guild.id, role.id)
 
   if (dbo) {
