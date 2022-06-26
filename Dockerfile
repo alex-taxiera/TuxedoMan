@@ -1,6 +1,7 @@
 FROM node:12-alpine
 
-RUN apk add --no-cache git; mkdir -p /tuxedo
+RUN apk update && apk add --no-cache git openssh
+RUN mkdir -p /tuxedo
 WORKDIR /tuxedo
 
 COPY package.json package-lock.json ./
