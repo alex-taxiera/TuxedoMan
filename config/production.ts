@@ -1,6 +1,4 @@
-import {
-  load,
-} from 'docker-secret-env'
+import { load } from 'docker-secret-env'
 
 load()
 

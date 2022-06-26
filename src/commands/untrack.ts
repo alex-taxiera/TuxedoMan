@@ -1,7 +1,12 @@
-import { CommandResults } from 'eris-boiler'
-
-import { GuildCommand } from '@tuxedoman'
-import { vip as permission } from '@tuxedoman/permissions'
+import {
+  getGameByName,
+  removeTrackedGame,
+} from '@game-manager'
+import {
+  CommandResults,
+  GuildCommand,
+} from 'eris-boiler'
+import { vip as permission } from 'eris-boiler/permissions'
 
 export default new GuildCommand({
   name: 'untrack',
@@ -14,12 +19,12 @@ export default new GuildCommand({
     const gameName = params.join(' ')
     const guild = msg.channel.guild
 
-    const game = await bot.gm.getGameByName(bot, guild.id, gameName)
+    const game = await getGameByName(bot, guild.id, gameName)
     if (!game) {
       return 'Not found in tracking list!'
     }
 
-    await bot.gm.removeTrackedGame(bot, guild, gameName)
+    await removeTrackedGame(bot, guild, gameName)
 
     return 'Untracked!'
   },

@@ -1,11 +1,9 @@
 import {
   CommandResults,
+  GuildCommand,
 } from 'eris-boiler'
-import { GuildCommand } from '@tuxedoman'
 import { countMembersWithRole } from '@discord/roles'
-import * as voiceCategory from '@voice-settings/category'
-import * as voiceThreshold from '@voice-settings/threshold'
-import * as voiceToggle from '@voice-settings/toggle'
+import { getGameRoleByRoleId } from '@game-manager'
 
 export default new GuildCommand({
   name: 'inspect',
@@ -15,14 +13,15 @@ export default new GuildCommand({
   },
   run: async (bot, { msg, params }): Promise<CommandResults> => {
     const roleId = params[0]
-    const role = msg.channel.guild.roles.get(roleId) ??
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const role = msg.channel.guild.roles.get(roleId!) ??
       msg.channel.guild.roles.find((role) => role.name === roleId)
 
     if (!role) {
       return 'Role not found.'
     }
 
-    const gameRole = await bot.gm.getGameRoleByRoleId(
+    const gameRole = await getGameRoleByRoleId(
       bot,
       msg.channel.guild.id,
       role.id,
@@ -30,7 +29,6 @@ export default new GuildCommand({
     if (!gameRole) {
       return 'Role not being tracked.'
     }
-    const inline = true
 
     return {
       embed: {
@@ -50,21 +48,6 @@ export default new GuildCommand({
           {
             name: '\u200b',
             value: '**--Settings--**',
-          },
-          {
-            name: voiceToggle.DISPLAY_NAME,
-            value: await voiceToggle.getValue(gameRole),
-            inline,
-          },
-          {
-            name: voiceThreshold.DISPLAY_NAME,
-            value: await voiceThreshold.getValue(gameRole),
-            inline,
-          },
-          {
-            name: voiceCategory.DISPLAY_NAME,
-            value: await voiceCategory.getValue(msg.channel.guild, gameRole),
-            inline,
           },
         ],
       },

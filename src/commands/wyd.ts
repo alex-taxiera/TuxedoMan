@@ -1,8 +1,8 @@
 import {
   CommandResults,
+  GuildCommand,
 } from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'
-import { GuildCommand } from '@tuxedoman'
 
 export default new GuildCommand({
   name: 'wyd',
@@ -13,13 +13,14 @@ export default new GuildCommand({
     ],
   },
   run: (_, { msg, params }): CommandResults => {
-    const target = msg.channel.guild.members.get(params[0])
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const target = msg.channel.guild.members.get(params[0]!)
 
     if (!target) {
       return 'Member not found!'
     }
 
-    if (!target.activities?.length) {
+    if (target.activities?.length === 0) {
       return 'Member is not doing anything!'
     }
 
@@ -30,7 +31,7 @@ export default new GuildCommand({
     return '```\nGame:\n' +
       (target.game?.name ?? 'N/A') +
       '\n\nActivities:\n' +
-      target.activities.map((act) => act.name).join(', ') +
+      (target.activities?.map((act) => act.name).join(', ') ?? '') +
       '\n```'
   },
 })

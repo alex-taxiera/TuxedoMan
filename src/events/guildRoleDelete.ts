@@ -4,12 +4,16 @@ import {
 } from 'eris'
 import { logger } from 'eris-boiler/util'
 
-import { DiscordEvent } from '@tuxedoman'
+import { DiscordEvent } from 'eris-boiler'
+import { checkRole } from '@game-manager'
+import { handleEventRoleDeleted } from '@event-manager'
 
 export default new DiscordEvent({
   name: 'guildRoleDelete',
   run: (bot, guild: Guild, role: Role): void => {
-    bot.gm.checkRole(bot, guild, role)
-      .catch((error: Error) => logger.error(error, error.stack))
+    Promise.all([
+      checkRole(bot, guild, role),
+      handleEventRoleDeleted(bot, guild, role),
+    ]).catch((error: Error) => logger.error(error, error.stack))
   },
 })
