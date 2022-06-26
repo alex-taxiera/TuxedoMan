@@ -1,11 +1,12 @@
-import { DiscordEvent } from '@tuxedoman'
+import { queueDeleteEventRole } from '@event-manager'
 import { GuildScheduledEvent } from 'eris'
+import { DiscordEvent } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventDelete',
-  run: async (bot, event: GuildScheduledEvent): Promise<void> => {
-    logger.info('guildScheduledEventDelete', event)
-    await bot.em.deleteEventRole(bot, event)
+  run: (bot, event: GuildScheduledEvent): void => {
+    queueDeleteEventRole(bot, event)
+      .catch((error: Error) => logger.error(error, error.stack))
   },
 })

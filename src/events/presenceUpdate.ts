@@ -4,8 +4,9 @@ import {
 } from 'eris'
 import { logger } from 'eris-boiler/util'
 
-import { DiscordEvent } from '@tuxedoman'
+import { DiscordEvent } from 'eris-boiler'
 import { computeActivity } from '@util/activity'
+import { checkMember } from '@game-manager'
 
 export default new DiscordEvent({
   name: 'presenceUpdate',
@@ -14,7 +15,7 @@ export default new DiscordEvent({
     const newActivity = computeActivity(member)
 
     if (oldActivity?.name !== newActivity?.name) {
-      bot.gm.checkMember(bot, member, newActivity)
+      checkMember(bot, member, newActivity)
         .catch((error: Error) => logger.error(error, error.stack))
     }
   },

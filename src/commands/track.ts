@@ -1,6 +1,12 @@
-import { CommandResults } from 'eris-boiler'
-import { GuildCommand } from '@tuxedoman'
-import { vip as permission } from '@tuxedoman/permissions'
+import {
+  getGameByName,
+  addTrackedGame,
+} from '@game-manager'
+import {
+  CommandResults,
+  GuildCommand,
+} from 'eris-boiler'
+import { vip as permission } from 'eris-boiler/permissions'
 
 export default new GuildCommand({
   name: 'track',
@@ -22,12 +28,12 @@ export default new GuildCommand({
     }
     const guild = msg.channel.guild
 
-    const game = await bot.gm.getGameByName(bot, guild.id, gameNameNonNull)
+    const game = await getGameByName(bot, guild.id, gameNameNonNull)
     if (game) {
       return 'Game already exists in tracking list!'
     }
 
-    await bot.gm.addTrackedGame(bot, guild, gameNameNonNull, roleName)
+    await addTrackedGame(bot, guild, gameNameNonNull, roleName)
     return 'Done, make sure the role is ordered how you like!'
   },
 })

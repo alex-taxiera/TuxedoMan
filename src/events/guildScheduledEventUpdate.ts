@@ -1,11 +1,12 @@
-import { DiscordEvent } from '@tuxedoman'
+import { queueUpdateEventRole } from '@event-manager'
 import { GuildScheduledEvent } from 'eris'
+import { DiscordEvent } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUpdate',
-  run: async (bot, event: GuildScheduledEvent): Promise<void> => {
-    logger.info('guildScheduledEventUpdate', event)
-    await bot.em.updateEventRole(bot, event)
+  run: (bot, event: GuildScheduledEvent): void => {
+    queueUpdateEventRole(bot, event)
+      .catch((error: Error) => logger.error(error, error.stack))
   },
 })

@@ -1,6 +1,8 @@
-import { CommandResults } from 'eris-boiler'
+import {
+  CommandResults,
+  GuildCommand,
+} from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'
-import { GuildCommand } from '@tuxedoman'
 
 export default new GuildCommand({
   name: 'wyd',

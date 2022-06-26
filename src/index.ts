@@ -1,12 +1,23 @@
 import { join } from 'path'
 
 import config from 'config'
-import { SQLManager } from 'eris-boiler'
+import {
+  DataClient,
+  SQLManager,
+} from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 
-import { TuxedoMan } from './modules/tuxedoman'
-
-const bot = new TuxedoMan(config.get('DISCORD_TOKEN'), {
+const bot = new DataClient(config.get('DISCORD_TOKEN'), {
+  erisOptions: {
+    restMode: true,
+    intents: [
+      'guilds',
+      'guildPresences',
+      'guildScheduledEvents',
+      'guildMembers',
+      'guildMessages',
+    ],
+  },
   oratorOptions: config.get('oratorOptions'),
   statusManagerOptions: config.get('statusManagerOptions'),
   databaseManager: new SQLManager({

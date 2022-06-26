@@ -1,5 +1,8 @@
-import { CommandResults } from 'eris-boiler'
-import { GuildCommand } from '@tuxedoman'
+import { getRolesForGuild } from '@game-manager'
+import {
+  CommandResults,
+  GuildCommand,
+} from 'eris-boiler'
 
 import inspect from './inspect'
 
@@ -10,7 +13,7 @@ export default new GuildCommand({
     subCommands: [ inspect ],
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
-    const { trackedRoles } = await bot.gm.getRolesForGuild(
+    const { trackedRoles } = await getRolesForGuild(
       bot, msg.channel.guild,
     )
     const fields = []

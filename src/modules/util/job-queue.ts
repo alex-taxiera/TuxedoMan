@@ -4,7 +4,8 @@ export interface JobResult<T> {
   priority?: number
   data: T
 }
-export interface Job<T = any> {
+
+export interface Job<T = any> { // eslint-disable-line @typescript-eslint/no-explicit-any
   id: number
   priority?: number
   handlePromise: {

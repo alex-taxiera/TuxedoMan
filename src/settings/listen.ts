@@ -1,5 +1,6 @@
 import { logger } from 'eris-boiler/util'
-import { ToggleCommand } from '@tuxedoman'
+import { ToggleCommand } from 'eris-boiler'
+import { checkAllMembers } from '@game-manager'
 
 export default new ToggleCommand({
   name: 'listen',
@@ -8,7 +9,7 @@ export default new ToggleCommand({
   setting: 'listen',
   options: {
     postHook: (bot, { msg }): void => {
-      bot.gm.checkAllMembers(bot, msg.channel.guild)
+      checkAllMembers(bot, msg.channel.guild)
         .catch((error: Error) => logger.error(error, error.stack))
     },
   },

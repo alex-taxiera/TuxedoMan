@@ -1,6 +1,9 @@
-import { CommandResults } from 'eris-boiler'
-import { GuildCommand } from '@tuxedoman'
+import {
+  CommandResults,
+  GuildCommand,
+} from 'eris-boiler'
 import { countMembersWithRole } from '@discord/roles'
+import { getGameRoleByRoleId } from '@game-manager'
 
 export default new GuildCommand({
   name: 'inspect',
@@ -18,7 +21,7 @@ export default new GuildCommand({
       return 'Role not found.'
     }
 
-    const gameRole = await bot.gm.getGameRoleByRoleId(
+    const gameRole = await getGameRoleByRoleId(
       bot,
       msg.channel.guild.id,
       role.id,
