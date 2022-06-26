@@ -1,7 +1,7 @@
 import {
   Collection,
   Member,
-} from 'eris'
+} from '@alex-taxiera/eris'
 import { DataClient } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 

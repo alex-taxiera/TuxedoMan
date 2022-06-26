@@ -3,7 +3,7 @@ import {
   Guild,
   Role,
   Activity,
-} from 'eris'
+} from '@alex-taxiera/eris'
 import {
   DatabaseObject,
   DataClient,

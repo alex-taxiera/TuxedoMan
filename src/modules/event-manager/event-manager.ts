@@ -7,7 +7,7 @@ import {
   Guild,
   Role,
   DiscordRESTError,
-} from 'eris'
+} from '@alex-taxiera/eris'
 import { PriorityJobQueue } from '@util/job-queue'
 import {
   addRole,

@@ -1,5 +1,5 @@
 import { queueCreateEventRole } from '@event-manager'
-import { GuildScheduledEvent } from 'eris'
+import { GuildScheduledEvent } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 

@@ -3,7 +3,7 @@ import {
   PossiblyUncachedGuildScheduledEvent,
   User,
   Uncached,
-} from 'eris'
+} from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
 import { logger } from 'eris-boiler/util'
 

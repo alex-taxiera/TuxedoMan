@@ -1,7 +1,7 @@
 import {
   Activity,
   Presence,
-} from 'eris'
+} from '@alex-taxiera/eris'
 
 export const computeActivity = (presence: Presence): Activity | undefined => {
   let activity: Activity | undefined

@@ -1,7 +1,7 @@
 import {
   Presence,
   Member,
-} from 'eris'
+} from '@alex-taxiera/eris'
 import { logger } from 'eris-boiler/util'
 
 import { DiscordEvent } from 'eris-boiler'
