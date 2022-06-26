@@ -6,7 +6,9 @@
     "postinstall": "npm dedupe",
     "lint": "eslint .",
     "dev": "ts-node-dev -r tsconfig-paths/register ./src/index.ts",
-    "debug": "node --inspect=0.0.0.0:9229 -r ts-node/register -r tsconfig-paths/register ./src/index.ts"
+    "debug": "node --inspect=0.0.0.0:9229 -r ts-node/register -r tsconfig-paths/register ./src/index.ts",
+    "validate": "eslint . --fix && tsc --noEmit",
+    "prepare": "husky install"
   },
   "engines": {
     "node": ">=16.13.0"
@@ -17,7 +19,8 @@
     "@types/ws": "^8.5.3",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
-    "ts-node-dev": "2.0.0"
+    "ts-node-dev": "2.0.0",
+    "husky": "^8.0.0"
   },
   "dependencies": {
     "@types/config": "0.0.41",
