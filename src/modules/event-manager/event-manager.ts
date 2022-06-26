@@ -9,7 +9,6 @@ import {
   DiscordRESTError,
 } from 'eris'
 import { PriorityJobQueue } from '@util/job-queue'
-import { logger } from 'eris-boiler/util'
 import {
   addRole,
   removeRole,
