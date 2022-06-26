@@ -110,6 +110,9 @@ jobs:
     if: ${{ github.event_name != 'pull_request' }}
     steps:
       -
+        name: Checkout
+        uses: actions/checkout@master
+      -
         name: Extract Branch Name
         id: extract_branch
         shell: bash
