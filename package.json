@@ -7,7 +7,7 @@
     "lint": "eslint .",
     "dev": "ts-node-dev -r tsconfig-paths/register ./src/index.ts",
     "debug": "node --inspect=0.0.0.0:9229 -r ts-node/register -r tsconfig-paths/register ./src/index.ts",
-    "validate": "eslint . --fix && tsc --noEmit",
+    "validate": "npm run lint && tsc --noEmit",
     "prepare": "husky install"
   },
   "engines": {
