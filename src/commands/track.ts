@@ -14,8 +14,8 @@ export default new GuildCommand({
   options: {
     permission,
     parameters: [
-      '<game name> (as appears on discord statuses)',
-      '[role name] (defaults to game name)',
+      // eslint-disable-next-line max-len
+      '<game name> (as appears on discord statuses), [role name] (defaults to game name)',
     ],
   },
   run: async (bot, { params, msg }): Promise<CommandResults> => {
