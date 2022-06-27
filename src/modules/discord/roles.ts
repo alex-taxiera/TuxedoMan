@@ -5,8 +5,6 @@ import {
 import { DataClient } from 'eris-boiler'
 import * as logger from '@util/logger'
 
-const logSpacing = ' '.repeat(25)
-
 export async function editRoles (
   member: Member,
   roleIds: string[],
@@ -20,19 +18,15 @@ export async function editRoles (
   const removedRoles = member.roles.filter((id) => !roleIds.includes(id))
   const addedRoles = roleIds.filter((id) => !member.roles.includes(id))
 
-  logger.info(
-    `ROLE UPDATE FOR ${member.id} IN ${member.guild.id}\n${
-      removedRoles.length > 0
-        ? `${logSpacing}REMOVING: ${removedRoles.join(', ')}\n`
-        : ''
-    }${
-      addedRoles.length > 0
-        ? `${logSpacing}ADDING: ${
-          roleIds.filter((id) => !member.roles.includes(id)).join(', ')
-        }`
-        : ''
-    }`,
-  )
+  const isRemoving = removedRoles.length > 0
+  const isAdding = addedRoles.length > 0
+
+  const metaText = `ROLE UPDATE FOR ${member.id} IN ${member.guild.id}:`
+  const removeText = isRemoving ? ` REMOVING ${removedRoles.join(', ')}` : ''
+  const andText = isRemoving && isAdding ? ' AND' : ''
+  const addText = isAdding ? ` ADDING ${addedRoles.join(', ')}` : ''
+
+  logger.info(`${metaText}${removeText}${andText}${addText}`)
 
   await member.edit({
     roles: roleIds,
