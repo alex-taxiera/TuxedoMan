@@ -200,11 +200,7 @@ export async function handleStartup (
 ): Promise<void[]> {
   return await Promise.all(bot.guilds.map(async (guild) => {
     const settings = await bot.dbm.newQuery('guild').get(guild.id)
-
-    const [ existingDbos, currentEvents ] = await Promise.all([
-      getAllEventRoleDboForGuild(bot, guild.id),
-      bot.getGuildScheduledEvents(guild.id),
-    ])
+    const existingDbos = await getAllEventRoleDboForGuild(bot, guild.id)
 
     if (!settings?.get('events')) {
       if (existingDbos.length > 0) {
@@ -217,6 +213,8 @@ export async function handleStartup (
       }
       return
     }
+
+    const currentEvents = await bot.getGuildScheduledEvents(guild.id)
 
     await Promise.all([
       ...currentEvents.map(async (event) => {
