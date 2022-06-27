@@ -21,19 +21,23 @@ export async function editRoles (
   const addedRoles = roleIds.filter((id) => !member.roles.includes(id))
 
   logger.info(
-    `ROLE UPDATE:\n${removedRoles.length > 0
-      ? `${logSpacing}REMOVED: ${removedRoles.join(', ')}\n`
-      : ''}${addedRoles.length > 0
-      ? `${logSpacing}ADDED: ${
-        roleIds.filter((id) => !member.roles.includes(id)).join(', ')
-      }`
-      : ''}`,
+    `ROLE UPDATE FOR ${member.id} IN ${member.guild.id}\n${
+      removedRoles.length > 0
+        ? `${logSpacing}REMOVING: ${removedRoles.join(', ')}\n`
+        : ''
+    }${
+      addedRoles.length > 0
+        ? `${logSpacing}ADDING: ${
+          roleIds.filter((id) => !member.roles.includes(id)).join(', ')
+        }`
+        : ''
+    }`,
   )
 
-  member.roles = roleIds
   await member.edit({
     roles: roleIds,
   })
+  member.roles = roleIds
 }
 
 export async function removeRole (
