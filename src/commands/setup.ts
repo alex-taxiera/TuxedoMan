@@ -12,9 +12,8 @@ export default new GuildCommand({
     permission,
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
-    return await setupMiscRoles(bot, msg.channel.guild)
-      .then(() =>
-        'Setup complete! Make sure the roles are in the order you prefer :)',
-      )
+    await setupMiscRoles(bot, msg.channel.guild)
+
+    return 'Setup complete! Make sure the roles are in the order you prefer :)'
   },
 })

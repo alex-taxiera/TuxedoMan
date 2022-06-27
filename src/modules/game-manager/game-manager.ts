@@ -8,7 +8,7 @@ import {
   DatabaseObject,
   DataClient,
 } from 'eris-boiler'
-import * as logger from 'eris-boiler/util/logger'
+import * as logger from '@util/logger'
 
 import { JobQueue } from '@util/job-queue'
 import { editRoles } from '@discord/roles'
@@ -56,15 +56,6 @@ const roleNames: CommonRoleNames = {
   streaming: 'Streaming',
 }
 
-async function deleteGameRole (
-  bot: DataClient,
-  gameRole: GameRole,
-): Promise<void> {
-  const dbo = await getRoleDbo(bot, gameRole.guild, gameRole.role)
-
-  await dbo?.delete()
-}
-
 async function createRole (
   bot: DataClient,
   guild: Guild,
@@ -108,63 +99,10 @@ async function createRole (
   }
 
   if (position != null) {
-    try {
-      await role.editPosition(position)
-    } catch (error) {
-      logger.warn(`Problem setting role position to ${position}:`, error)
-    }
+    role.editPosition(position).catch(logger.error)
   }
 
   return role
-}
-
-async function addCommonRole (
-  bot: DataClient,
-  guild: Guild,
-  type: CommonRoleType,
-): Promise<CommonRole> {
-  const name = roleNames[type]
-  const existingRole = guild.roles
-    .find((role) => role.name === name)
-
-  const commonRole = {
-    ...(await bot.dbm.newObject('role', {
-      guild: guild.id,
-      role: existingRole?.id ?? createRole(bot, guild, name),
-      type,
-    }).save()).toJSON() as CommonRole,
-    games: [],
-  }
-
-  return commonRole
-}
-
-async function fillDefaultRoles (
-  bot: DataClient,
-  guild: Guild,
-  commonRoles: CommonGameRoles,
-): Promise<CommonGameRoles> {
-  const clone: CommonGameRoles = JSON.parse(
-    JSON.stringify(commonRoles),
-  ) as CommonGameRoles
-
-  await Promise.all(
-    (Object.keys(commonRoles) as CommonRoleType[]).map(async (key) => {
-      if (commonRoles[key] == null) {
-        clone[key] = await addCommonRole(bot, guild, key)
-      }
-    }),
-  )
-
-  return clone
-}
-
-function getEmptyCommonRoles (): CommonGameRoles {
-  return (Object.keys(roleNames) as CommonRoleType[])
-    .reduce<CommonGameRoles>((ax, dx) => {
-    ax[dx] = undefined
-    return ax
-  }, {})
 }
 
 function dbRoleIsCommon (dbRole: DatabaseObject): boolean {
@@ -178,19 +116,42 @@ function dbRoleIsCommon (dbRole: DatabaseObject): boolean {
   }
 }
 
-async function getDbo (
+async function getRoleDbo (
   bot: DataClient,
-  type: 'game' | 'role',
   guildId: string,
   roleId: string,
 ): Promise<DatabaseObject | undefined> {
-  const [ dbo ] = await bot.dbm.newQuery(type)
+  const [ dbo ] = await bot.dbm.newQuery('role')
     .equalTo('guild', guildId)
     .equalTo('role', roleId)
     .limit(1)
     .find()
 
   return dbo
+}
+
+function getRoleFromRecord (
+  bot: DataClient,
+  gameRole: DatabaseObject,
+): Role | undefined {
+  const guild = bot.guilds.get(gameRole.get('guild'))
+  if (guild?.roles.has(gameRole.get('role'))) {
+    return (guild.roles.get(gameRole.get('role')) as Role)
+  }
+
+  gameRole.delete().catch(logger.error)
+}
+
+async function getGamesForGameRole (
+  bot: DataClient,
+  gameRole: DatabaseObject,
+): Promise<string[]> {
+  const games = await bot.dbm.newQuery('game')
+    .equalTo('guild', gameRole.get('guild'))
+    .equalTo('role', gameRole.get('role'))
+    .find()
+
+  return games.map((game) => game.get('name') as string)
 }
 
 export async function checkAllMembers (
@@ -306,47 +267,21 @@ export async function checkRole (
   }
 }
 
-export async function getRoleDbo (
-  bot: DataClient,
-  guildId: string,
-  roleId: string,
-): Promise<DatabaseObject | undefined> {
-  return await getDbo(bot, 'role', guildId, roleId)
-}
-
-export async function getGamesForGameRole (
-  bot: DataClient,
-  gameRole: DatabaseObject,
-): Promise<string[]> {
-  const games = await bot.dbm.newQuery('game')
-    .equalTo('guild', gameRole.get('guild'))
-    .equalTo('role', gameRole.get('role'))
-    .find()
-
-  return games.map((game) => game.get('name') as string)
-}
-
 export async function getGameRoleByRoleId (
   bot: DataClient,
   guildId: string,
   roleId: string,
-): Promise<GameRole | undefined> {
-  const [ gameRole ] = await bot.dbm.newQuery('role')
-    .equalTo('guild', guildId)
-    .equalTo('role', roleId)
-    .limit(1)
-    .find()
+): Promise<{ dbo: DatabaseObject, games: string[] } | undefined> {
+  const gameRole = await getRoleDbo(bot, guildId, roleId)
 
   if (!gameRole) {
     return
   }
 
-  const x = {
-    ...gameRole.toJSON() as GameRole,
+  return {
+    dbo: gameRole,
     games: await getGamesForGameRole(bot, gameRole),
   }
-
-  return x
 }
 
 export async function getGameByName (
@@ -363,20 +298,6 @@ export async function getGameByName (
   return game
 }
 
-export async function getGameRoleByGameName (
-  bot: DataClient,
-  guildId: string,
-  gameName: string,
-): Promise<GameRole | undefined> {
-  const game = await getGameByName(bot, guildId, gameName)
-
-  if (game == null) {
-    return
-  }
-
-  return await getGameRoleByRoleId(bot, guildId, game.get('role'))
-}
-
 export async function getRolesForGuild (
   bot: DataClient,
   guild: Guild,
@@ -385,7 +306,12 @@ export async function getRolesForGuild (
     .equalTo('guild', guild.id)
     .find()
 
-  const commonRoles: CommonGameRoles = getEmptyCommonRoles()
+  const commonRoles: CommonGameRoles = (
+    Object.keys(roleNames) as CommonRoleType[]
+  ).reduce<CommonGameRoles>((ax, dx) => {
+    ax[dx] = undefined
+    return ax
+  }, {})
   const trackedRoles: GameRole[] = []
 
   for (const gameRole of gameRoles) {
@@ -410,24 +336,27 @@ export async function getRolesForGuild (
   }
 }
 
-export function getRoleFromRecord (
-  bot: DataClient,
-  gameRole: DatabaseObject,
-): Role | undefined {
-  const guild = bot.guilds.get(gameRole.get('guild'))
-  if (guild?.roles.has(gameRole.get('role'))) {
-    return (guild.roles.get(gameRole.get('role')) as Role)
-  }
-
-  gameRole.delete().catch(logger.error)
-}
-
 export async function setupMiscRoles (
   bot: DataClient,
   guild: Guild,
 ): Promise<void> {
   const { commonRoles } = await getRolesForGuild(bot, guild)
-  await fillDefaultRoles(bot, guild, commonRoles)
+
+  await Promise.all(
+    (Object.keys(commonRoles) as CommonRoleType[]).map(async (key) => {
+      if (commonRoles[key] == null) {
+        const name = roleNames[key]
+        const existingRole = guild.roles
+          .find((role) => role.name === name)
+
+        await bot.dbm.newObject('role', {
+          guild: guild.id,
+          role: existingRole?.id ?? createRole(bot, guild, name),
+          type: key,
+        }).save()
+      }
+    }),
+  )
 }
 
 export async function addTrackedGame (
@@ -444,11 +373,11 @@ export async function addTrackedGame (
   let gameRole = await getGameRoleByRoleId(bot, guild.id, role.id)
   if (gameRole == null) {
     gameRole = {
-      ...(await bot.dbm.newObject('role', {
+      dbo: await bot.dbm.newObject('role', {
         guild: guild.id,
         role: role.id,
         type: 'game',
-      }).save()).toJSON() as GameRole,
+      }).save(),
       games: [],
     }
   }
@@ -474,8 +403,9 @@ export async function removeTrackedGame (
   await game?.delete()
   const gameRole = await getGameRoleByRoleId(bot, guild.id, roleId)
   if (gameRole?.games.length === 0) {
-    await deleteGameRole(bot, gameRole)
+    await bot.deleteRole(guild.id, roleId)
+    await gameRole.dbo.delete()
+  } else {
+    await checkAllMembers(bot, guild)
   }
-
-  await checkAllMembers(bot, guild)
 }

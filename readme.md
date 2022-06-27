@@ -1,5 +1,5 @@
 # TuxedoMan
-A presence based role manager.
+A presence based role manager. (Now with Event roles!)
 # How can I get TuxedoMan in my server?
 Click this [link](https://discordapp.com/api/oauth2/authorize?client_id=441366628836442122&permissions=268443648&scope=bot)
 # What does it do?
@@ -9,9 +9,10 @@ TuxedoMan sorts your member list based on their current activity.
 
 _Watching and Listening roles not pictured_
 # How does it work?
-Use a simple command to tell TuxedoMan what games he should make and assign roles for `!track Overwatch`
+Use a simple command to tell TuxedoMan what games he should make and assign roles for `track Overwatch`
+Note: If your game has a space in the name, you need to use `track "Star Citizen"`
 
-Disable or enable the optional categories `!enable/!disable game/watch/listen/stream`
+Disable or enable the optional categories `settings game/watch/listen/stream`
 
 Managed roles should be sorted in order you wish members to be sorted.
 
@@ -20,15 +21,10 @@ Roles must be __UNDER__ TuxedoMan role.
 ![Role Hierarchy](/images/role_hierarchy.png)
 
 _Example role hierarchy_
-# Self Hosting
-Self hosting is possible, but not recommended.
-## Startup
-1. Clone this repository
-2. Create a `config.json` file inside of `src` (use `sample.config.json` as a guide)
-3. Run `npm install`
-4. Run `npm start`
 
-## Customization
-Choose whether or not to randomly change playing status in `/src/config.json`
+# Tell me about events?
+Enable the events system with `settings events`
 
-Add new playing statuses with `!status add Overwatch`
+The bot will then create roles for any and all events made in the server.
+Anyone who "joins" the event by selecting "Interested" will then be given that role.
+The role is mentionable by default.
