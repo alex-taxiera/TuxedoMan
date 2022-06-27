@@ -197,7 +197,6 @@ export async function checkAllMembers (
   bot: DataClient,
   guild: Guild,
 ): Promise<void> {
-  logger.info('CHECK ALL MEMBERS')
   await Promise.all(
     guild.members.map(async (member) =>
       await checkMember(bot, member, computeActivity(member)),
