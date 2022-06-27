@@ -33,7 +33,7 @@ export default new GuildCommand({
       fields.push({
         name: 'Invite',
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        value: invites![0]!.code,
+        value: `https://discord.gg/${invites![0]!.code}`,
       })
     }
 
