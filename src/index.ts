@@ -5,7 +5,22 @@ import {
   DataClient,
   SQLManager,
 } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
+
+import * as Sentry from '@sentry/node'
+
+if (config.get('NODE_ENV') === 'production') {
+  Sentry.init({
+    dsn: config.get('SENTRY_DSN'),
+    environment: config.get('NODE_ENV'),
+    release: config.get('BUILD_NUMBER'),
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  })
+}
 
 const bot = new DataClient(config.get('DISCORD_TOKEN'), {
   erisOptions: {

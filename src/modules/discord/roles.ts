@@ -3,7 +3,7 @@ import {
   Member,
 } from '@alex-taxiera/eris'
 import { DataClient } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 const logSpacing = ' '.repeat(25)
 

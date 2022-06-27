@@ -1,7 +1,7 @@
 import { queueDeleteEventRole } from '@event-manager'
 import { GuildScheduledEvent } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventDelete',
@@ -9,8 +9,7 @@ export default new DiscordEvent({
     const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
 
     if (settings?.get('events')) {
-      queueDeleteEventRole(bot, event)
-        .catch((error: Error) => logger.error(error, error.stack))
+      queueDeleteEventRole(bot, event).catch(logger.error)
     }
   },
 })

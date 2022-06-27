@@ -1,4 +1,4 @@
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 import { ToggleCommand } from 'eris-boiler'
 import {
   handleGuildCreate,
@@ -14,11 +14,9 @@ export default new ToggleCommand({
     postHook: async (bot, { msg }): Promise<void> => {
       const settings = await bot.dbm.newQuery('guild').get(msg.guildID)
       if (settings?.get('events')) {
-        handleGuildCreate(bot, msg.guildID)
-          .catch((error: Error) => logger.error(error, error.stack))
+        handleGuildCreate(bot, msg.guildID).catch(logger.error)
       } else {
-        deleteAllEventRolesForGuild(bot, msg.guildID)
-          .catch((error: Error) => logger.error(error, error.stack))
+        deleteAllEventRolesForGuild(bot, msg.guildID).catch(logger.error)
       }
     },
   },

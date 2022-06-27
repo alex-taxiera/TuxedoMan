@@ -5,7 +5,7 @@ import {
   Uncached,
 } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUserRemove',
@@ -22,7 +22,7 @@ export default new DiscordEvent({
         event.guild.id,
         user.id,
         event.id,
-      ).catch((error: Error) => logger.error(error, error.stack))
+      ).catch(logger.error)
     }
   },
 })

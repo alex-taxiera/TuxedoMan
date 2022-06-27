@@ -2,7 +2,7 @@ import {
   Presence,
   Member,
 } from '@alex-taxiera/eris'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 import { DiscordEvent } from 'eris-boiler'
 import { computeActivity } from '@util/activity'
@@ -15,8 +15,7 @@ export default new DiscordEvent({
     const newActivity = computeActivity(member)
 
     if (oldActivity?.name !== newActivity?.name) {
-      checkMember(bot, member, newActivity)
-        .catch((error: Error) => logger.error(error, error.stack))
+      checkMember(bot, member, newActivity).catch(logger.error)
     }
   },
 })

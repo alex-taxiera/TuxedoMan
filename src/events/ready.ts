@@ -4,7 +4,7 @@ import {
   checkAllMembers,
 } from '@game-manager'
 import { DiscordEvent } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 export default new DiscordEvent({
   name: 'ready',
@@ -15,6 +15,6 @@ export default new DiscordEvent({
         await checkAllMembers(bot, guild)
       }),
       handleStartup(bot),
-    ]).catch((error: Error) => logger.error(error, error.stack))
+    ]).catch(logger.error)
   },
 })

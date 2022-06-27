@@ -419,7 +419,7 @@ export function getRoleFromRecord (
     return (guild.roles.get(gameRole.get('role')) as Role)
   }
 
-  gameRole.delete().catch((error: Error) => logger.error(error, error.stack))
+  gameRole.delete().catch(logger.error)
 }
 
 export async function setupMiscRoles (

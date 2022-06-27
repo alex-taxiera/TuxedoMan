@@ -1,7 +1,7 @@
 import { queueUpdateEventRole } from '@event-manager'
 import { GuildScheduledEvent } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUpdate',
@@ -9,8 +9,7 @@ export default new DiscordEvent({
     const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
 
     if (settings?.get('events')) {
-      queueUpdateEventRole(bot, event)
-        .catch((error: Error) => logger.error(error, error.stack))
+      queueUpdateEventRole(bot, event).catch(logger.error)
     }
   },
 })

@@ -1,6 +1,8 @@
 FROM node:16-alpine
 
-RUN apk update && apk add --no-cache git openssh
+ARG RUN_NUMBER
+ENV BUILD_NUMBER $RUN_NUMBER
+
 RUN mkdir -p /tuxedo
 WORKDIR /tuxedo
 

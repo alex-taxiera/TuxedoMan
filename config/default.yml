@@ -9,3 +9,4 @@ statusManagerOptions:
 
 NODE_ENV: development
 DB_CLIENT: pg
+BUILD_NUMBER: 0

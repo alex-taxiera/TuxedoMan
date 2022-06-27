@@ -1,5 +1,5 @@
 import { Guild } from '@alex-taxiera/eris'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 import { DiscordEvent } from 'eris-boiler'
 import { checkAllMembers } from '@game-manager'
@@ -11,6 +11,6 @@ export default new DiscordEvent({
     Promise.all([
       checkAllMembers(bot, guild),
       handleGuildCreate(bot, guild.id),
-    ]).catch((error: Error) => logger.error(error, error.stack))
+    ]).catch(logger.error)
   },
 })

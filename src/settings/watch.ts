@@ -1,6 +1,6 @@
 import { checkAllMembers } from '@game-manager'
 import { ToggleCommand } from 'eris-boiler'
-import { logger } from 'eris-boiler/util'
+import * as logger from '@util/logger'
 
 export default new ToggleCommand({
   name: 'watch',
@@ -9,8 +9,7 @@ export default new ToggleCommand({
   setting: 'watch',
   options: {
     postHook: (bot, { msg }): void => {
-      checkAllMembers(bot, msg.channel.guild)
-        .catch((error: Error) => logger.error(error, error.stack))
+      checkAllMembers(bot, msg.channel.guild).catch(logger.error)
     },
   },
 })
