@@ -10,7 +10,8 @@ import { vip as permission } from 'eris-boiler/permissions'
 
 export default new GuildCommand({
   name: 'track',
-  description: 'Track a game with a game role',
+  // eslint-disable-next-line max-len
+  description: 'Track a game with a game role (if your game name contains spaces, wrap it in quotations, eg. track "Star Citizen")',
   options: {
     permission,
     parameters: [
