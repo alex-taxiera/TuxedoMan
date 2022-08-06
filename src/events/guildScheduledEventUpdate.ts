@@ -1,5 +1,11 @@
-import { queueUpdateEventRole } from '@event-manager'
-import { GuildScheduledEvent } from '@alex-taxiera/eris'
+import {
+  queueDeleteEventRole,
+  queueUpdateEventRole,
+} from '@event-manager'
+import {
+  GuildScheduledEvent,
+  Constants,
+} from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
 import * as logger from '@util/logger'
 
@@ -9,7 +15,11 @@ export default new DiscordEvent({
     const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
 
     if (settings?.get('events')) {
-      queueUpdateEventRole(bot, event).catch(logger.error)
+      if (event.status === Constants.GuildScheduledEventStatus.COMPLETED) {
+        queueDeleteEventRole(bot, event).catch(logger.error)
+      } else {
+        queueUpdateEventRole(bot, event).catch(logger.error)
+      }
     }
   },
 })
