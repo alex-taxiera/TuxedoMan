@@ -11,7 +11,10 @@ import {
 import * as logger from '@util/logger'
 
 import { JobQueue } from '@util/job-queue'
-import { editRoles } from '@discord/roles'
+import {
+  addRole,
+  editRoles,
+} from '@discord/roles'
 import { computeActivity } from '@util/activity'
 
 export type CommonRoleType = 'playing' | 'streaming' | 'watching' | 'listening'
@@ -170,10 +173,6 @@ export async function checkMember (
   member: Member,
   activity: Pick<Activity, 'name' | 'type'> | undefined,
 ): Promise<void> {
-  if (member.bot) {
-    return
-  }
-
   const queueKey = `${member.guild.id}-${member.id}`
   let queue = multiQueue.get(queueKey)
   if (queue == null) {
@@ -223,6 +222,11 @@ export async function checkMember (
           }
           break
       }
+    }
+
+    if (member.roles.length === 0 && toAdd) {
+      await addRole(bot, member.guild.id, member.id, toAdd)
+      return
     }
 
     const roleIds = [ ...member.roles ]
