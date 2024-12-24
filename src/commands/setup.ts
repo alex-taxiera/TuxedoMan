@@ -1,3 +1,4 @@
+import { hasRolePermission } from '@discord/roles'
 import { setupMiscRoles } from '@game-manager'
 import {
   CommandResults,
@@ -12,6 +13,9 @@ export default new GuildCommand({
     permission,
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
+    if (!hasRolePermission(bot, msg.channel.guild.id)) {
+      return
+    }
     await setupMiscRoles(bot, msg.channel.guild)
 
     return 'Setup complete! Make sure the roles are in the order you prefer :)'

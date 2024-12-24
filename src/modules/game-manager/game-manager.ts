@@ -15,6 +15,7 @@ import { JobQueue } from '@util/job-queue'
 import {
   addRole,
   editRoles,
+  hasRolePermission,
 } from '@discord/roles'
 import { computeActivity } from '@util/activity'
 
@@ -64,7 +65,11 @@ async function createRole (
   bot: DataClient,
   guild: Guild,
   name: string,
-): Promise<Role> {
+): Promise<Role | undefined> {
+  if (!hasRolePermission(bot, guild.id)) {
+    return
+  }
+
   const role = await guild.createRole({
     name, hoist: true, permissions: 0,
   })
@@ -242,7 +247,11 @@ export async function checkMember (
       .map((tracked) => tracked.role)
 
     try {
-      await editRoles(member, roleIds.filter((id) => !trackedIds.includes(id)))
+      await editRoles(
+        bot,
+        member,
+        roleIds.filter((id) => !trackedIds.includes(id)),
+      )
     } catch (error) {
       if (error instanceof DiscordRESTError) {
         if (error.code === 50013) {
@@ -389,6 +398,10 @@ export async function addTrackedGame (
   let role = guild.roles.find((role) => role.name === roleName)
   if (role == null) {
     role = await createRole(bot, guild, roleName)
+  }
+
+  if (role == null) {
+    return
   }
 
   let gameRole = await getGameRoleByRoleId(bot, guild.id, role.id)

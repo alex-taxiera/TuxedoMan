@@ -5,10 +5,24 @@ import {
 import { DataClient } from 'eris-boiler'
 import * as logger from '@util/logger'
 
+export function hasRolePermission (
+  bot: DataClient,
+  guildId: string,
+): boolean {
+  return bot.guilds.get(guildId)
+    ?.permissionsOf(bot.user.id)
+    .has('manageRoles') ?? false
+}
+
 export async function editRoles (
+  bot: DataClient,
   member: Member,
   roleIds: string[],
 ): Promise<void> {
+  if (!hasRolePermission(bot, member.guild.id)) {
+    return
+  }
+
   if (
     member.roles.every((role) => roleIds.includes(role)) &&
     member.roles.length === roleIds.length
@@ -40,6 +54,10 @@ export async function removeRole (
   memberId: string,
   roleId: string,
 ): Promise<void> {
+  if (!hasRolePermission(bot, guildId)) {
+    return
+  }
+
   logger.info(`REMOVE ROLE ${roleId} FROM ${memberId} IN ${guildId}`)
   return await bot.removeGuildMemberRole(guildId, memberId, roleId)
 }
@@ -50,6 +68,10 @@ export async function addRole (
   memberId: string,
   roleId: string,
 ): Promise<void> {
+  if (!hasRolePermission(bot, guildId)) {
+    return
+  }
+
   logger.info(`ADD ROLE ${roleId} TO ${memberId} IN ${guildId}`)
   return await bot.addGuildMemberRole(guildId, memberId, roleId)
 }

@@ -1,3 +1,4 @@
+import { hasRolePermission } from '@discord/roles'
 import {
   getGameByName,
   addTrackedGame,
@@ -20,6 +21,12 @@ export default new GuildCommand({
     ],
   },
   run: async (bot, { params, msg }): Promise<CommandResults> => {
+    const guild = msg.channel.guild
+
+    if (!hasRolePermission(bot, guild.id)) {
+      return
+    }
+
     const [ gameName, ...rest ] = params
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const gameNameNonNull = gameName!
@@ -27,7 +34,6 @@ export default new GuildCommand({
     if (roleName.length > 100) {
       return 'Role name is too long!'
     }
-    const guild = msg.channel.guild
 
     const game = await getGameByName(bot, guild.id, gameNameNonNull)
     if (game) {

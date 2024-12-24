@@ -1,3 +1,4 @@
+import { hasRolePermission } from '@discord/roles'
 import {
   getGameByName,
   removeTrackedGame,
@@ -16,8 +17,13 @@ export default new GuildCommand({
     permission,
   },
   run: async (bot, { msg, params }): Promise<CommandResults> => {
-    const gameName = params.join(' ')
     const guild = msg.channel.guild
+
+    if (!hasRolePermission(bot, guild.id)) {
+      return
+    }
+
+    const gameName = params.join(' ')
 
     const game = await getGameByName(bot, guild.id, gameName)
     if (!game) {
