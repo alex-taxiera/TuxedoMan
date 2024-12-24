@@ -14,7 +14,7 @@ export default new GuildCommand({
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
     if (!hasRolePermission(bot, msg.channel.guild.id)) {
-      return
+      return 'I need the `Manage Roles` permission to do this!'
     }
     await setupMiscRoles(bot, msg.channel.guild)
 

@@ -24,7 +24,7 @@ export default new GuildCommand({
     const guild = msg.channel.guild
 
     if (!hasRolePermission(bot, guild.id)) {
-      return
+      return 'I need the `Manage Roles` permission to do this!'
     }
 
     const [ gameName, ...rest ] = params
