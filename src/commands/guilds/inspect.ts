@@ -21,17 +21,24 @@ export default new GuildCommand({
     const invites = await guild.getInvites().catch(() => null)
     const owner = await bot.getRESTUser(guild.ownerID).catch(() => null)
 
-    const newInvite = await bot.createChannelInvite(
-      guild.systemChannelID ??
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
-      guild.channels.values().next().value!.id,
-    // eslint-disable-next-line no-console
-    ).catch(console.error)
+    const onlineMembers = guild.members
+      .filter((member) => member.status === 'online')
+      .map((member) => member.username)
 
-    if (newInvite) {
-      // eslint-disable-next-line no-console
-      console.log(`https://discord.gg/${newInvite.code}`)
-    }
+    // eslint-disable-next-line no-console
+    console.log('onlineMembers :', onlineMembers)
+
+    // const newInvite = await bot.createChannelInvite(
+    //   guild.systemChannelID ??
+    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
+    //   guild.channels.values().next().value!.id,
+    // // eslint-disable-next-line no-console
+    // ).catch(console.error)
+
+    // if (newInvite) {
+    //   // eslint-disable-next-line no-console
+    //   console.log(`https://discord.gg/${newInvite.code}`)
+    // }
 
     const fields = [ {
       name: 'Member Count',
