@@ -21,7 +21,17 @@ export default new GuildCommand({
     const invites = await guild.getInvites().catch(() => null)
     const owner = await bot.getRESTUser(guild.ownerID).catch(() => null)
 
-    const fields = []
+    const newInvite = await bot.createChannelInvite(guild.systemChannelID ?? guild.channels.values().next().value!.id).catch(console.error)
+
+    if (newInvite) {
+      console.log(`https://discord.gg/${newInvite.code}`)
+    }
+
+    const fields = [{
+      name: 'Member Count',
+      value: guild.memberCount.toString(),
+    }]
+
     if (owner) {
       fields.push({
         name: 'Owner',
