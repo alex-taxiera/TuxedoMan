@@ -1,4 +1,4 @@
-import {
+import type {
   Activity,
   Presence,
 } from '@alex-taxiera/eris'

@@ -48,13 +48,13 @@ abstract class AbstractJobQueue {
       } = this.currentJob
 
       job()
-        .then((data) => handlePromise.resolve({
+        .then((data) => { handlePromise.resolve({
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           id, priority, data,
-        }))
-        .catch((error: Error) => handlePromise.reject({
+        }); })
+        .catch((error: Error) => { handlePromise.reject({
           id, priority, error,
-        }))
+        }); })
         .finally(() => {
           this.currentJob = undefined
           this.run()
@@ -119,11 +119,11 @@ export class PriorityJobQueue extends AbstractJobQueue {
       const queue = this.queue[priority - 1]
 
       if (!queue) {
-        return reject(RangeError(
+        reject(RangeError(
           `PRIORITY OUT OF RANGE - EXPECTED VALUE FROM 1 TO ${
             this.queue.length
           }`,
-        ))
+        )); return;
       }
 
       queue.push({

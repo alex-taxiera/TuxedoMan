@@ -1,323 +1,302 @@
+import type { DatabaseObject, DataClient } from "eris-boiler";
 import {
-  DatabaseObject,
-  DataClient,
-} from 'eris-boiler'
-import {
-  GuildScheduledEvent,
-  Guild,
-  Role,
+  type GuildScheduledEvent,
+  type Guild,
+  type Role,
   DiscordRESTError,
-} from '@alex-taxiera/eris'
-import { PriorityJobQueue } from '@util/job-queue'
-import {
-  addRole,
-  removeRole,
-} from '@discord/roles'
+} from "@alex-taxiera/eris";
+import { PriorityJobQueue } from "@util/job-queue";
+import { addRole, removeRole } from "@discord/roles";
+import db from "@util/db";
+import type { EventRole } from "knex/types/tables";
 
-export interface EventRole {
-  id: string
-  role: string
-  guild: string
-}
+const multiQueue = new Map<string, PriorityJobQueue>();
 
-const multiQueue = new Map<string, PriorityJobQueue>()
-
-function getQueue (eventId: string): PriorityJobQueue {
+function getQueue(eventId: string): PriorityJobQueue {
   if (!multiQueue.has(eventId)) {
-    multiQueue.set(eventId, new PriorityJobQueue(3))
+    multiQueue.set(eventId, new PriorityJobQueue(3));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return multiQueue.get(eventId)!
+  return multiQueue.get(eventId)!;
 }
 
-async function getAllEventRoleDboForGuild (
+async function getAllEventRoleDboForGuild(
   bot: DataClient,
-  guildId: string,
-): Promise<DatabaseObject[]> {
-  const dbos = await bot.dbm.newQuery('eventRole')
-    .equalTo('guild', guildId)
-    .find()
-
-  return dbos
+  guildId: string
+): Promise<EventRole[]> {
+  return await db("eventRole").where("guild", guildId);
 }
 
-async function createRoleForEvent (
+async function createRoleForEvent(
   bot: DataClient,
-  event: GuildScheduledEvent,
+  event: GuildScheduledEvent
 ): Promise<Role> {
   return await bot.createRole(event.guild.id, {
     name: event.name,
     permissions: 0,
     mentionable: true,
-  })
+  });
 }
 
-async function deleteRoleAndIgnoreUnknown (
+async function deleteRoleAndIgnoreUnknown(
   bot: DataClient,
   guildId: string,
-  roleId: string,
+  roleId: string
 ): Promise<void> {
   await bot.deleteRole(guildId, roleId).catch((error) => {
     if (!(error instanceof DiscordRESTError) || error.code !== 10011) {
-      throw error
+      throw error;
     }
-  })
+  });
 }
 
-async function getEventRoleDbo (
-  bot: DataClient,
+async function getEventRole(
+  _: DataClient,
   guildId: string,
-  eventId: string,
-): Promise<DatabaseObject | undefined> {
-  const [ dbo ] = await bot.dbm.newQuery('eventRole')
-    .equalTo('guild', guildId)
-    .equalTo('event', eventId)
-    .limit(1)
-    .find()
-
-  return dbo
-}
-
-async function getEventRole (
-  bot: DataClient,
-  guildId: string,
-  roleId: string,
+  eventId: string
 ): Promise<EventRole | undefined> {
-  const dbo = await getEventRoleDbo(bot, guildId, roleId)
-
-  if (!dbo) {
-    return undefined
-  }
-
-  return dbo.toJSON() as EventRole
+  return await db("eventRole")
+    .where({
+      guild: guildId,
+      event: eventId,
+    })
+    .first();
 }
 
-export async function deleteAllEventRolesForGuild (
-  bot: DataClient,
-  guildId: string,
+export async function deleteAllEventRolesForGuild(
+  _: DataClient,
+  guildId: string
 ): Promise<void> {
-  const dbos = await getAllEventRoleDboForGuild(bot, guildId)
-
-  await Promise.all(
-    dbos.map(async (dbo) => {
-      await deleteRoleAndIgnoreUnknown(bot, guildId, dbo.get('role'))
-      await dbo.delete()
-    }),
-  )
+  await db("eventRole").where("guild", guildId).delete();
 }
 
-async function createEventRole (
+async function createEventRole(
   bot: DataClient,
-  event: GuildScheduledEvent,
-): Promise<DatabaseObject> {
-  const role = await createRoleForEvent(bot, event)
+  event: GuildScheduledEvent
+): Promise<EventRole> {
+  const role = await createRoleForEvent(bot, event);
 
-  return await bot.dbm.newObject('eventRole', {
+  return await db("eventRole").insert({
     guild: event.guild.id,
     role: role.id,
     event: event.id,
-  }).save()
+  });
 }
 
-export async function queueCreateEventRole (
+export async function queueCreateEventRole(
   bot: DataClient,
-  event: GuildScheduledEvent,
-): Promise<DatabaseObject> {
+  event: GuildScheduledEvent
+): Promise<EventRole> {
   const { data } = await getQueue(event.id).push(
     async () => await createEventRole(bot, event),
-    3,
-  )
+    3
+  );
 
-  return data
+  return data;
 }
 
-export async function queueUpdateEventRole (
+export async function queueUpdateEventRole(
   bot: DataClient,
-  event: GuildScheduledEvent,
+  event: GuildScheduledEvent
 ): Promise<void> {
   await getQueue(event.id).push(async () => {
-    let dbo = await getEventRoleDbo(bot, event.guild.id, event.id)
+    let dbo = await getEventRole(bot, event.guild.id, event.id);
 
     if (!dbo) {
-      dbo = await createEventRole(bot, event)
+      dbo = await createEventRole(bot, event);
     }
 
-    await bot.editRole(event.guild.id, dbo.get('role'), {
+    await bot.editRole(event.guild.id, dbo.role, {
       name: event.name,
-    })
-  })
+    });
+  });
 }
 
-export async function queueDeleteEventRole (
+export async function queueDeleteEventRole(
   bot: DataClient,
-  event: GuildScheduledEvent,
+  event: GuildScheduledEvent
 ): Promise<void> {
   await getQueue(event.id).push(async () => {
-    const dbo = await getEventRoleDbo(bot, event.guild.id, event.id)
+    const dbo = await getEventRole(bot, event.guild.id, event.id);
 
     if (!dbo) {
-      return
+      return;
     }
 
-    await dbo.delete()
-    await deleteRoleAndIgnoreUnknown(bot, event.guild.id, dbo.get('role'))
-  }, 3)
+    await db("eventRole").where("id", dbo.id).delete();
+    await deleteRoleAndIgnoreUnknown(bot, event.guild.id, dbo.role);
+  }, 3);
 }
 
-export async function handleGuildCreate (
+export async function handleGuildCreate(
   bot: DataClient,
-  guildId: string,
+  guildId: string
 ): Promise<void> {
-  const oldDbos = await getAllEventRoleDboForGuild(bot, guildId)
-  await Promise.all(oldDbos.map(async (dbo) => await dbo.delete()))
+  const oldDbos = await getAllEventRoleDboForGuild(bot, guildId);
+  await Promise.all(
+    oldDbos.map(async (dbo) => {
+      await db("eventRole").where("id", dbo.id).delete();
+    })
+  );
 
-  const settings = await bot.dbm.newQuery('guild').get(guildId)
+  const settings = await bot.dbm.newQuery("guild").get(guildId);
 
-  if (!settings?.get('events')) {
-    return
+  if (!settings?.get("events")) {
+    return;
   }
 
-  const currentEvents = await bot.getGuildScheduledEvents(guildId)
+  const currentEvents = await bot.getGuildScheduledEvents(guildId);
   await Promise.all(
     currentEvents.map(async (event) => {
-      const dbo = await createEventRole(bot, event)
+      const dbo = await createEventRole(bot, event);
 
-      const users = await event.getUsers()
+      const users = await event.getUsers();
       await Promise.all(
-        users.map(
-          async ({ user }) =>
-            await addRole(bot, guildId, user.id, dbo.get('role')),
-        ),
-      )
-    }),
-  )
+        users.map(async ({ user }) => {
+          await addRole(bot, guildId, user.id, dbo.role);
+        })
+      );
+    })
+  );
 }
 
-export async function handleStartup (
-  bot: DataClient,
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export async function handleStartup(
+  bot: DataClient
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 ): Promise<void[]> {
-  return await Promise.all(bot.guilds.map(async (guild) => {
-    const settings = await bot.dbm.newQuery('guild').get(guild.id)
-    const existingDbos = await getAllEventRoleDboForGuild(bot, guild.id)
+  return await Promise.all(
+    bot.guilds.map(async (guild) => {
+      const settings = await bot.dbm.newQuery("guild").get(guild.id);
+      const existingDbos = await getAllEventRoleDboForGuild(bot, guild.id);
 
-    if (!settings?.get('events')) {
-      if (existingDbos.length > 0) {
-        await Promise.all(
-          existingDbos.map(async (dbo) => {
-            await deleteRoleAndIgnoreUnknown(bot, guild.id, dbo.get('role'))
-            await dbo.delete()
-          }),
-        )
+      if (!settings?.get("events")) {
+        if (existingDbos.length > 0) {
+          await Promise.all(
+            existingDbos.map(async (dbo) => {
+              await deleteRoleAndIgnoreUnknown(bot, guild.id, dbo.role);
+              await db("eventRole").where("id", dbo.id).delete();
+            })
+          );
+        }
+        return;
       }
-      return
-    }
 
-    const currentEvents = await bot.getGuildScheduledEvents(guild.id)
+      const currentEvents = await bot.getGuildScheduledEvents(guild.id);
 
-    await Promise.all([
-      ...currentEvents.map(async (event) => {
-        if (!existingDbos.some((dbo) => dbo.get('event') === event.id)) {
-          const [ dbo, users ] = await Promise.all([
-            createEventRole(bot, event),
-            event.getUsers(),
-          ])
+      await Promise.all([
+        ...currentEvents.map(async (event) => {
+          if (!existingDbos.some((dbo) => dbo.event === event.id)) {
+            const [dbo, users] = await Promise.all([
+              createEventRole(bot, event),
+              event.getUsers(),
+            ]);
 
-          await Promise.all(users.map(async ({ user }) =>
-            await addRole(bot, guild.id, user.id, dbo.get('role')),
-          ))
-        }
-      }),
-      ...existingDbos.map(async (dbo) => {
-        const roleId = dbo.get('role') as string
-        const eventId = dbo.get('event') as string
+            await Promise.all(
+              users.map(async ({ user }) => {
+                await addRole(bot, guild.id, user.id, dbo.role);
+              })
+            );
+          }
+        }),
+        ...existingDbos.map(async (dbo) => {
+          const { role: roleId, event: eventId } = dbo;
 
-        const event = currentEvents.find((event) => event.id === eventId)
+          const event = currentEvents.find((event) => event.id === eventId);
 
-        if (event) {
-          const membersWithRole = guild.members
-            .filter((member) => member.roles.includes(roleId))
-          const membersWhoNeedRole = await event.getUsers()
+          if (event) {
+            const membersWithRole = guild.members.filter((member) =>
+              member.roles.includes(roleId)
+            );
+            const membersWhoNeedRole = await event.getUsers();
 
-          await Promise.all([
-            bot.editRole(guild.id, roleId, {
-              name: event.name,
-            }),
-            ...membersWithRole.filter((member) =>
-              !membersWhoNeedRole.some(({ user }) => user.id === member.id),
-            ).map(async ({ id: memberId }) =>
-              await bot.removeGuildMemberRole(guild.id, memberId, roleId),
-            ),
-            ...membersWhoNeedRole.filter(({ user }) =>
-              !membersWithRole.some((member) => user.id === member.id),
-            ).map(async ({ user }) =>
-              await bot.addGuildMemberRole(guild.id, user.id, roleId),
-            ),
-          ])
-        } else {
-          await deleteRoleAndIgnoreUnknown(bot, guild.id, dbo.get('role'))
-          await dbo.delete()
-        }
-      }),
-    ])
-  }),
-  )
+            await Promise.all([
+              bot.editRole(guild.id, roleId, {
+                name: event.name,
+              }),
+              ...membersWithRole
+                .filter(
+                  (member) =>
+                    !membersWhoNeedRole.some(
+                      ({ user }) => user.id === member.id
+                    )
+                )
+                .map(async ({ id: memberId }) => {
+                  await bot.removeGuildMemberRole(guild.id, memberId, roleId);
+                }),
+              ...membersWhoNeedRole
+                .filter(
+                  ({ user }) =>
+                    !membersWithRole.some((member) => user.id === member.id)
+                )
+                .map(async ({ user }) => {
+                  await bot.addGuildMemberRole(guild.id, user.id, roleId);
+                }),
+            ]);
+          } else {
+            await deleteRoleAndIgnoreUnknown(bot, guild.id, dbo.role);
+            await db("eventRole").where("id", dbo.id).delete();
+          }
+        }),
+      ]);
+    })
+  );
 }
 
-export async function handleEventRoleDeleted (
+export async function handleEventRoleDeleted(
   bot: DataClient,
   guild: Guild,
-  role: Role,
+  role: Role
 ): Promise<void> {
-  const settings = await bot.dbm.newQuery('guild').get(guild.id)
+  // const settings = await bot.dbm.newQuery("guild").get(guild.id);
+  const settings = await db("guild").where("id", guild.id).first();
 
-  if (!settings?.get('events')) {
-    return
+  if (!settings?.events) {
+    return;
   }
 
-  const dbo = await getEventRoleDbo(bot, guild.id, role.id)
+  const dbo = await getEventRole(bot, guild.id, role.id);
 
   if (dbo) {
     const newRole = await createRoleForEvent(
       bot,
-      await guild.getRESTScheduledEvent(dbo.get('event')),
-    )
+      await guild.getRESTScheduledEvent(dbo.event)
+    );
 
-    await dbo.save({ role: newRole.id })
+    await db("eventRole").where("id", dbo.id).update({ role: newRole.id });
   }
 }
 
-export async function addUserToEventRole (
+export async function addUserToEventRole(
   bot: DataClient,
   guildId: string,
   memberId: string,
-  eventId: string,
+  eventId: string
 ): Promise<void> {
   await getQueue(eventId).push(async () => {
-    const eventRole = await getEventRole(bot, guildId, eventId)
+    const eventRole = await getEventRole(bot, guildId, eventId);
 
     if (!eventRole) {
-      return
+      return;
     }
 
-    await bot.addGuildMemberRole(guildId, memberId, eventRole.role)
-  }, 2)
+    await bot.addGuildMemberRole(guildId, memberId, eventRole.role);
+  }, 2);
 }
 
-export async function removeUserFromEventRole (
+export async function removeUserFromEventRole(
   bot: DataClient,
   guildId: string,
   memberId: string,
-  eventId: string,
+  eventId: string
 ): Promise<void> {
   await getQueue(eventId).push(async () => {
-    const eventRole = await getEventRole(bot, guildId, eventId)
+    const eventRole = await getEventRole(bot, guildId, eventId);
 
     if (!eventRole) {
-      return
+      return;
     }
 
-    await removeRole(bot, guildId, memberId, eventRole.role)
-  }, 2)
+    await removeRole(bot, guildId, memberId, eventRole.role);
+  }, 2);
 }

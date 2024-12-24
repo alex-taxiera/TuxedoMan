@@ -1,8 +1,8 @@
-import {
+import type {
   Collection,
   Member,
 } from '@alex-taxiera/eris'
-import { DataClient } from 'eris-boiler'
+import type { DataClient } from 'eris-boiler'
 import * as logger from '@util/logger'
 
 export async function editRoles (
@@ -41,7 +41,7 @@ export async function removeRole (
   roleId: string,
 ): Promise<void> {
   logger.info(`REMOVE ROLE ${roleId} FROM ${memberId} IN ${guildId}`)
-  return await bot.removeGuildMemberRole(guildId, memberId, roleId)
+  await bot.removeGuildMemberRole(guildId, memberId, roleId);
 }
 
 export async function addRole (
@@ -51,7 +51,7 @@ export async function addRole (
   roleId: string,
 ): Promise<void> {
   logger.info(`ADD ROLE ${roleId} TO ${memberId} IN ${guildId}`)
-  return await bot.addGuildMemberRole(guildId, memberId, roleId)
+  await bot.addGuildMemberRole(guildId, memberId, roleId);
 }
 
 export function countMembersWithRole (

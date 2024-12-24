@@ -1,6 +1,6 @@
 import { setupMiscRoles } from '@game-manager'
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 import { vip as permission } from 'eris-boiler/permissions'

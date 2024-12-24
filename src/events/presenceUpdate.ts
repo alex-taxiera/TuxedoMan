@@ -1,4 +1,4 @@
-import {
+import type {
   Presence,
   Member,
 } from '@alex-taxiera/eris'

@@ -1,5 +1,5 @@
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 import * as logger from 'eris-boiler/util/logger'

@@ -1,4 +1,4 @@
-import {
+import type {
   Guild,
   Role,
 } from '@alex-taxiera/eris'

@@ -1,6 +1,6 @@
 import { getRolesForGuild } from '@game-manager'
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 

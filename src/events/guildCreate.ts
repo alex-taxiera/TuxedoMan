@@ -1,4 +1,4 @@
-import { Guild } from '@alex-taxiera/eris'
+import type { Guild } from '@alex-taxiera/eris'
 import * as logger from '@util/logger'
 
 import { DiscordEvent } from 'eris-boiler'

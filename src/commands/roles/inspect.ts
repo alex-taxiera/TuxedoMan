@@ -1,5 +1,5 @@
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 import { countMembersWithRole } from '@discord/roles'

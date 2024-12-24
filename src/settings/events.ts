@@ -4,6 +4,7 @@ import {
   handleGuildCreate,
   deleteAllEventRolesForGuild,
 } from '@event-manager'
+import db from '@util/db';
 
 export default new ToggleCommand({
   name: 'events',
@@ -12,8 +13,10 @@ export default new ToggleCommand({
   setting: 'events',
   options: {
     postHook: async (bot, { msg }): Promise<void> => {
-      const settings = await bot.dbm.newQuery('guild').get(msg.guildID)
-      if (settings?.get('events')) {
+      const settings = await db("guild")
+      .where("id", msg.guildID)
+      .first();
+      if (settings?.events) {
         handleGuildCreate(bot, msg.guildID).catch(logger.error)
       } else {
         deleteAllEventRolesForGuild(bot, msg.guildID).catch(logger.error)

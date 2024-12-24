@@ -3,18 +3,21 @@ import {
   queueUpdateEventRole,
 } from '@event-manager'
 import {
-  GuildScheduledEvent,
+  type GuildScheduledEvent,
   Constants,
 } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
 import * as logger from '@util/logger'
+import db from '@util/db'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUpdate',
   run: async (bot, event: GuildScheduledEvent): Promise<void> => {
-    const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
+    const settings = await db("guild")
+      .where("id", event.guild.id)
+      .first();
 
-    if (settings?.get('events')) {
+    if (settings?.events) {
       if (event.status === Constants.GuildScheduledEventStatus.COMPLETED) {
         queueDeleteEventRole(bot, event).catch(logger.error)
       } else {

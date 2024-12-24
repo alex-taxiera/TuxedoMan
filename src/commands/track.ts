@@ -3,7 +3,7 @@ import {
   addTrackedGame,
 } from '@game-manager'
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 import { vip as permission } from 'eris-boiler/permissions'
@@ -27,7 +27,7 @@ export default new GuildCommand({
     if (roleName.length > 100) {
       return 'Role name is too long!'
     }
-    const guild = msg.channel.guild
+    const {guild} = msg.channel
 
     const game = await getGameByName(bot, guild.id, gameNameNonNull)
     if (game) {

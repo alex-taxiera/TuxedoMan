@@ -1,15 +1,18 @@
-import { queueCreateEventRole } from '@event-manager'
-import { GuildScheduledEvent } from '@alex-taxiera/eris'
-import { DiscordEvent } from 'eris-boiler'
-import * as logger from '@util/logger'
+import { queueCreateEventRole } from "@event-manager";
+import type { GuildScheduledEvent } from "@alex-taxiera/eris";
+import { DiscordEvent } from "eris-boiler";
+import * as logger from "@util/logger";
+import db from "@util/db";
 
 export default new DiscordEvent({
-  name: 'guildScheduledEventCreate',
+  name: "guildScheduledEventCreate",
   run: async (bot, event: GuildScheduledEvent): Promise<void> => {
-    const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
+    const settings = await db("guild")
+      .where("id", event.guild.id)
+      .first();
 
-    if (settings?.get('events')) {
-      queueCreateEventRole(bot, event).catch(logger.error)
+    if (settings?.events) {
+      queueCreateEventRole(bot, event).catch(logger.error);
     }
   },
-})
+});

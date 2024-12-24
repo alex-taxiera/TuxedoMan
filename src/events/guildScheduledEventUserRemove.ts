@@ -1,11 +1,12 @@
 import { removeUserFromEventRole } from '@event-manager'
-import {
+import type {
   PossiblyUncachedGuildScheduledEvent,
   User,
   Uncached,
 } from '@alex-taxiera/eris'
 import { DiscordEvent } from 'eris-boiler'
 import * as logger from '@util/logger'
+import db from '@util/db'
 
 export default new DiscordEvent({
   name: 'guildScheduledEventUserRemove',
@@ -14,9 +15,11 @@ export default new DiscordEvent({
     event: PossiblyUncachedGuildScheduledEvent,
     user: User | Uncached,
   ): Promise<void> => {
-    const settings = await bot.dbm.newQuery('guild').get(event.guild.id)
+    const settings = await db("guild")
+      .where("id", event.guild.id)
+      .first();
 
-    if (settings?.get('events')) {
+    if (settings?.events) {
       removeUserFromEventRole(
         bot,
         event.guild.id,

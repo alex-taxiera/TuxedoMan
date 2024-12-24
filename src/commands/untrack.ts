@@ -3,7 +3,7 @@ import {
   removeTrackedGame,
 } from '@game-manager'
 import {
-  CommandResults,
+  type CommandResults,
   GuildCommand,
 } from 'eris-boiler'
 import { vip as permission } from 'eris-boiler/permissions'
@@ -17,7 +17,7 @@ export default new GuildCommand({
   },
   run: async (bot, { msg, params }): Promise<CommandResults> => {
     const gameName = params.join(' ')
-    const guild = msg.channel.guild
+    const {guild} = msg.channel
 
     const game = await getGameByName(bot, guild.id, gameName)
     if (!game) {
