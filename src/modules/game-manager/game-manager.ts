@@ -3,6 +3,7 @@ import {
   Guild,
   Role,
   Activity,
+  DiscordRESTError,
 } from '@alex-taxiera/eris'
 import {
   DatabaseObject,
@@ -240,7 +241,23 @@ export async function checkMember (
     ].filter((x) => x != null && x.role !== toAdd))
       .map((tracked) => tracked.role)
 
-    await editRoles(member, roleIds.filter((id) => !trackedIds.includes(id)))
+    try {
+      await editRoles(member, roleIds.filter((id) => !trackedIds.includes(id)))
+    } catch (error) {
+      if (error instanceof DiscordRESTError) {
+        if (error.code === 50013) {
+          logger.warn(
+            `Missing permissions to edit roles for ${
+              member.id
+            } in ${
+              member.guild.id
+            }`,
+          )
+          const permissions = member.guild.permissionsOf(bot.user.id)
+          logger.info(`Bot permissions: ${JSON.stringify(permissions.json)}`)
+        }
+      }
+    }
   }).catch((res: { error: Error }) => {
     throw res.error
   })

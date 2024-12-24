@@ -28,18 +28,6 @@ export default new GuildCommand({
     // eslint-disable-next-line no-console
     console.log('onlineMembers :', onlineMembers)
 
-    // const newInvite = await bot.createChannelInvite(
-    //   guild.systemChannelID ??
-    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unnecessary-type-assertion
-    //   guild.channels.values().next().value!.id,
-    // // eslint-disable-next-line no-console
-    // ).catch(console.error)
-
-    // if (newInvite) {
-    //   // eslint-disable-next-line no-console
-    //   console.log(`https://discord.gg/${newInvite.code}`)
-    // }
-
     const fields = [ {
       name: 'Member Count',
       value: guild.memberCount.toString(),
