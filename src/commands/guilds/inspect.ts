@@ -22,7 +22,7 @@ export default new GuildCommand({
     const owner = await bot.getRESTUser(guild.ownerID).catch(() => null)
 
     const onlineMembers = guild.members
-      .filter((member) => member.status === 'online')
+      .filter((member) => !member.bot && member.status === 'online')
       .map((member) => member.username)
 
     // eslint-disable-next-line no-console
