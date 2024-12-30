@@ -19,10 +19,6 @@ export async function editRoles (
   member: Member,
   roleIds: string[],
 ): Promise<void> {
-  if (!hasRolePermission(bot, member.guild.id)) {
-    return
-  }
-
   if (
     member.roles.every((role) => roleIds.includes(role)) &&
     member.roles.length === roleIds.length
@@ -42,6 +38,11 @@ export async function editRoles (
 
   logger.info(`${metaText}${removeText}${andText}${addText}`)
 
+  if (!hasRolePermission(bot, member.guild.id)) {
+    logger.warn('FAILED TO UPDATE ROLES: MISSING MANAGE ROLES')
+    return
+  }
+
   await member.edit({
     roles: roleIds,
   })
@@ -54,11 +55,13 @@ export async function removeRole (
   memberId: string,
   roleId: string,
 ): Promise<void> {
+  logger.info(`REMOVE ROLE ${roleId} FROM ${memberId} IN ${guildId}`)
+
   if (!hasRolePermission(bot, guildId)) {
+    logger.warn('FAILED TO REMOVE ROLE: MISSING MANAGE ROLES')
     return
   }
 
-  logger.info(`REMOVE ROLE ${roleId} FROM ${memberId} IN ${guildId}`)
   return await bot.removeGuildMemberRole(guildId, memberId, roleId)
 }
 
@@ -68,11 +71,13 @@ export async function addRole (
   memberId: string,
   roleId: string,
 ): Promise<void> {
+  logger.info(`ADD ROLE ${roleId} TO ${memberId} IN ${guildId}`)
+
   if (!hasRolePermission(bot, guildId)) {
+    logger.warn('FAILED TO ADD ROLE: MISSING MANAGE ROLES')
     return
   }
 
-  logger.info(`ADD ROLE ${roleId} TO ${memberId} IN ${guildId}`)
   return await bot.addGuildMemberRole(guildId, memberId, roleId)
 }
 

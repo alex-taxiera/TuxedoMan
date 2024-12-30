@@ -5,6 +5,7 @@ import {
   GuildCommand,
 } from 'eris-boiler'
 import { vip as permission } from 'eris-boiler/permissions'
+import * as logger from '@util/logger'
 
 export default new GuildCommand({
   name: 'setup',
@@ -14,6 +15,9 @@ export default new GuildCommand({
   },
   run: async (bot, { msg }): Promise<CommandResults> => {
     if (!hasRolePermission(bot, msg.channel.guild.id)) {
+      logger.warn(
+        `Missing Manage Roles permission in guild ${msg.channel.guild.id}`,
+      )
       return 'I need the `Manage Roles` permission to do this!'
     }
     await setupMiscRoles(bot, msg.channel.guild)

@@ -3,6 +3,8 @@ import {
   getGameByName,
   addTrackedGame,
 } from '@game-manager'
+import * as logger from '@util/logger'
+
 import {
   CommandResults,
   GuildCommand,
@@ -24,6 +26,9 @@ export default new GuildCommand({
     const guild = msg.channel.guild
 
     if (!hasRolePermission(bot, guild.id)) {
+      logger.warn(
+        `Missing Manage Roles permission in guild ${guild.id}`,
+      )
       return 'I need the `Manage Roles` permission to do this!'
     }
 

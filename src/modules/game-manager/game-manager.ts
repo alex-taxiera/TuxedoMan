@@ -67,6 +67,7 @@ async function createRole (
   name: string,
 ): Promise<Role | undefined> {
   if (!hasRolePermission(bot, guild.id)) {
+    logger.warn('FAILED TO CREATE ROLE: MISSING MANAGE ROLES')
     return
   }
 
